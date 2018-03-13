@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mySql interface DB -->
+<mapper namespace="log">
+
+	<insert id="insertLog" parameterType="vo.LogVO">
+		insert into batchjoblog
+		(
+			batchJobId, workJob, batchDt, status, batchDesc
+		)
+		values
+		(
+			#{batchJobId}, #{workJob}, now(), #{status}, #{batchDesc}
+		)
+		on duplicate key update batchDt = now(), status = #{status}, batchDesc = #{batchDesc}
+	</insert>
+	
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8">
+		<attributes>
+			<attribute name="owner.project.facets" value="java"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.17.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-codec-1.9.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-logging-1.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/httpclient-4.5.2.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/httpcore-4.4.4.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jetty-jndi-9.2.10.v20150310.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jetty-util-9.4.0.M0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/json-simple-1.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/junit-4.11.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/jxl.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mybatis-3.4.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mybatis-spring-1.0.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/mysql-connector-java-5.1.44-bin.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/naming-java-0.8.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ojdbc14.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ojdbc6_g.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/oracle.ucm.fa_client_11.1.1.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/oracle.webservices.standalone.client.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/org.eclipse.jetty.util.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/OrganizationService.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/sqljdbc4-4.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/sqljdbc42.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/weblogic.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wlclient.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/wsclient_extended.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/opencsv-3.0.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/commons-io-2.5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ImportPublicService.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/guava-23.6-jre.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/ResourceServiceV2_dlive.jar"/>
+	<classpathentry kind="lib" path="lib/ActivityService.jar"/>
+	<classpathentry kind="lib" path="lib/SalesPartiesAccountService.jar"/>
+	<classpathentry kind="lib" path="lib/OpportunityService.jar"/>
+	<classpathentry kind="lib" path="lib/LeadIntegrationService.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
