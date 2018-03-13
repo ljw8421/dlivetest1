@@ -40,5 +40,6 @@
 	<classpathentry kind="lib" path="lib/SalesPartiesAccountService.jar"/>
 	<classpathentry kind="lib" path="lib/OpportunityService.jar"/>
 	<classpathentry kind="lib" path="lib/LeadIntegrationService.jar"/>
+	<classpathentry kind="lib" path="lib/ServiceRequestService.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
