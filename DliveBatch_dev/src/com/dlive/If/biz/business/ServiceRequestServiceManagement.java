@@ -25,7 +25,9 @@ import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceReq
 import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequestService;
 import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequestService_Service;
 
+import util.CommonUtil;
 import vo.ActivityVO;
+import vo.LeadVO;
 import vo.ServiceRequestServiceVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
@@ -38,6 +40,7 @@ public class ServiceRequestServiceManagement {
 	
 	SqlSession session;
 	private String batchJobId;
+	CommonUtil commonUtil;
 	
 	private static Logger logger = Logger.getLogger(ServiceRequestServiceManagement.class);
 	
@@ -81,12 +84,39 @@ public class ServiceRequestServiceManagement {
 		logger.info("Start SalesCloud GetServiceRequestService");
 		
 		String items[] = {
-								"SrId", "AccountPartyName", "AssigneeResourceId", "ApprAccntAddress_c"
+								"SrId", "ServiceType_c", "AccountPartyName", "ApprPartyNumber_c", "ApprAccntAddress_c"
 							  , "ApprConaId_c", "ApprOTTCount_c", "ApprDTVCount_c", "ApprISPCount_c", "ApprVOIPCount_c"
-							  , "ApprContractTo_c", "ApprContractFrom_c", "Title"
+							  , "ApprContractTo_c", "ApprContractFrom_c", "Title", "AssigneePartyId", "ApprBranch_c"
+							  , "ApprovalYN_c", "ApprovalID_c"
 						 };
 		// key : ID
-		FindCriteria findCriteria = getCriteria("ID", "", items);
+		String itemAttribute[] = {
+									"ApprovalID_c", "ApprovalYN_c", "ServiceType_c"
+								 };
+
+		String itemValue[] = {
+								"", "true","해지방어"
+							 };
+		
+		boolean upperCaseCompare[] = {
+										true, true, true
+									 };
+		
+		String operator[] = {
+								"ISBLANK", "=", "="
+							};
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		List<Map<String, Object>> filterList = null;
+		
+		commonUtil = new CommonUtil();
+		filterList = commonUtil.filterList(itemAttribute,itemValue,upperCaseCompare,operator);
+		
+		int pageNum = 1;
+		int pageSize = 500;
+		
+		FindCriteria findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);	
 		FindControl findControl = new FindControl();
 		
 		List<ServiceRequest> serviceRequestList = serviceRequestService.findServiceRequest(findCriteria, findControl);
@@ -102,13 +132,18 @@ public class ServiceRequestServiceManagement {
 			if (serviceRequest.getSrId() != null) {
 				id = serviceRequest.getSrId();
 			}
+			String type = null;
+			if (serviceRequest.getServiceTypeC() != null) {
+				type = serviceRequest.getServiceTypeC();
+			}
+			String objType = "SR";
 			String accountName = null;
 			if (serviceRequest.getAccountPartyName() != null) {
 				accountName = serviceRequest.getAccountPartyName();
 			}
 			String partyNumber = null;
-			if (serviceRequest.getAssigneeResourceId() != null) {
-				partyNumber = serviceRequest.getAssigneeResourceId().toString();
+			if (serviceRequest.getApprPartyNumberC() != null) {
+				partyNumber = serviceRequest.getApprPartyNumberC().getValue();
 			}
 			String address = null;
 			if (serviceRequest.getApprAccntAddressC() != null) {
@@ -146,25 +181,108 @@ public class ServiceRequestServiceManagement {
 			if (serviceRequest.getTitle() != null) {
 				opportunityNm = serviceRequest.getTitle();
 			}
+			Long empNumber = null;
+			if (serviceRequest.getAssigneePartyId() != null) {
+				empNumber = serviceRequest.getAssigneePartyId();
+			}
+			String optyBranch = null;
+			if (serviceRequest.getApprBranchC() != null) {
+				optyBranch = serviceRequest.getApprBranchC().getValue();
+			}
+			
+			String good3 = null;
+			if (serviceRequest.getApprOTTCountC().getValue() != null) {
+				good3 = "OTT";
+			}else {
+				good3 = serviceRequest.getApprOTTCountC().getValue();
+			}
+			String good3Qty = null;
+			if (serviceRequest.getApprOTTCountC() != null) {
+				good3Qty = serviceRequest.getApprOTTCountC().getValue();
+			}
+			
+			String good1 = null;
+			if (serviceRequest.getApprDTVCountC().getValue() != null) {
+				good1 = "DTV";
+			}else {
+				good1 = serviceRequest.getApprDTVCountC().getValue();
+			}
+			String good1Qty = null;
+			if (serviceRequest.getApprOTTCountC() != null) {
+				good1Qty = serviceRequest.getApprDTVCountC().getValue();
+			}
+			
+			String good2 = null;
+			if (serviceRequest.getApprISPCountC().getValue() != null) {
+				good2 = "ISP";
+			}else {
+				good2 = serviceRequest.getApprISPCountC().getValue();
+			}
+			String good2Qty = null;
+			if (serviceRequest.getApprISPCountC() != null) {
+				good2Qty = serviceRequest.getApprISPCountC().getValue();
+			}
+
+			String good4 = null;
+			if (serviceRequest.getApprISPCountC().getValue() != null) {
+				good4 = "VOIP";
+			}else {
+				good4 = serviceRequest.getApprISPCountC().getValue();
+			}
+			String good4Qty = null;
+			if (serviceRequest.getApprVOIPCountC() != null) {
+				good4Qty = serviceRequest.getApprVOIPCountC().getValue();
+			}
+			
+			String approvalYn = "N";
+			if (serviceRequest.isApprovalYNC() != null) {
+				if(serviceRequest.isApprovalYNC().equals(true)) {
+					approvalYn = "Y";
+				}
+				else {
+					approvalYn = "N";
+				}
+			}
+			String approvalID = null;
+			if (serviceRequest.getApprovalIDC() != null) {
+				approvalID = serviceRequest.getApprovalIDC().getValue();
+			}
+					
 			
 			logger.info("#["+i+"]");
 			logger.info("serviceRequest id				: " + id);
-			logger.info("serviceRequest accountName		: " + accountName);
-			logger.info("serviceRequest partyNumber		: " + partyNumber);
+			logger.info("serviceRequest objType			: " + objType);
+			logger.info("serviceRequest type				: " + type);
+			logger.info("serviceRequest accountName			: " + accountName);
+			logger.info("serviceRequest partyNumber			: " + partyNumber);
 			logger.info("serviceRequest address			: " + address);
 			logger.info("serviceRequest conaId			: " + conaId);
-			logger.info("serviceRequest ottCount_c		: " + ottCount_c);
-			logger.info("serviceRequest dtvCount_c		: " + dtvCount_c);
-			logger.info("serviceRequest ispCount_c		: " + ispCount_c);
-			logger.info("serviceRequest voipCount_c		: " + voipCount_c);
-			logger.info("serviceRequest contractTo_c	: " + contractTo_c);
-			logger.info("serviceRequest contractFrom_c	: " + contractFrom_c);
-			logger.info("serviceRequest opportunityNm	: " + opportunityNm);
+			logger.info("serviceRequest ottCount_c			: " + ottCount_c);
+			logger.info("serviceRequest dtvCount_c			: " + dtvCount_c);
+			logger.info("serviceRequest ispCount_c			: " + ispCount_c);
+			logger.info("serviceRequest voipCount_c			: " + voipCount_c);
+			logger.info("serviceRequest contractTo_c			: " + contractTo_c);
+			logger.info("serviceRequest contractFrom_c		: " + contractFrom_c);
+			logger.info("serviceRequest opportunityNm		: " + opportunityNm);
+			logger.info("serviceRequest empNumber			: " + empNumber);
+			logger.info("serviceRequest optyBranch			: " + optyBranch);
+			logger.info("serviceRequest good3			: " + good3);
+			logger.info("serviceRequest good3Qty			: " + good3Qty);
+			logger.info("serviceRequest good1			: " + good1);
+			logger.info("serviceRequest good1Qty			: " + good1Qty);
+			logger.info("serviceRequest good2			: " + good2);
+			logger.info("serviceRequest good3Qty			: " + good2Qty);
+			logger.info("serviceRequest good4			: " + good4);
+			logger.info("serviceRequest good4Qty			: " + good4Qty);
+			logger.info("serviceRequest approvalYn			: " + approvalYn);
+			logger.info("serviceRequest approvalID			: " + approvalID);
 			
 			
 			srvo.setId(""+id);
+			srvo.setObj_type(objType);
+			srvo.setType(type);
 			srvo.setAccountName(accountName);
-			srvo.setPartyNumber(partyNumber);
+			srvo.setPartyNumber(""+partyNumber);
 			srvo.setAddress(address);
 			srvo.setConaId_c(conaId);
 			srvo.setOttCount_c(ottCount_c);
@@ -174,6 +292,17 @@ public class ServiceRequestServiceManagement {
 			srvo.setContractTo_c(contractTo_c);
 			srvo.setContractFrom_c(contractFrom_c);
 			srvo.setOpportunityNm(opportunityNm);
+			srvo.setEmpNumber(""+empNumber);
+			srvo.setOptyBranch_c(optyBranch);
+			srvo.setGood3_c(good3);
+			srvo.setGood3Qty_c(good3Qty);
+			srvo.setGood1_c(good1);
+			srvo.setGood1Qty_c(good1Qty);
+			srvo.setGood2_c(good2);
+			srvo.setGood2Qty_c(good2Qty);
+			srvo.setGood4_c(good4);
+			srvo.setGood4Qty_c(good4Qty);
+			srvo.setApprovalYn_c(approvalYn);
 			
 			tgtList.add(srvo);
 			
@@ -187,15 +316,15 @@ public class ServiceRequestServiceManagement {
 	//Service Request my-sql DB 저장
 	public int insertServiceRequest(List<ServiceRequestServiceVO> ServiceRequestList) throws Exception 
 	{
-		logger.info("InterFace Activity Table Insert Start");
+		logger.info("InterFace ServiceRequest Table Insert Start");
 		Map<String, Object> batchMap = new HashMap<String, Object>();
 		List<List<ServiceRequestServiceVO>> subList = new ArrayList<List<ServiceRequestServiceVO>>();		// list를 나누기 위한 temp
 		
 		int result1        = 0;
 		int result2        = 0;
-		int splitSize     = 1000;	// partition 나누기
+		int splitSize      = 1000;	// partition 나누기
 		
-//		session.delete("interface.deleteServiceRequest");
+		session.delete("interface.deleteServiceRequestTmp");
 		
 		if(ServiceRequestList.size() > splitSize) {
 			subList = Lists.partition(ServiceRequestList, splitSize);
@@ -204,20 +333,19 @@ public class ServiceRequestServiceManagement {
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
-				result1 = session.update("interface.insertServiceRequest", batchMap);		// addbatch
+				result1 = session.update("interface.insertServiceRequestTmp", batchMap);		// addbatch
 			}
 		}
 		else {
 			batchMap.put("list", ServiceRequestList);
-			result1 = session.update("interface.insertServiceRequest", batchMap);
+			result1 = session.update("interface.insertServiceRequestTmp", batchMap);
 		}
-		
 		
 		if(result1 != 0) {
 			result2 = session.update("interface.insertServiceRequest");
-
 			if(result2 != 0) {
 				session.commit();
+				logger.info("commit success!!");
 				logger.info("InterFace ServiceRequest Table Insert End");
 			}
 		}

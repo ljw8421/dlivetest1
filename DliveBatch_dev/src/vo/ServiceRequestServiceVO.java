@@ -3,6 +3,7 @@ package vo;
 public class ServiceRequestServiceVO {
 	
 	private String id;
+	private String serviceType_c;
 	private String obj_type;
 	private String approvalNo;
 	private String type;
@@ -30,13 +31,20 @@ public class ServiceRequestServiceVO {
 	private String targetYn;
 	private String creationDate;
 	private String lastUpdateDate;
-	private String approvalYn;
+	private String approvalYn_c;
+	private String approvalId_c;
 	
 	public String getId() {
 		return id;
 	}
 	public void setId(String id) {
 		this.id = id;
+	}
+	public String getServiceType_c() {
+		return serviceType_c;
+	}
+	public void setServiceType_c(String serviceType_c) {
+		this.serviceType_c = serviceType_c;
 	}
 	public String getObj_type() {
 		return obj_type;
@@ -200,24 +208,31 @@ public class ServiceRequestServiceVO {
 	public void setLastUpdateDate(String lastUpdateDate) {
 		this.lastUpdateDate = lastUpdateDate;
 	}
-	public String getApprovalYn() {
-		return approvalYn;
+	public String getApprovalYn_c() {
+		return approvalYn_c;
 	}
-	public void setApprovalYn(String approvalYn) {
-		this.approvalYn = approvalYn;
+	public void setApprovalYn_c(String approvalYn_c) {
+		this.approvalYn_c = approvalYn_c;
+	}
+	public String getApprovalId_c() {
+		return approvalId_c;
+	}
+	public void setApprovalId_c(String approvalId_c) {
+		this.approvalId_c = approvalId_c;
 	}
 	
 	@Override
 	public String toString() {
-		return "ServiceRequestServiceVO [id=" + id + ", obj_type=" + obj_type + ", approvalNo=" + approvalNo + ", type="
-				+ type + ", accountName=" + accountName + ", partyNumber=" + partyNumber + ", address=" + address
-				+ ", conaId_c=" + conaId_c + ", ottCount_c=" + ottCount_c + ", dtvCount_c=" + dtvCount_c
-				+ ", ispCount_c=" + ispCount_c + ", voipCount_c=" + voipCount_c + ", contractTo_c=" + contractTo_c
-				+ ", contractFrom_c=" + contractFrom_c + ", opportunityNm=" + opportunityNm + ", empNumber=" + empNumber
-				+ ", optyBranch_c=" + optyBranch_c + ", good3_c=" + good3_c + ", good3Qty_c=" + good3Qty_c
-				+ ", good1_c=" + good1_c + ", good1Qty_c=" + good1Qty_c + ", good2_c=" + good2_c + ", good2Qty_c="
-				+ good2Qty_c + ", good4_c=" + good4_c + ", good4Qty_c=" + good4Qty_c + ", targetYn=" + targetYn
-				+ ", creationDate=" + creationDate + ", lastUpdateDate=" + lastUpdateDate + ", approvalYn=" + approvalYn
-				+ "]";
+		return "ServiceRequestServiceVO [id=" + id + ", serviceType_c=" + serviceType_c + ", obj_type=" + obj_type
+				+ ", approvalNo=" + approvalNo + ", type=" + type + ", accountName=" + accountName + ", partyNumber="
+				+ partyNumber + ", address=" + address + ", conaId_c=" + conaId_c + ", ottCount_c=" + ottCount_c
+				+ ", dtvCount_c=" + dtvCount_c + ", ispCount_c=" + ispCount_c + ", voipCount_c=" + voipCount_c
+				+ ", contractTo_c=" + contractTo_c + ", contractFrom_c=" + contractFrom_c + ", opportunityNm="
+				+ opportunityNm + ", empNumber=" + empNumber + ", optyBranch_c=" + optyBranch_c + ", good3_c=" + good3_c
+				+ ", good3Qty_c=" + good3Qty_c + ", good1_c=" + good1_c + ", good1Qty_c=" + good1Qty_c + ", good2_c="
+				+ good2_c + ", good2Qty_c=" + good2Qty_c + ", good4_c=" + good4_c + ", good4Qty_c=" + good4Qty_c
+				+ ", targetYn=" + targetYn + ", creationDate=" + creationDate + ", lastUpdateDate=" + lastUpdateDate
+				+ ", approvalYn_c=" + approvalYn_c + ", approvalId_c=" + approvalId_c + "]";
 	}
+	
 }
