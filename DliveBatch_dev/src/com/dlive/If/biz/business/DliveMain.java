@@ -2,7 +2,6 @@ package com.dlive.If.biz.business;
 
 import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
@@ -13,13 +12,13 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import util.DBUtil;
 import util.MssqlDBUtil;
 import vo.AccountVO;
 import vo.ActivityVO;
 import vo.LeadVO;
 import vo.OpportunityVO;
 import vo.ResourcesVO;
+import vo.ServiceRequestServiceVO;
 
 /**
  * 각 함수 실행하는 Main Function
@@ -32,11 +31,13 @@ public class DliveMain {
 
 	/* 생성자 */
 	// Sales Cloud
-	private static ResourcesManagement   resources;
-	private static AccountManagement     account;
-	private static OpportunityManagement opportunity;
-	private static ActivityManagement    activity;
-	private static LeadManagement		 lead;
+	private static ResourcesManagement   			resources;
+	private static AccountManagement     			account;
+	private static OpportunityManagement 			opportunity;
+	private static ActivityManagement    			activity;
+	private static LeadManagement		 			lead;
+	private static ServiceRequestServiceManagement	serviceRequest;
+	private static ImpSrManagement					impSrManagement;
 
 	private static Logger logger = Logger.getLogger(DliveMain.class);
 
@@ -118,6 +119,12 @@ public class DliveMain {
 	    	
 	    	/* Lead */
 //	    	lead_in(restId, restPw, restUrl, map, mssession);
+	    	
+	    	/* Service Request */
+//	    	service_request_in(restId, restPw, restUrl, map, mssession);
+	    	
+	    	/* ImpSr */
+//	    	impSrManagement.insertImpSrManagement();
     	
 		} catch (Exception e) {
 			logger.info("Exception - " + e.toString());
@@ -202,6 +209,21 @@ public class DliveMain {
 		}
 		else {
 			logger.info("dosen't exist Oracle Sales Cloud Activity List");
+		}
+	}
+	
+	private static void service_request_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
+	{
+		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
+		serviceRequest.initialize(restId, restPw, restUrl);											// webService 호출
+		
+		List<ServiceRequestServiceVO> resultList = serviceRequest.getAllServiceRequestService();	// ServiceRequestService 조회
+		
+		if(resultList != null) {
+			serviceRequest.insertServiceRequest(resultList);										// ServiceRequestService insert
+		}
+		else {
+			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
 		}
 	}
 }

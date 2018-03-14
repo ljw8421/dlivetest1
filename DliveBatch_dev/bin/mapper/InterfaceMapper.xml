@@ -973,4 +973,314 @@
 	   TRUNCATE TABLE dbo.tmp_lead
 	</delete>
 	
+	
+		<!-- SR Delete -->
+	<delete id="deleteServiceRequestTmp">
+		TRUNCATE TABLE tmp_approval_sr
+	</delete>
+	
+	<!-- SR Insert -->
+	<update id="insertServiceRequestTmp" parameterType="java.util.Map">
+		INSERT INTO tmp_approval_sr
+	     (
+	           ID
+	         , OBJ_TYPE
+	         , TYPE
+	         , ACCOUNTNAME
+	         , PARTYNUMBER
+	         , ADDRESS
+	         , CONAID_C
+	         , OTTCOUNT_C
+	         , DTVCOUNT_C
+	         , ISPCOUNT_C
+	         , VOIPCOUNT_C
+	         , CONTRACTTO_C
+	         , CONTRACTFROM_C
+	         , OPPORTUNITYNM
+	         , EMPNUMBER
+	         , OPTYBRANCH_C
+	         , GOOD3_C
+	         , GOOD3QTY_C
+	         , GOOD1_C
+	         , GOOD1QTY_C
+	         , GOOD2_C
+	         , GOOD2QTY_C
+	         , GOOD4_C
+	         , GOOD4QTY_C
+	         , CREATIONDATE
+	         , LASTUPDATEDATE
+	         , APPROVALYN_C
+	      )
+	      VALUES
+	      <foreach item="serviceRequest" index="index" collection="list" open="" separator="," close="">
+	         (
+	              #{serviceRequest.id}
+	            , #{serviceRequest.obj_type}
+	            , #{serviceRequest.type}
+	            , #{serviceRequest.accountName}
+	            , #{serviceRequest.partyNumber}
+	            , #{serviceRequest.address}
+	            , #{serviceRequest.conaId_c}
+	            , #{serviceRequest.ottCount_c}
+	            , #{serviceRequest.dtvCount_c}
+	            , #{serviceRequest.ispCount_c}
+	            , #{serviceRequest.voipCount_c}
+	            , #{serviceRequest.contractTo_c}
+	            , #{serviceRequest.contractFrom_c}
+	            , #{serviceRequest.opportunityNm}
+	            , #{serviceRequest.empNumber}
+	            , #{serviceRequest.optyBranch_c}
+	            , #{serviceRequest.good3_c}
+	            , #{serviceRequest.good3Qty_c}
+	            , #{serviceRequest.good1_c}
+	            , #{serviceRequest.good1Qty_c}
+	            , #{serviceRequest.good2_c}
+	            , #{serviceRequest.good2Qty_c}
+	            , #{serviceRequest.good4_c}
+	            , #{serviceRequest.good4Qty_c}
+	            , GETDATE()
+	            , GETDATE()
+	            , #{serviceRequest.approvalYn_c}
+	         )
+		</foreach>
+	</update>
+	
+	 <!-- Temp Table -> ServiceRequest Table Update -->
+   <update id="insertServiceRequest" parameterType="java.util.Map">
+      MERGE INTO STG_APPROVAL A
+      USING TMP_APPROVAL_SR B
+      ON (A.ID = B.ID)
+      WHEN MATCHED THEN
+         UPDATE SET
+				  A.OBJ_TYPE 			= B.OBJ_TYPE
+				, A.TYPE 				= B.TYPE
+				, A.ACCOUNTNAME 		= B.ACCOUNTNAME
+				, A.PARTYNUMBER 		= B.PARTYNUMBER
+				, A.ADDRESS				= B.ADDRESS
+				, A.CONAID_C			= B.CONAID_C
+				, A.OTTCOUNT_C			= B.OTTCOUNT_C
+				, A.DTVCOUNT_C			= B.DTVCOUNT_C
+				, A.ISPCOUNT_C			= B.ISPCOUNT_C
+				, A.VOIPCOUNT_C			= B.VOIPCOUNT_C
+				, A.CONTRACTTO_C		= B.CONTRACTTO_C
+				, A.CONTRACTFROM_C		= B.CONTRACTFROM_C
+				, A.OPPORTUNITYNM		= B.OPPORTUNITYNM
+				, A.EMPNUMBER			= B.EMPNUMBER
+				, A.OPTYBRANCH_C		= B.OPTYBRANCH_C
+				, A.GOOD3_C				= B.GOOD3_C
+				, A.GOOD3QTY_C			= B.GOOD3QTY_C
+				, A.GOOD1_C				= B.GOOD1_C
+				, A.GOOD1QTY_C			= B.GOOD1QTY_C
+				, A.GOOD2_C				= B.GOOD2_C
+				, A.GOOD2QTY_C			= B.GOOD2QTY_C
+				, A.GOOD4_C				= B.GOOD4_C
+				, A.GOOD4QTY_C			= B.GOOD4QTY_C
+				, A.CREATIONDATE		= B.CREATIONDATE
+				, A.LASTUPDATEDATE		= B.LASTUPDATEDATE
+				, A.APPROVALYN_C		= B.APPROVALYN_C
+      WHEN NOT MATCHED THEN
+         INSERT
+         (
+               ID
+	         , OBJ_TYPE
+	         , TYPE
+	         , ACCOUNTNAME
+	         , PARTYNUMBER
+	         , ADDRESS
+	         , CONAID_C
+	         , OTTCOUNT_C
+	         , DTVCOUNT_C
+	         , ISPCOUNT_C
+	         , VOIPCOUNT_C
+	         , CONTRACTTO_C
+	         , CONTRACTFROM_C
+	         , OPPORTUNITYNM
+	         , EMPNUMBER
+	         , OPTYBRANCH_C
+	         , GOOD3_C
+	         , GOOD3QTY_C
+	         , GOOD1_C
+	         , GOOD1QTY_C
+	         , GOOD2_C
+	         , GOOD2QTY_C
+	         , GOOD4_C
+	         , GOOD4QTY_C
+	         , CREATIONDATE
+	         , LASTUPDATEDATE
+	         , APPROVALYN_C
+         )
+         VALUES
+         (
+               B.ID
+	         , B.OBJ_TYPE
+	         , B.TYPE
+	         , B.ACCOUNTNAME
+	         , B.PARTYNUMBER
+	         , B.ADDRESS
+	         , B.CONAID_C
+	         , B.OTTCOUNT_C
+	         , B.DTVCOUNT_C
+	         , B.ISPCOUNT_C
+	         , B.VOIPCOUNT_C
+	         , B.CONTRACTTO_C
+	         , B.CONTRACTFROM_C
+	         , B.OPPORTUNITYNM
+	         , B.EMPNUMBER
+	         , B.OPTYBRANCH_C
+	         , B.GOOD3_C
+	         , B.GOOD3QTY_C
+	         , B.GOOD1_C
+	         , B.GOOD1QTY_C
+	         , B.GOOD2_C
+	         , B.GOOD2QTY_C
+	         , B.GOOD4_C
+	         , B.GOOD4QTY_C
+	         , B.CREATIONDATE
+	         , B.LASTUPDATEDATE
+	         , B.APPROVALYN_C
+         );
+   </update>
+	
+	<!-- stg_approval -> imp_sr 보류 -->
+	<update id="insertImpServiceRequest" parameterType="java.util.Map">
+     	MERGE INTO IMP_SR A
+      USING STG_APPROVAL B
+      ON (A.ID = B.ID AND B.OBJ_TYPE = 'SR')
+      WHEN MATCHED THEN
+         UPDATE SET
+				  A.OBJ_TYPE 			= B.OBJ_TYPE
+				, A.TYPE 				= B.TYPE
+				, A.ACCOUNTNAME 		= B.ACCOUNTNAME
+				, A.PARTYNUMBER 		= B.PARTYNUMBER
+				, A.ADDRESS				= B.ADDRESS
+				, A.CONAID_C			= B.CONAID_C
+				, A.OTTCOUNT_C			= B.OTTCOUNT_C
+				, A.DTVCOUNT_C			= B.DTVCOUNT_C
+				, A.ISPCOUNT_C			= B.ISPCOUNT_C
+				, A.VOIPCOUNT_C			= B.VOIPCOUNT_C
+				, A.CONTRACTTO_C		= B.CONTRACTTO_C
+				, A.CONTRACTFROM_C		= B.CONTRACTFROM_C
+				, A.OPPORTUNITYNM		= B.OPPORTUNITYNM
+				, A.EMPNUMBER			= B.EMPNUMBER
+				, A.OPTYBRANCH_C		= B.OPTYBRANCH_C
+				, A.GOOD3_C				= B.GOOD3_C
+				, A.GOOD3QTY_C			= B.GOOD3QTY_C
+				, A.GOOD1_C				= B.GOOD1_C
+				, A.GOOD1QTY_C			= B.GOOD1QTY_C
+				, A.GOOD2_C				= B.GOOD2_C
+				, A.GOOD2QTY_C			= B.GOOD2QTY_C
+				, A.GOOD4_C				= B.GOOD4_C
+				, A.GOOD4QTY_C			= B.GOOD4QTY_C
+				, A.CREATIONDATE		= B.CREATIONDATE
+				, A.LASTUPDATEDATE		= B.LASTUPDATEDATE
+				, A.APPROVALYN_C		= B.APPROVALYN_C
+      WHEN NOT MATCHED THEN
+         INSERT
+         (
+               ID
+	         , OBJ_TYPE
+	         , TYPE
+	         , ACCOUNTNAME
+	         , PARTYNUMBER
+	         , ADDRESS
+	         , CONAID_C
+	         , OTTCOUNT_C
+	         , DTVCOUNT_C
+	         , ISPCOUNT_C
+	         , VOIPCOUNT_C
+	         , CONTRACTTO_C
+	         , CONTRACTFROM_C
+	         , OPPORTUNITYNM
+	         , EMPNUMBER
+	         , OPTYBRANCH_C
+	         , GOOD3_C
+	         , GOOD3QTY_C
+	         , GOOD1_C
+	         , GOOD1QTY_C
+	         , GOOD2_C
+	         , GOOD2QTY_C
+	         , GOOD4_C
+	         , GOOD4QTY_C
+	         , CREATIONDATE
+	         , LASTUPDATEDATE
+	         , APPROVALYN_C
+         )
+         VALUES
+         (
+               B.ID
+	         , B.OBJ_TYPE
+	         , B.TYPE
+	         , B.ACCOUNTNAME
+	         , B.PARTYNUMBER
+	         , B.ADDRESS
+	         , B.CONAID_C
+	         , B.OTTCOUNT_C
+	         , B.DTVCOUNT_C
+	         , B.ISPCOUNT_C
+	         , B.VOIPCOUNT_C
+	         , B.CONTRACTTO_C
+	         , B.CONTRACTFROM_C
+	         , B.OPPORTUNITYNM
+	         , B.EMPNUMBER
+	         , B.OPTYBRANCH_C
+	         , B.GOOD3_C
+	         , B.GOOD3QTY_C
+	         , B.GOOD1_C
+	         , B.GOOD1QTY_C
+	         , B.GOOD2_C
+	         , B.GOOD2QTY_C
+	         , B.GOOD4_C
+	         , B.GOOD4QTY_C
+	         , B.CREATIONDATE
+	         , B.LASTUPDATEDATE
+	         , B.APPROVALYN_C
+         );
+   </update>	
+   
+   <!-- stg_sr -> imp_sr Insert -->
+   <update id="insertImpSr" parameterType="java.util.Map">
+		MERGE INTO IMP_SR A
+	      USING STG_SR B
+	      ON (A.SEQ = B.SEQ)
+	      WHEN MATCHED THEN
+	         UPDATE SET
+					  A.SEQ 				= B.SEQ
+					, A.ACCOUNTNAME 		= B.TITLE
+					, A.SERVICETYPE_C 		= B.SERVICETYPE_C
+					, A.PARTYNUMBER			= B.PARTYNUMBER
+					, A.STATUS				= B.STATUS
+					, A.ASSIGNEEPERSON		= B.ASSIGNEEPERSON
+					, A.DLIVECLOSEDT_C		= B.DLIVECLOSEDT_C
+					, A.TARGETYN			= B.TARGETYN
+					, A.CREATIONDATE		= B.CREATIONDATE
+					, A.LASTUPDATEDATE		= B.LASTUPDATEDATE
+	      WHEN NOT MATCHED THEN
+	         INSERT
+	         (
+	               SEQ
+		         , TITLE
+		         , SERVICETYPE_C
+		         , PARTYNUMBER
+		         , STATUS
+		         , ASSIGNEEPERSON
+		         , DLIVECLOSEDT_C
+		         , TARGETYN
+		         , CREATIONDATE
+		         , LASTUPDATEDATE
+	         )
+	         VALUES
+	         (
+	               B.SEQ
+		         , B.TITLE
+		         , B.SERVICETYPE_C
+		         , B.PARTYNUMBER
+		         , B.STATUS
+		         , B.ASSIGNEEPERSON
+		         , B.DLIVECLOSEDT_C
+		         , B.TARGETYN
+		         , B.CREATIONDATE
+		         , B.LASTUPDATEDATE
+	         );
+	</update>
+	
 </mapper>
