@@ -28,7 +28,7 @@ import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceReq
 import util.CommonUtil;
 import vo.ActivityVO;
 import vo.LeadVO;
-import vo.ServiceRequestServiceVO;
+import vo.ApprovalVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
 public class ServiceRequestServiceManagement {
@@ -79,7 +79,7 @@ public class ServiceRequestServiceManagement {
 	}
 	
 	
-	public List<ServiceRequestServiceVO> getAllServiceRequestService() throws Exception 
+	public List<ApprovalVO> getAllServiceRequestService() throws Exception 
 	{
 		logger.info("Start SalesCloud GetServiceRequestService");
 		
@@ -120,12 +120,12 @@ public class ServiceRequestServiceManagement {
 		FindControl findControl = new FindControl();
 		
 		List<ServiceRequest> serviceRequestList = serviceRequestService.findServiceRequest(findCriteria, findControl);
-		List<ServiceRequestServiceVO> tgtList = new ArrayList<ServiceRequestServiceVO>();
+		List<ApprovalVO> tgtList = new ArrayList<ApprovalVO>();
 		
 		
 		for (int i = 0; i < serviceRequestList.size(); i++) {
 			
-			ServiceRequestServiceVO srvo = new ServiceRequestServiceVO();
+			ApprovalVO srvo = new ApprovalVO();
 			ServiceRequest serviceRequest = serviceRequestList.get(i);
 			
 			Long id = null;
@@ -314,17 +314,21 @@ public class ServiceRequestServiceManagement {
 	}
 
 	//Service Request my-sql DB 저장
-	public int insertServiceRequest(List<ServiceRequestServiceVO> ServiceRequestList) throws Exception 
+	public int insertServiceRequest(List<ApprovalVO> ServiceRequestList) throws Exception 
 	{
 		logger.info("InterFace ServiceRequest Table Insert Start");
 		Map<String, Object> batchMap = new HashMap<String, Object>();
-		List<List<ServiceRequestServiceVO>> subList = new ArrayList<List<ServiceRequestServiceVO>>();		// list를 나누기 위한 temp
+		List<List<ApprovalVO>> subList = new ArrayList<List<ApprovalVO>>();		// list를 나누기 위한 temp
 		
 		int result1        = 0;
 		int result2        = 0;
+		int result3        = 0;
+		int result4        = 0;
+		int result5        = 0;
 		int splitSize      = 1000;	// partition 나누기
 		
 		session.delete("interface.deleteServiceRequestTmp");
+		logger.info("Interface ServiceRequest Delete");
 		
 		if(ServiceRequestList.size() > splitSize) {
 			subList = Lists.partition(ServiceRequestList, splitSize);
@@ -334,19 +338,34 @@ public class ServiceRequestServiceManagement {
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
 				result1 = session.update("interface.insertServiceRequestTmp", batchMap);		// addbatch
+				logger.info("Interface insert tmp_approval_sr");
 			}
 		}
 		else {
 			batchMap.put("list", ServiceRequestList);
 			result1 = session.update("interface.insertServiceRequestTmp", batchMap);
+			logger.info("Interface insert tmp_approval_sr");
 		}
 		
 		if(result1 != 0) {
 			result2 = session.update("interface.insertServiceRequest");
+			logger.info("Interface merge Stg_Approval");
+			
 			if(result2 != 0) {
-				session.commit();
-				logger.info("commit success!!");
-				logger.info("InterFace ServiceRequest Table Insert End");
+				// TRUNCATE -> INSERT
+				result3 = session.update("interface.insertImpApprovalSr");
+				
+				session.delete("interface.deletetImpApprovalSrTmp");
+				result4 = session.update("interface.insertImpApprovalSrTmp");
+				
+				//imp_table로 이관 끝나면stg_approval TargetYN을 N 으로 변경
+				result5 = session.update("interface.updateStgApproTargetYNTmp");
+				
+				if(result5 != 0) {
+					session.commit();
+					logger.info("commit success!!");
+					logger.info("InterFace ServiceRequest Table Insert End");
+				}
 			}
 		}
 		else {

@@ -715,10 +715,10 @@
 <!-- 		SET DELFLAG = 'Y' -->
 <!-- 	</update> -->
 	
-	<!-- 영업활동 -->
+	<!-- Activity Temp Delete -->
 	<delete id="deleteActivityTemp">
-      TRUNCATE TABLE TMP_ACTIVITY
-   </delete>
+		TRUNCATE TABLE TMP_ACTIVITY
+	</delete>
 
 	<!-- Activity Temp Table Insert -->
    <update id="insertActivityTemp" parameterType="java.util.Map">
@@ -973,8 +973,7 @@
 	   TRUNCATE TABLE dbo.tmp_lead
 	</delete>
 	
-	
-		<!-- SR Delete -->
+	<!-- SR Delete -->
 	<delete id="deleteServiceRequestTmp">
 		TRUNCATE TABLE tmp_approval_sr
 	</delete>
@@ -1007,6 +1006,7 @@
 	         , GOOD2QTY_C
 	         , GOOD4_C
 	         , GOOD4QTY_C
+	         , TARGETYN
 	         , CREATIONDATE
 	         , LASTUPDATEDATE
 	         , APPROVALYN_C
@@ -1038,6 +1038,7 @@
 	            , #{serviceRequest.good2Qty_c}
 	            , #{serviceRequest.good4_c}
 	            , #{serviceRequest.good4Qty_c}
+	            , 'Y'
 	            , GETDATE()
 	            , GETDATE()
 	            , #{serviceRequest.approvalYn_c}
@@ -1075,6 +1076,7 @@
 				, A.GOOD2QTY_C			= B.GOOD2QTY_C
 				, A.GOOD4_C				= B.GOOD4_C
 				, A.GOOD4QTY_C			= B.GOOD4QTY_C
+				, A.TARGETYN			= B.TARGETYN
 				, A.CREATIONDATE		= B.CREATIONDATE
 				, A.LASTUPDATEDATE		= B.LASTUPDATEDATE
 				, A.APPROVALYN_C		= B.APPROVALYN_C
@@ -1105,6 +1107,7 @@
 	         , GOOD2QTY_C
 	         , GOOD4_C
 	         , GOOD4QTY_C
+	         , TARGETYN
 	         , CREATIONDATE
 	         , LASTUPDATEDATE
 	         , APPROVALYN_C
@@ -1135,20 +1138,30 @@
 	         , B.GOOD2QTY_C
 	         , B.GOOD4_C
 	         , B.GOOD4QTY_C
+	         , B.TARGETYN
 	         , B.CREATIONDATE
 	         , B.LASTUPDATEDATE
 	         , B.APPROVALYN_C
          );
    </update>
 	
-	<!-- stg_approval -> imp_sr 보류 -->
-	<update id="insertImpServiceRequest" parameterType="java.util.Map">
-     	MERGE INTO IMP_SR A
-      USING STG_APPROVAL B
-      ON (A.ID = B.ID AND B.OBJ_TYPE = 'SR')
-      WHEN MATCHED THEN
-         UPDATE SET
+	<!-- stg_approval -> imp_approval_sr -->
+	<update id="insertImpApprovalSr" parameterType="java.util.Map">
+		MERGE INTO IMP_APPROVAL_SR A
+	      USING (SELECT 
+				 	  ID, OBJ_TYPE, APPROVALID_C, TYPE, ACCOUNTNAME
+				 	, PARTYNUMBER, ADDRESS, CONAID_C, OTTCOUNT_C, DTVCOUNT_C
+				 	, ISPCOUNT_C, VOIPCOUNT_C, CONTRACTTO_C, CONTRACTFROM_C, OPPORTUNITYNM
+				 	, EMPNUMBER, OPTYBRANCH_C, GOOD3_C, GOOD3QTY_C, GOOD1_C
+				 	, GOOD1QTY_C, GOOD2_C, GOOD2QTY_C, GOOD4_C, GOOD4QTY_C
+				 	, TARGETYN, CREATIONDATE, LASTUPDATEDATE, APPROVALYN_C
+				 FROM STG_APPROVAL 
+				 WHERE OBJ_TYPE = 'SR' AND TARGETYN = 'Y' ) B
+	      ON (A.ID = B.ID)
+	      WHEN MATCHED THEN
+	      UPDATE SET
 				  A.OBJ_TYPE 			= B.OBJ_TYPE
+				, A.APPROVALID_C		= B.APPROVALID_C  
 				, A.TYPE 				= B.TYPE
 				, A.ACCOUNTNAME 		= B.ACCOUNTNAME
 				, A.PARTYNUMBER 		= B.PARTYNUMBER
@@ -1171,14 +1184,15 @@
 				, A.GOOD2QTY_C			= B.GOOD2QTY_C
 				, A.GOOD4_C				= B.GOOD4_C
 				, A.GOOD4QTY_C			= B.GOOD4QTY_C
-				, A.CREATIONDATE		= B.CREATIONDATE
-				, A.LASTUPDATEDATE		= B.LASTUPDATEDATE
+				, A.TRNSYN				= 'N'
+				, A.IMPORTDATE			= GETDATE()
 				, A.APPROVALYN_C		= B.APPROVALYN_C
       WHEN NOT MATCHED THEN
          INSERT
          (
                ID
 	         , OBJ_TYPE
+	         , APPROVALID_C
 	         , TYPE
 	         , ACCOUNTNAME
 	         , PARTYNUMBER
@@ -1201,14 +1215,15 @@
 	         , GOOD2QTY_C
 	         , GOOD4_C
 	         , GOOD4QTY_C
-	         , CREATIONDATE
-	         , LASTUPDATEDATE
+	         , TRNSYN
+	         , IMPORTDATE
 	         , APPROVALYN_C
          )
          VALUES
          (
                B.ID
 	         , B.OBJ_TYPE
+	         , B.APPROVALID_C
 	         , B.TYPE
 	         , B.ACCOUNTNAME
 	         , B.PARTYNUMBER
@@ -1231,29 +1246,59 @@
 	         , B.GOOD2QTY_C
 	         , B.GOOD4_C
 	         , B.GOOD4QTY_C
-	         , B.CREATIONDATE
-	         , B.LASTUPDATEDATE
+	         , 'N'
+	         , GETDATE()
 	         , B.APPROVALYN_C
          );
    </update>	
    
+	<!-- tmp_imp_approval_sr Delete -->
+	<delete id="deletetImpApprovalSrTmp">
+		TRUNCATE TABLE TMP_IMP_APPROVAL_SR
+	</delete>
+	
+	<insert id="insertImpApprovalSrTmp" parameterType="java.util.Map">
+		INSERT INTO TMP_IMP_APPROVAL_SR
+		( 
+			ID 
+		)
+		SELECT  
+			ID 
+		FROM STG_APPROVAL
+		WHERE OBJ_TYPE = 'SR' AND TARGETYN = 'Y'
+	</insert>
+	
+   <!-- tmp_imp table 이관 후 stg table TargetYN update -->
+   <update id="updateStgApproTargetYNTmp">
+		MERGE INTO STG_APPROVAL A 
+		USING (SELECT ID FROM  TMP_IMP_APPROVAL_SR ) B
+		ON (A.ID = B.ID)
+		WHEN MATCHED THEN
+		UPDATE SET
+			  A.TARGETYN = 'N'
+			, A.LASTUPDATEDATE = GETDATE();
+   </update>
+   
    <!-- stg_sr -> imp_sr Insert -->
-   <update id="insertImpSr" parameterType="java.util.Map">
+   <select id="selectStgSr" parameterType="java.util.Map" resultType="vo.ImpSrVO" >
+   		SELECT * FROM STG_SR
+   </select>
+   
+	<update id="insertImpSr" parameterType="java.util.Map">
 		MERGE INTO IMP_SR A
-	      USING STG_SR B
-	      ON (A.SEQ = B.SEQ)
-	      WHEN MATCHED THEN
-	         UPDATE SET
-					  A.SEQ 				= B.SEQ
-					, A.ACCOUNTNAME 		= B.TITLE
-					, A.SERVICETYPE_C 		= B.SERVICETYPE_C
-					, A.PARTYNUMBER			= B.PARTYNUMBER
-					, A.STATUS				= B.STATUS
-					, A.ASSIGNEEPERSON		= B.ASSIGNEEPERSON
-					, A.DLIVECLOSEDT_C		= B.DLIVECLOSEDT_C
-					, A.TARGETYN			= B.TARGETYN
-					, A.CREATIONDATE		= B.CREATIONDATE
-					, A.LASTUPDATEDATE		= B.LASTUPDATEDATE
+	    USING STG_SR B
+	    ON (A.SEQ = B.SEQ)
+	    WHEN MATCHED THEN
+   	 	UPDATE SET
+				  A.SEQ 				= B.SEQ
+				, A.ACCOUNTNAME 		= B.TITLE
+				, A.SERVICETYPE_C 		= B.SERVICETYPE_C
+				, A.PARTYNUMBER			= B.PARTYNUMBER
+				, A.STATUS				= B.STATUS
+				, A.ASSIGNEEPERSON		= B.ASSIGNEEPERSON
+				, A.DLIVECLOSEDT_C		= B.DLIVECLOSEDT_C
+				, A.TRNSYN				= 'N'
+				, A.IMPORTDATE			= GETDATE()
 	      WHEN NOT MATCHED THEN
 	         INSERT
 	         (
@@ -1264,9 +1309,8 @@
 		         , STATUS
 		         , ASSIGNEEPERSON
 		         , DLIVECLOSEDT_C
-		         , TARGETYN
-		         , CREATIONDATE
-		         , LASTUPDATEDATE
+		         , TRNSYN
+		         , IMPORTDATE
 	         )
 	         VALUES
 	         (
@@ -1277,10 +1321,70 @@
 		         , B.STATUS
 		         , B.ASSIGNEEPERSON
 		         , B.DLIVECLOSEDT_C
-		         , B.TARGETYN
-		         , B.CREATIONDATE
-		         , B.LASTUPDATEDATE
+		         , 'N'
+		         , GETDATE()
 	         );
 	</update>
+   
+   <!-- imp_sr Delete -->
+	<delete id="deletetImpSrTmp">
+		TRUNCATE TABLE TMP_IMP_SR
+	</delete>
+	
+	<insert id="insertImpSrTmp" parameterType="java.util.Map">
+		INSERT INTO TMP_IMP_SR
+		(
+			SEQ 
+		)
+		SELECT
+			SEQ 
+		FROM STG_SR
+	</insert>
+	
+	 <!-- imp table 이관 후 stg table TargetYN update -->
+   <update id="updateStgTargetYNTmp">
+		MERGE INTO STG_SR A 
+		USING (SELECT ID FROM  TMP_IMP_SR ) B
+		ON (A.ID = B.ID)
+		WHEN MATCHED THEN
+		UPDATE SET
+			  A.TARGETYN = 'N'
+			, A.LASTUPDATEDATE = GETDATE();
+   </update>
+   
+   <select id="selectImpApprovalSrCSV" resultType="java.util.Map">
+   		SELECT 
+   			   ID					as ID
+	         , OBJ_TYPE				as ObjType
+	         , APPROVALID_C			as ApprovalIdC
+	         , TYPE					as Type
+	         , ACCOUNTNAME			as AccountName
+	         , PARTYNUMBER			as PartyNumber
+	         , ADDRESS				as Address
+	         , CONAID_C				as ConaIDC
+	         , OTTCOUNT_C			as OTTCountC
+	         , DTVCOUNT_C			as DTVCountC
+	         , ISPCOUNT_C			as ISPCountC
+	         , VOIPCOUNT_C			as VOIPCountC
+	         , CONTRACTTO_C			as ContractToC
+	         , CONTRACTFROM_C		as ContractFromC
+	         , OPPORTUNITYNM		as OpportunityNm
+	         , EMPNUMBER			as EmpNumber
+	         , OPTYBRANCH_C			as OptyBranchC
+	         , GOOD3_C				as Good3C
+	         , GOOD3QTY_C			as Good3QtyC
+	         , GOOD1_C				as Good1C
+	         , GOOD1QTY_C			as Good1QtyC
+	         , GOOD2_C				as Good2C
+	         , GOOD2QTY_C			as Good2QtyC
+	         , GOOD4_C				as Good4C
+	         , GOOD4QTY_C			as Good4QtyC
+	         , TRNSYN				as TrnsYN
+	         , IMPORTDATE			as ImportDate
+	         , TRNSDATE				as TrnsDate
+	         , APPROVALYN_C			as ApprovalYNC
+   		FROM IMP_APPROVAL_SR	
+   </select>
+	
 	
 </mapper>
