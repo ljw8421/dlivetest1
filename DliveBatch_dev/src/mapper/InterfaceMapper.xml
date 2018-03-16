@@ -3,6 +3,29 @@
 <!-- mySql interface DB -->
 <mapper namespace="interface">
 
+	<!-- Code -->
+	<select id="selectCode" parameterType="vo.CodeVO" resultType="vo.CodeVO">
+		select
+			cd_id,
+			type,
+			type_name,
+			cd_name,
+			cd_val,
+			seq,
+			use_yn
+		from
+			code
+		where
+			type = #{type}
+			<if test="use_yn != null and use_yn != ''">
+		and use_yn = #{use_yn}
+			</if>
+			<if test="cd_name != null and cd_name != ''">
+		and cd_name = #{cd_name}
+			</if>
+		order by seq
+	</select>
+
 	<!-- Temp Table TRUNCATE -->
 	<delete id="deleteResourcesTemp">
 		TRUNCATE TABLE TMP_RESOURCES
@@ -326,7 +349,7 @@
 				, A.INVASIONRATEF_C       			= B.INVASIONRATEF_C  
 				, A.BRANCHNM_C            			= B.BRANCHNM_C       
 				, A.WORKDATE            			= GETDATE()
-				, A.TRNSYN            			    = 'N'       
+				, A.TRNSYN            			    = 'N'      
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -379,7 +402,7 @@
 				, INVASIONRATEF_C  
 				, BRANCHNM_C       
 				, WORKDATE
-				, TRNSYN  
+				, TRNSYN 
 			)
 			VALUES
 			(
@@ -432,7 +455,7 @@
 				, B.INVASIONRATEF_C  
 				, B.BRANCHNM_C   
 				, GETDATE()
-				, 'N'    
+				, 'N'  
 			);
 	</update>
 	
@@ -452,7 +475,6 @@
 		(
 			  OPTYID                       
 			, OPTYNUMBER                   
-<!-- 			, OPTYLEADID                    -->
 			, NAME                         
 			, TARGETPARTYID                
 			, TARGETPARTYNAME              
@@ -502,7 +524,6 @@
 			(
 				  #{opportunity.optyId}
 				, #{opportunity.optyNumber}
-<!-- 				, #{opportunity.optyLeadId} -->
 				, #{opportunity.name}
 				, #{opportunity.targetPartyId}
 				, #{opportunity.targetPartyName}
@@ -558,7 +579,6 @@
 		WHEN MATCHED THEN
 			UPDATE SET
 				  A.OPTYNUMBER              = B.OPTYNUMBER                  
-<!-- 				, A.OPTYLEADID              = B.OPTYLEADID                   -->
 				, A.NAME                    = B.NAME                        
 				, A.TARGETPARTYID           = B.TARGETPARTYID               
 				, A.TARGETPARTYNAME         = B.TARGETPARTYNAME             
@@ -609,7 +629,6 @@
 			(
 				  OPTYID                       
 				, OPTYNUMBER                   
-<!-- 				, OPTYLEADID                    -->
 				, NAME                         
 				, TARGETPARTYID                
 				, TARGETPARTYNAME              
@@ -660,7 +679,6 @@
 			(
 				  B.OPTYID                       
 				, B.OPTYNUMBER                   
-<!-- 				, B.OPTYLEADID                    -->
 				, B.NAME                         
 				, B.TARGETPARTYID                
 				, B.TARGETPARTYNAME              
@@ -709,6 +727,53 @@
 			);
 	</update>
 	
+	<delete id="deleteOpportunityLeadTemp">
+		TRUNCATE TABLE TMP_OPPORTUNITYLEAD
+	</delete>
+	
+	<!-- Opportunity Temp Table Insert -->
+	<update id="insertOpportunityLeadTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_OPPORTUNITYLEAD
+		(
+			  OPTYID                       
+			, OPTYLEADID                         
+		)
+		VALUES
+		<foreach item="opportunityLead" index="index" collection="list" open="" separator="," close="">
+			(
+				  #{opportunityLead.optyId}
+				, #{opportunityLead.optyLeadId}
+			)
+		</foreach>
+	</update>
+	
+	<!-- Temp Table -> Opportunity Table Update -->
+	<update id="insertOpportunityLead" parameterType="java.util.Map">
+		MERGE INTO SC_OPPORTUNITYLEAD A
+		USING TMP_OPPORTUNITYLEAD B
+		ON (A.OPTYID = B.OPTYID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.OPTYLEADID              = B.OPTYLEADID                  
+				, A.WORKDATE            	= GETDATE()
+				, A.TRNSYN            		= 'N'
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  OPTYID                       
+				, OPTYLEADID                   
+				, WORKDATE
+				, TRNSYN  
+			)
+			VALUES
+			(
+				  B.OPTYID                       
+				, B.OPTYLEADID                   
+				, GETDATE()
+				, 'N'            
+			);
+	</update>
+	
 	<!-- 영업기회(Opportunity) -->
 <!-- 	<update id="updateOpportunityDelflg" > -->
 <!-- 		UPDATE SC_OPPORTUNITY -->
@@ -717,11 +782,11 @@
 	
 	<!-- Activity Temp Delete -->
 	<delete id="deleteActivityTemp">
-		TRUNCATE TABLE TMP_ACTIVITY
+      TRUNCATE TABLE TMP_ACTIVITY
 	</delete>
 
 	<!-- Activity Temp Table Insert -->
-   <update id="insertActivityTemp" parameterType="java.util.Map">
+	<update id="insertActivityTemp" parameterType="java.util.Map">
       INSERT INTO TMP_ACTIVITY
       (
            ACTIVITYID
@@ -750,6 +815,8 @@
          , CREATIONDATE
          , LASTUPDATEDATE
          , LASTUPDATEDBY
+         , ACTBRANCH_C
+         , privateFlag
       )
       VALUES
       <foreach item="activity" index="index" collection="list" open="" separator="," close="">
@@ -780,6 +847,8 @@
             , #{activity.creationDate}
             , #{activity.lastUpdateDate}
             , #{activity.lastUpdatedBy}
+            , #{activity.actBranch_c}
+            , #{activity.privateFlag}
          )
       </foreach>
    </update>
@@ -815,7 +884,11 @@
             , A.CREATEDBY               = B.CREATEDBY
             , A.CREATIONDATE            = B.CREATIONDATE
             , A.LASTUPDATEDATE          = B.LASTUPDATEDATE
-            , A.LASTUPDATEDBY           = B.LASTUPDATEDBY               
+            , A.LASTUPDATEDBY           = B.LASTUPDATEDBY
+            , A.WORKDATE                = CONVERT(DATETIME,GETDATE(),120)
+            , A.ACTBRANCH_C             = B.ACTBRANCH_C  
+            , A.DELYN                   = 'N'
+            , A.privateFlag             = B.privateFlag
       WHEN NOT MATCHED THEN
          INSERT
          (
@@ -845,6 +918,10 @@
             , CREATIONDATE
             , LASTUPDATEDATE
             , LASTUPDATEDBY
+            , WORKDATE
+            , ACTBRANCH_C
+            , DELYN
+            , privateFlag
          )
          VALUES
          (
@@ -874,8 +951,17 @@
             , B.CREATIONDATE
             , B.LASTUPDATEDATE
             , B.LASTUPDATEDBY
+            , CONVERT(DATETIME,GETDATE(),120)
+            , B.ACTBRANCH_C
+            , 'N'
+            , B.privateFlag
          );
    </update>
+   <!-- 영업기회(Opportunity) -->
+	<update id="updateActivityDelflg" >
+		UPDATE SC_ACTIVITY
+		SET DELYN = 'Y'
+	</update>
 	
 	   <!-- Lead Integration Temp Insert -->
 	<update id="insertLeadTemp" parameterType="java.util.Map">
@@ -883,7 +969,7 @@
 	   (
 	        LeadId, Name, LeadNumber, OwnerPartyName
 	      , OwnerId, StatusCode, StatusCdMeaning, CustomerPartyName
-	      , CustomerRegistryId, CustomerId, Description, ChannelType
+	      , CustomerRegistryId, CustomerId, Description, ChannelType, SalesChannelMeaning
 	      , ChannelTypeMeaning, PrimaryContactPartyName, PrimaryContactId, PrimaryContactCountry
 	      , PrimaryContactProvince, PrimaryContactState, PrimaryContactCity, PrimaryContactAddress1
 	      , PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
@@ -895,7 +981,7 @@
 	      (
 	           #{lead.leadId}, #{lead.name}, #{lead.leadNumber}, #{lead.ownerPartyName}
 	         , #{lead.ownerId}, #{lead.statusCode}, #{lead.statusCdMeaning}, #{lead.customerPartyName}
-	         , #{lead.customerRegistryId}, #{lead.customerId}, #{lead.description}, #{lead.channelType}
+	         , #{lead.customerRegistryId}, #{lead.customerId}, #{lead.description}, #{lead.channelType}, #{lead.salesChannelMeaning}
 	         , #{lead.channelTypeMeaning}, #{lead.primaryContactPartyName}, #{lead.primaryContactId}, #{lead.primaryContactCountry}
 	         , #{lead.primaryContactProvince}, #{lead.primaryContactState}, #{lead.primaryContactCity}, #{lead.primaryContactAddress1}, #{lead.primaryContactAddress2}, #{lead.primaryContactPostalCode}
 	         , #{lead.retiredDateTime}, #{lead.convertedTimestamp}, #{lead.deleteFlag}, #{lead.branchNameF_c}, #{lead.branchCodeF_c}
@@ -923,7 +1009,8 @@
 	         , A.CustomerId               = B.CustomerId              
 	         , A.Description              = B.Description             
 	         , A.ChannelType              = B.ChannelType             
-	         , A.ChannelTypeMeaning       = B.ChannelTypeMeaning      
+	         , A.ChannelTypeMeaning       = B.ChannelTypeMeaning  
+	         , A.SalesChannelMeaning      = B.SalesChannelMeaning  
 	         , A.RetiredDateTime          = B.RetiredDateTime         
 	         , A.PrimaryContactPartyName  = B.PrimaryContactPartyName 
 	         , A.PrimaryContactId         = B.PrimaryContactId        
@@ -942,29 +1029,30 @@
 	         , A.CreationDate             = B.CreationDate            
 	         , A.CreatedBy                = B.CreatedBy               
 	         , A.LastUpdateDate           = B.LastUpdateDate          
-	         , A.LastUpdatedBy            = B.LastUpdatedBy          
+	         , A.LastUpdatedBy            = B.LastUpdatedBy  
+	         , A.WORKDATE                 = CONVERT(DATETIME,GETDATE(),120)        
 	   WHEN NOT MATCHED THEN
 	      INSERT
 	      (
 	           LeadId, Name, LeadNumber, OwnerPartyName
 	         , OwnerId, StatusCode, StatusCdMeaning, CustomerPartyName
-	         , CustomerRegistryId, CustomerId, Description, ChannelType
+	         , CustomerRegistryId, CustomerId, Description, ChannelType, SalesChannelMeaning
 	         , ChannelTypeMeaning, PrimaryContactPartyName, PrimaryContactId, PrimaryContactCountry
 	         , PrimaryContactProvince, PrimaryContactState, PrimaryContactCity, PrimaryContactAddress1
 	         , PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
 	         , DeleteFlag, BranchNameF_c, BranchCodeF_c, LeadBranch_c
-	         , CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy
+	         , CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, WORKDATE
 	      )
 	      VALUES
 	      (
 	           B.LeadId, B.Name, B.LeadNumber, B.OwnerPartyName
 	         , B.OwnerId, B.StatusCode, B.StatusCdMeaning, B.CustomerPartyName
-	         , B.CustomerRegistryId, B.CustomerId, B.Description, B.ChannelType
+	         , B.CustomerRegistryId, B.CustomerId, B.Description, B.ChannelType, B.SalesChannelMeaning
 	         , B.ChannelTypeMeaning, B.PrimaryContactPartyName, B.PrimaryContactId, B.PrimaryContactCountry
 	         , B.PrimaryContactProvince, B.PrimaryContactState, B.PrimaryContactCity, B.PrimaryContactAddress1
 	         , B.PrimaryContactAddress2, B.PrimaryContactPostalCode, B.RetiredDateTime, B.ConvertedTimestamp
 	         , B.DeleteFlag, B.BranchNameF_c, B.BranchCodeF_c, B.LeadBranch_c
-	         , B.CreationDate, B.CreatedBy, B.LastUpdateDate, B.LastUpdatedBy
+	         , B.CreationDate, B.CreatedBy, B.LastUpdateDate, B.LastUpdatedBy, CONVERT(DATETIME,GETDATE(),120) 
 	      );
 	</update>
 	
@@ -1279,6 +1367,234 @@
 			, A.LASTUPDATEDATE = GETDATE();
    </update>
    
+   <delete id="deleteApprByOpttyTemp">
+		TRUNCATE TABLE TMP_APPROVAL_OPPTY
+	</delete>
+	
+	<!-- Opportunity Temp Table Insert -->
+	<update id="insertApprByOpttyTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_APPROVAL_OPPTY
+		(
+			  ID             
+			, OBJ_TYPE       
+			, Type           
+			, AccountName    
+			, PartyNumber    
+			, Address        
+			, ConaId_c       
+			, OTTCount_c     
+			, DTVCount_c     
+			, ISPCount_c     
+			, VoIPCount_c    
+			, ContractTo_c   
+			, ContractFrom_c 
+			, OpportunityNm  
+			, EmpNumber      
+			, OptyBranch_c   
+			, Good3_c        
+			, Good3Qty_c     
+			, Good1_c        
+			, Good1Qty_c     
+			, Good2_c        
+			, Good2Qty_c     
+			, Good4_c        
+			, Good4Qty_c     
+			, CreationDate   
+			, LastUpdateDate 
+			, ApprovalYN_c        
+		)
+		VALUES
+		<foreach item="opportunity" index="index" collection="list" open="" separator="," close="">
+			(
+				  #{opportunity.id}
+				, #{opportunity.obj_type}
+				, #{opportunity.type}
+				, #{opportunity.accountName}
+				, #{opportunity.partyNumber}
+				, #{opportunity.address}
+				, #{opportunity.conaId_c}
+				, #{opportunity.ottCount_c}
+				, #{opportunity.dtvCount_c}
+				, #{opportunity.ispCount_c}
+				, #{opportunity.voipCount_c}
+				, #{opportunity.contractTo_c}
+				, #{opportunity.contractFrom_c}
+				, #{opportunity.opportunityNm}
+				, dbo.fn_getUserNameByPartyId(#{opportunity.empNumber})
+				, #{opportunity.optyBranch_c}
+				, #{opportunity.good3_c}
+				, #{opportunity.good3Qty_c}
+				, #{opportunity.good1_c}
+				, #{opportunity.good1Qty_c}
+				, #{opportunity.good2_c}
+				, #{opportunity.good2Qty_c}
+				, #{opportunity.good4_c}
+				, #{opportunity.good4Qty_c}
+				, #{opportunity.creationDate}
+				, #{opportunity.lastUpdateDate}
+				, #{opportunity.approvalYn_c}
+							)
+		</foreach>
+	</update>
+	
+	<!-- Temp Table -> Opportunity Table Update -->
+	<update id="insertApprByOptty" parameterType="java.util.Map">
+		MERGE INTO STG_APPROVAL A
+		USING TMP_APPROVAL_OPPTY B
+		ON (A.ID = B.ID)
+		WHEN MATCHED THEN
+			UPDATE SET           
+				  A.OBJ_TYPE        = B.OBJ_TYPE      
+				, A.Type            = B.Type          
+				, A.AccountName     = B.AccountName   
+				, A.PartyNumber     = B.PartyNumber   
+				, A.Address         = B.Address       
+				, A.ConaId_c        = B.ConaId_c      
+				, A.OTTCount_c      = B.OTTCount_c    
+				, A.DTVCount_c      = B.DTVCount_c    
+				, A.ISPCount_c      = B.ISPCount_c    
+				, A.VoIPCount_c     = B.VoIPCount_c   
+				, A.ContractTo_c    = B.ContractTo_c  
+				, A.ContractFrom_c  = B.ContractFrom_c
+				, A.OpportunityNm   = B.OpportunityNm 
+				, A.EmpNumber       = B.EmpNumber     
+				, A.OptyBranch_c    = B.OptyBranch_c  
+				, A.Good3_c         = B.Good3_c       
+				, A.Good3Qty_c      = B.Good3Qty_c    
+				, A.Good1_c         = B.Good1_c       
+				, A.Good1Qty_c      = B.Good1Qty_c    
+				, A.Good2_c         = B.Good2_c       
+				, A.Good2Qty_c      = B.Good2Qty_c    
+				, A.Good4_c         = B.Good4_c       
+				, A.Good4Qty_c      = B.Good4Qty_c    
+				, A.TargetYN        = 'Y'      
+				, A.CreationDate    = B.CreationDate  
+				, A.LastUpdateDate  = B.LastUpdateDate
+				, A.ApprovalYN_c    = B.ApprovalYN_c  
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  ID             
+				, OBJ_TYPE     
+				, Type           
+				, AccountName    
+				, PartyNumber    
+				, Address        
+				, ConaId_c       
+				, OTTCount_c     
+				, DTVCount_c     
+				, ISPCount_c     
+				, VoIPCount_c    
+				, ContractTo_c   
+				, ContractFrom_c 
+				, OpportunityNm  
+				, EmpNumber      
+				, OptyBranch_c   
+				, Good3_c        
+				, Good3Qty_c     
+				, Good1_c        
+				, Good1Qty_c     
+				, Good2_c        
+				, Good2Qty_c     
+				, Good4_c        
+				, Good4Qty_c  
+				, TargetYN   
+				, CreationDate   
+				, LastUpdateDate 
+				, ApprovalYN_c
+			)
+			VALUES
+			(
+				  B.ID             
+				, B.OBJ_TYPE     
+				, B.Type           
+				, B.AccountName    
+				, B.PartyNumber    
+				, B.Address        
+				, B.ConaId_c       
+				, B.OTTCount_c     
+				, B.DTVCount_c     
+				, B.ISPCount_c     
+				, B.VoIPCount_c    
+				, B.ContractTo_c   
+				, B.ContractFrom_c 
+				, B.OpportunityNm  
+				, B.EmpNumber      
+				, B.OptyBranch_c   
+				, B.Good3_c        
+				, B.Good3Qty_c     
+				, B.Good1_c        
+				, B.Good1Qty_c     
+				, B.Good2_c        
+				, B.Good2Qty_c     
+				, B.Good4_c        
+				, B.Good4Qty_c  
+				, 'Y'  
+				, B.CreationDate   
+				, B.LastUpdateDate 
+				, B.ApprovalYN_c
+			);
+	</update>
+	
+	<delete id="deleteImpApprovalByOpptyTemp">
+		TRUNCATE TABLE TMP_IMP_APPROVAL_OPPTY
+	</delete>
+	<!-- 실적 -->
+	<update id="insertImpApprovalByOpptyTemp">
+      INSERT INTO TMP_IMP_APPROVAL_OPPTY
+      (
+			  ID
+      )
+     SELECT   ID
+	   FROM   STG_APPROVAL
+	  WHERE   TARGETYN = 'Y'
+	    AND   Type     = 'OPPORTUNITY'
+   </update>
+   
+   <update id="updateStgApproval">
+      MERGE INTO STG_APPROVAL A
+      USING (SELECT ID
+               FROM TMP_IMP_APPROVAL_OPPTY) B
+      ON (A.ID = B.ID)
+      WHEN MATCHED THEN
+         UPDATE SET
+              A.TARGETYN          = 'N'
+            , A.LASTUPDATEDATE     = GETDATE()
+         ;
+   </update>
+   
+   <update id="insertImpApprovalByOppty">
+      MERGE INTO IMP_APPROVAL_OPPTY A
+      USING (SELECT   ID            
+					, ApprovalId_c  
+					, Type          
+               FROM STG_APPROVAL
+              WHERE TARGETYN = 'Y'
+                AND Type     = 'OPPORTUNITY') B
+      ON (A.ID = B.ID)
+      WHEN MATCHED THEN
+         UPDATE SET           
+				  A.ApprovalId_c   = B.ApprovalId_c  
+				, A.Type           = B.Type          
+				, A.TrnsYN         = 'N'
+				, A.ImportDate     = GETDATE() 
+      WHEN NOT MATCHED THEN
+         INSERT(
+				  ID            
+				, ApprovalId_c  
+				, Type          
+				, TrnsYN        
+				, ImportDate     
+         )
+         VALUES(
+				  B.ID            
+				, B.ApprovalId_c  
+				, B.Type          
+				, 'N'        
+				, GETDATE()    
+         );
+   </update>
+   
    <!-- stg_sr -> imp_sr Insert -->
    <select id="selectStgSr" parameterType="java.util.Map" resultType="vo.ImpSrVO" >
    		SELECT * FROM STG_SR
@@ -1384,6 +1700,138 @@
 	         , TRNSDATE				as TrnsDate
 	         , APPROVALYN_C			as ApprovalYNC
    		FROM IMP_APPROVAL_SR	
+   </select>
+    
+    <delete id="deleteImpAccountTemp">
+		TRUNCATE TABLE TMP_IMP_ACCOUNT
+	</delete>
+	<!-- 실적 -->
+	<update id="insertImpAccountTemp">
+      INSERT INTO TMP_IMP_ACCOUNT
+      (
+			  SEQ
+      )
+     SELECT   SEQ
+	   FROM   STG_ACCOUNT
+	  WHERE   TARGETYN = 'Y'
+   </update>
+   
+   <update id="updateStgAccount">
+      MERGE INTO STG_ACCOUNT A
+      USING (SELECT SEQ
+               FROM TMP_IMP_ACCOUNT) B
+      ON (A.SEQ = B.SEQ)
+      WHEN MATCHED THEN
+         UPDATE SET
+              A.TARGETYN          = 'N'
+            , A.LASTUPDATEDATE     = GETDATE()
+         ;
+   </update>
+   
+   <update id="insertImpAccount">
+      MERGE INTO IMP_ACCOUNT A
+      USING (SELECT   SEQ
+					, CONAID_C
+					, LTRIM(RTRIM(PARTYNUMBER))
+					, LTRIM(RTRIM(OTTCOUNT_C)) AS OTTCOUNT_C
+					, LTRIM(RTRIM(DTVCOUNT_C)) AS DTVCOUNT_C
+					, LTRIM(RTRIM(ISPCOUNT_C)) AS ISPCOUNT_C
+					, LTRIM(RTRIM(VOIPCOUNT_C)) AS VOIPCOUNT_C
+					, LTRIM(RTRIM(STANDARDFEE_C)) AS STANDARDFEE_C
+					, LTRIM(RTRIM(SURFEE_C)) AS SURFEE_C
+					, CONTRACTTO_C
+					, CONTRACTFROM_C
+               FROM STG_ACCOUNT
+              WHERE TARGETYN = 'Y') B
+      ON (A.SEQ = B.SEQ)
+      WHEN MATCHED THEN
+         UPDATE SET
+				, A.CONAID_C       = B.CONAID_C
+				, A.PARTYNUMBER    = B.PARTYNUMBER
+				, A.OTTCOUNT_C     = B.OTTCOUNT_C
+				, A.DTVCOUNT_C     = B.DTVCOUNT_C
+				, A.ISPCOUNT_C     = B.ISPCOUNT_C
+				, A.VOIPCOUNT_C    = B.VOIPCOUNT_C
+				, A.STANDARDFEE_C  = B.STANDARDFEE_C
+				, A.SURFEE_C       = B.SURFEE_C
+				, A.CONTRACTTO_C   = B.CONTRACTTO_C
+				, A.CONTRACTFROM_C = B.CONTRACTFROM_C
+				, A.TRNSYN         = 'N'
+				, A.IMPORTDATE     = GETDATE()
+      WHEN NOT MATCHED THEN
+         INSERT(
+				  SEQ
+				, CONAID_C
+				, PARTYNUMBER
+				, OTTCOUNT_C
+				, DTVCOUNT_C
+				, ISPCOUNT_C
+				, VOIPCOUNT_C
+				, STANDARDFEE_C
+				, SURFEE_C
+				, CONTRACTTO_C
+				, CONTRACTFROM_C
+				, TRNSYN
+				, IMPORTDATE
+         )
+         VALUES(
+				  B.SEQ
+				, B.CONAID_C
+				, B.PARTYNUMBER
+				, B.OTTCOUNT_C
+				, B.DTVCOUNT_C
+				, B.ISPCOUNT_C
+				, B.VOIPCOUNT_C
+				, B.STANDARDFEE_C
+				, B.SURFEE_C
+				, B.CONTRACTTO_C
+				, B.CONTRACTFROM_C
+				, 'N'
+				, GETDATE()
+         );
+   </update>
+   
+   <delete id="deleteTransAccountTemp">
+		TRUNCATE TABLE TMP_TRNS_ACCOUNT
+	</delete>
+	<!-- 실적 -->
+	<update id="insertTransAccountTemp">
+      INSERT INTO TMP_TRNS_ACCOUNT
+      (
+			   SEQ
+      )
+      SELECT   SEQ
+	    FROM   IMP_ACCOUNT
+	   WHERE   TRNSYN = 'N'
+   </update>
+   
+   <update id="updateImpAccount">
+      MERGE INTO IMP_ACCOUNT A
+      USING (SELECT SEQ
+               FROM TMP_TRNS_ACCOUNT) B
+      ON (A.SEQ = B.SEQ)
+      WHEN MATCHED THEN
+         UPDATE SET
+              A.TRNSYN          = 'Y'
+            , A.TRNSDATE        = GETDATE()
+         ;
+   </update>
+   
+   <select id="imp_account" resultType="java.util.Map">
+		SELECT    PartyNumber 
+				, ConaId_c      
+				, OTTCount_c    
+				, DTVCount_c    
+				, ISPCount_c    
+				, VoIPCount_c   
+				, StandardFee_c 
+				, SurFee_c       
+				, (SUBSTRING(ContractTo_c,1,4)+'-'+SUBSTRING(ContractTo_c,5,2)+'-'+SUBSTRING(ContractTo_c,7,2)) as ContractFrom_c 
+				, (SUBSTRING(ContractFrom_c,1,4)+'-'+SUBSTRING(ContractFrom_c,5,2)+'-'+SUBSTRING(ContractFrom_c,7,2)) as ContractTo_c
+<!-- 				, (SUBSTRING(ContractTo_c,1,4)+'-'+SUBSTRING(ContractTo_c,5,2)+'-'+SUBSTRING(ContractTo_c,7,2)) as  ContractTo_c -->
+<!-- 				, (SUBSTRING(ContractFrom_c,1,4)+'-'+SUBSTRING(ContractFrom_c,5,2)+'-'+SUBSTRING(ContractFrom_c,7,2)) as ContractFrom_c -->
+		  FROM    IMP_ACCOUNT
+		 WHERE    TRNSYN          = 'N'
    </select>
 	
 	
