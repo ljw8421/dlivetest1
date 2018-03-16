@@ -127,53 +127,6 @@ public class DliveMain {
 	    	/* Service Request */
 //	    	service_request_in(restId, restPw, restUrl, map, mssession);
 	    	
-	    	/* ImpSr */
-//	    	impSrManagement = new ImpSrManagement();
-//	    	impSrManagement.insertImpSrManagement(mssession);
-	    	
-	    	// csv + import
-//	    	  codeVo.setType("dlive_batch_job_out");
-//            codeVo.setCd_name("imp_oppty_import");
-//     
-//            CodeVO importCodeVo = mssession.selectOne("interface.selectCode", codeVo);
-//            importMethod = importCodeVo.getCd_name();
-//          
-//            fileName  = importMethod+"_"+paramDt;
-//            headerDiv = importCodeVo.getCd_val();
-//          
-//            logger.info("CSV fileName  : " + fileName);
-//            logger.info("CSV headerDiv : " + headerDiv);
-	          
-            logger.info("CSV File");
-	    	/* csv file create + import */
-	    	List<Map<String, Object>> targetList = new ArrayList<Map<String,Object>>();
-//	    	targetList = mssession.selectList(importMethod);	    	
-	    	targetList = mssession.selectList("interface.selectImpApprovalSrCSV");	    	
-	    	logger.info("targetList : " + targetList.size());
-	    	
-	    	
-//	    	createCsvFile.csvFileTemplet(targetList, fileName, "Y", headerDiv);
-	    	createCsvFile.csvFileTemplet(targetList, "SRList", "Y", "003");
-	    	
-	    	// Import Sales Cloud CSV File
-//	    	String response = importCsv.importJob(headerDiv, fileName);               
-//	        logger.info("response : " + response);
-//	          
-//			if("success".equals(response)) 
-//			{
-//				// imp table TrnsYn -> Y update
-//				int result1 = 0;
-//				int result2 = 0;
-// 
-//				result1 = mssession.update("updateOpptyTrnsYN");
-//				result2 = mssession.update("updateOpptyAccoutnTrnsYN");
-// 
-//				if(result1 != 0 && result2 != 0) 
-//				{
-//					mssession.commit();
-//					logger.info("Imp Table TrnsYN set N");
-//				}
-//			}
 	    	    	
 		} catch (Exception e) {
 			logger.info("Exception - " + e.toString());
