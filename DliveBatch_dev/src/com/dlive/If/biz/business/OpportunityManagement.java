@@ -19,11 +19,13 @@ import com.oracle.xmlns.adf.svc.types.Conjunction;
 import com.oracle.xmlns.adf.svc.types.FindControl;
 import com.oracle.xmlns.adf.svc.types.FindCriteria;
 import com.oracle.xmlns.apps.sales.opptymgmt.opportunities.opportunityservice.Opportunity;
+import com.oracle.xmlns.apps.sales.opptymgmt.opportunities.opportunityservice.OpportunityLead;
 import com.oracle.xmlns.apps.sales.opptymgmt.opportunities.opportunityservice.OpportunityService;
 import com.oracle.xmlns.apps.sales.opptymgmt.opportunities.opportunityservice.OpportunityService_Service;
 
 import util.CommonUtil;
 import vo.OpportunityVO;
+import vo.OpptyLeadVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
 public class OpportunityManagement {
@@ -71,7 +73,7 @@ public class OpportunityManagement {
 	}
 	
 	//거래처 List
-	public List<OpportunityVO> getAllOpportunity() throws Exception 
+	public Map<String,Object> getAllOpportunity() throws Exception 
 	{
 		logger.info("SalesCloud OpportunityManagement getAllOpportunity List");
 		
@@ -85,6 +87,7 @@ public class OpportunityManagement {
 							,"Good1Price_c","Good2_c","Good2Price_c","Good2Qty_c","Good3_c","Good4_c","Good3Price_c","Good4Price_c"
 							,"Good3Qty_c","Good4Qty_c","Good1CalcF_c","Good2CalcF_c","Good3CalcF_c","Good4CalcF_c"
 							,"GoodTotalCalcF_c","OptyBranch_c","CreatedBy","CreationDate","LastUpdateDate","LastUpdatedBy"
+							,"OpportunityLead"
 						  };
 		
 		String itemAttribute[] = {
@@ -108,7 +111,7 @@ public class OpportunityManagement {
 		List<Map<String, Object>> filterList = null;
 		
 		commonUtil = new CommonUtil();
-		filterList = commonUtil.filterList(itemAttribute,itemValue,upperCaseCompare,operator);
+		filterList = commonUtil.addFilterList(itemAttribute,itemValue,upperCaseCompare,operator);
 		
 		int pageNum = 1;
 		int pageSize = 500;
@@ -119,9 +122,12 @@ public class OpportunityManagement {
 		
 		List<Opportunity> opportunityResult = null;
 		
+		Map<String,Object> tgtMap = new HashMap<>();
 		List<OpportunityVO> tgtList = new ArrayList<OpportunityVO>();
+		List<OpptyLeadVO> tgtChlidList = new ArrayList<OpptyLeadVO>();
 		
-		OpportunityVO ovo = new OpportunityVO();
+		OpportunityVO ovo = null;
+		OpptyLeadVO olvo = null;
 		
 		do
 		{
@@ -131,11 +137,12 @@ public class OpportunityManagement {
 			
 			opportunityResult = opportunityService.findOpportunity(findCriteria, findControl);
 			resultSize= opportunityResult.size();
+			int i = 1;
 			
-			for (int i=0; i<opportunityResult.size(); i++) 
+			for (Opportunity opportunity : opportunityResult) 
 			{
 				ovo = new OpportunityVO();
-				Opportunity opportunity = (Opportunity)(opportunityResult).get(i);
+				
 				String optyId                    = opportunity.getOptyId().toString();
 				String optyNumber                = opportunity.getOptyNumber();
 				//String optyLeadId                = opportunity.getChildRevenue().getOptyLeadId();
@@ -151,7 +158,7 @@ public class OpportunityManagement {
 					statusCode = opportunity.getStatusCode().getValue().toString();
 				}
 				String salesStage                = opportunity.getSalesStage();
-				String comments                  = null;
+				String comments                  = "";
 				if(opportunity.getComments().getValue() != null){
 					comments = opportunity.getComments().getValue().toString();
 				}
@@ -281,7 +288,20 @@ public class OpportunityManagement {
 				String creationDate              = opportunity.getCreationDate().toString();
 				String lastUpdateDate            = opportunity.getLastUpdateDate().toString();
 				String lastUpdatedBy             = opportunity.getLastUpdatedBy();
-
+				
+				List<OpportunityLead> opportunityLeadList = new ArrayList<OpportunityLead>();
+				opportunityLeadList = opportunity.getOpportunityLead();
+				for(OpportunityLead opportunityLead : opportunityLeadList){
+					olvo = new OpptyLeadVO();
+					
+					String optyLeadId      = opportunityLead.getOptyLeadId().toString();
+					
+					olvo.setOptyId(optyId);
+					olvo.setOptyLeadId(optyLeadId);
+					
+					tgtChlidList.add(olvo);
+				}
+				
 				ovo.setOptyId(optyId);
 				ovo.setOptyNumber(optyNumber);
 //				ovo.setOptyLeadId(optyLeadId);
@@ -380,13 +400,17 @@ public class OpportunityManagement {
 				logger.info("#["+i+"]==========================================================");
 				
 				tgtList.add(ovo);
+				i++;
 			}
 			
 			pageNum++;
 		}
 		while(resultSize == pageSize);
 		
-		return tgtList;
+		tgtMap.put("opptyList", tgtList);
+		tgtMap.put("opptyLeadList", tgtChlidList);
+		
+		return tgtMap;
 	}
 	
 	/**
@@ -437,6 +461,49 @@ public class OpportunityManagement {
 			if(result2 != 0) {
 				session.commit();
 				logger.info("InterFace SC_Opportunity Table Insert End");
+			}
+		}
+		else {
+			logger.info("Temp Table Insert ERROR");
+		}
+		
+		return result2;
+	}
+	
+	public int insertOpportunityLead(List<OpptyLeadVO> oppotyLeadList) throws Exception
+	{
+		logger.info("InterFace SC_OpportunityLead Table Insert Start");
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<OpptyLeadVO>> subList = new ArrayList<List<OpptyLeadVO>>();		// list를 나누기 위한 temp
+		
+		int result1        = 0;
+		int result2        = 0;
+		int splitSize     = 40;	// partition 나누기
+		
+		session.delete("interface.deleteOpportunityLeadTemp");
+		logger.info("OpportunityList.size() : " + oppotyLeadList.size());
+		if(oppotyLeadList.size() > splitSize) {
+			subList = Lists.partition(oppotyLeadList, splitSize);
+			
+			logger.info("subList size " + subList.size());
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				result1 = session.update("interface.insertOpportunityLeadTemp", batchMap);		// addbatch
+			}
+		}
+		else {
+			batchMap.put("list", oppotyLeadList);
+			result1 = session.update("interface.insertOpportunityLeadTemp", batchMap);
+			
+		}
+		
+		if(result1 != 0) {
+			result2 = session.update("interface.insertOpportunityLead");
+
+			if(result2 != 0) {
+				session.commit();
+				logger.info("InterFace SC_OpportunityLead Table Insert End");
 			}
 		}
 		else {

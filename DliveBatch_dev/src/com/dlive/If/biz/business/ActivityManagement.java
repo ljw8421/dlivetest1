@@ -26,6 +26,7 @@ import com.oracle.xmlns.apps.crmcommon.activities.activitymanagementservice.Acti
 import com.oracle.xmlns.apps.crmcommon.activities.activitymanagementservice.ActivityService;
 import com.oracle.xmlns.apps.crmcommon.activities.activitymanagementservice.ActivityService_Service;
 
+import util.CommonUtil;
 import vo.ActivityVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
@@ -39,6 +40,7 @@ public class ActivityManagement {
 	
 	SqlSession session;
 	private String batchJobId;
+	CommonUtil commonUtil;
 	
 	private static Logger logger = Logger.getLogger(ActivityManagement.class);
 	
@@ -87,165 +89,231 @@ public class ActivityManagement {
 							  , "OwnerEmailAddress", "Subject", "ActivityDescription", "LeadId", "LeadName"
 							  , "OpportunityId", "OpportunityName", "PrimaryContactId", "PrimaryContactName", "VisitResult_c"
 							  , "VisitDate_c", "InitialDate_c",  "CreatedBy", "CreationDate", "LastUpdateDate"
-							  , "LastUpdatedBy"
+							  , "LastUpdatedBy","ActBranch_c","PrivateFlag"
 							  
 						 };
 		// key : ActivityId
+		String itemAttribute[] = {
+				"ActivityId"
+			 };
+
+		String itemValue[] = {
+					""
+				 };
 		
-		FindCriteria findCriteria = getCriteria("ActivityId", "", items);
+		boolean upperCaseCompare[] = {
+							true
+						 };
+		
+		String operator[] = {
+					"="
+				};
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		List<Map<String, Object>> filterList = null;
+		
+		commonUtil = new CommonUtil();
+		filterList = commonUtil.addFilterList(itemAttribute,itemValue,upperCaseCompare,operator);
+		
+		int pageNum = 1;
+		int pageSize = 500;
+		int resultSize = 0;
+		
+		FindCriteria findCriteria = null;
 		FindControl findControl = new FindControl();
 		
-		List<Activity> activityList = activityService.findActivity(findCriteria, findControl);
+		List<Activity> activityList = null;
 		List<ActivityVO> tgtList = new ArrayList<ActivityVO>();
 		
-		for (int i = 0; i < activityList.size(); i++) {
+		do
+		{
+			findCriteria = null;
+			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
 			
-			ActivityVO rvo = new ActivityVO();
-			Activity activity = (Activity)(activityList).get(i);
+			activityList = activityService.findActivity(findCriteria, findControl);
+			resultSize = activityList.size();
 			
-			String activityId 			= activity.getActivityId().toString();
-			String activityNumber   	= activity.getActivityNumber();
-			String accountId = null;
-			if(activity.getAccountId().getValue() != null) {
-				accountId = activity.getAccountId().getValue().toString();
+			for (int i = 0; i < activityList.size(); i++) {
+				
+				ActivityVO rvo = new ActivityVO();
+				Activity activity = (Activity)(activityList).get(i);
+				
+				String activityId 			= activity.getActivityId().toString();
+				String activityNumber   	= activity.getActivityNumber();
+				String accountId = null;
+				if(activity.getAccountId().getValue() != null) {
+					accountId = activity.getAccountId().getValue().toString();
+				}
+				String accountName =  "";
+				if(activity.getAccountName() != null) {
+					accountName = activity.getAccountName().getValue();
+				}
+				String activityFunctioncode = activity.getActivityFunctionCode();
+				String activityTypeCode =  "";
+				if(activity.getActivityTypeCode() != null) {
+					activityTypeCode = activity.getActivityTypeCode().getValue();
+				}
+				String activityStartDate	= null;
+				if(activity.getActivityStartDate().getValue() != null) {
+					activityStartDate = activity.getActivityStartDate().getValue().toString();
+				}
+				String activityEndDate = null;
+				if(activity.getActivityEndDate().getValue() != null) {
+					activityEndDate = activity.getActivityEndDate().getValue().toString();
+				}
+				String ownerId				= activity.getOwnerId().toString();
+				String ownerName =  "";
+				if(activity.getOwnerName() != null) {
+					ownerName = activity.getOwnerName().getValue();
+				}
+				String ownerEmailAddress =  "";
+				if(activity.getOwnerEmailAddress().getValue() != null) {
+					ownerEmailAddress = activity.getOwnerEmailAddress().getValue();
+				}
+				String subject = activity.getSubject();
+				String activityDescription = "";
+				if(activity.getActivityDescription() != null) {
+					byte[] activityDesc = activity.getActivityDescription().getValue();
+					activityDescription = new String(activityDesc, "UTF-8");
+				}
+				String leadId	= null ;
+		        if(activity.getLeadId().getValue() != null) {
+		        	leadId = activity.getLeadId().getValue().toString();
+				}
+		        String leadName = "";
+		        if(activity.getLeadName().getValue() != null) {
+		        	leadName = activity.getLeadName().getValue();
+				}
+		        String opportunityId = null;
+		        if(activity.getOpportunityId().getValue() != null) {
+		        	opportunityId = activity.getOpportunityId().getValue().toString();
+				}
+		        String opportunityName =  "";
+		        if(activity.getOpportunityName().getValue() != null) {
+		        	opportunityName = activity.getOpportunityName().getValue();
+				}
+		        String primaryContactId = null;
+		        if(activity.getPrimaryContactId().getValue() != null) {
+		        	primaryContactId = activity.getPrimaryContactId().getValue().toString();
+				}
+		        String primaryContactName =  "";
+		        if(activity.getPrimaryContactName().getValue() != null) {
+		        	primaryContactName = activity.getPrimaryContactName().getValue();
+				}
+		        String visitResult_c =  "";
+		        if(activity.getVisitResultC().getValue() != null) {
+		        	visitResult_c = activity.getVisitResultC().getValue();
+				}
+		        String visitDate_c = null;
+		        if(activity.getVisitDateC().getValue() != null) {
+		        	visitDate_c = activity.getVisitDateC().getValue().toString();
+				}
+		        String initialDate_c = null;
+		        if(activity.getInitialDateC().getValue() != null) {
+		        	initialDate_c = activity.getInitialDateC().getValue().toString();
+				}
+		        String createdBy		= activity.getCreatedBy();
+		        String creationDate 	= activity.getCreationDate().toString();
+		        String lastUpdateDate	= activity.getLastUpdateDate().toString();
+		        String lastUpdatedBy	= activity.getLastUpdatedBy();
+		        String actBranch_c 		= null;
+		        if(activity.getActBranchC() != null) {
+		        	actBranch_c = activity.getActBranchC().getValue();
+				}
+		        String privateFlag      = "Y";
+		        if(activity.getPrivateFlag() != null) {
+		        	if(activity.getPrivateFlag().equals(true)) {
+		        		privateFlag = "Y";
+		             }
+		             else {
+		            	 privateFlag = "N";
+		             }
+				}
+				logger.info("#["+i+"]");
+				logger.info("Activity activityId			: " + activityId);
+				logger.info("Activity activityNumber		: " + activityNumber);
+				logger.info("Activity accountId				: " + accountId);
+				logger.info("Activity accountName			: " + accountName);
+				logger.info("Activity activityFunctioncode	: " + activityFunctioncode);
+				logger.info("Activity activityTypeCode		: " + activityTypeCode);
+				logger.info("Activity activityStartDate		: " + activityStartDate);
+				logger.info("Activity activityEndDate		: " + activityEndDate);
+				logger.info("Activity ownerId				: " + ownerId);
+				logger.info("Activity ownerName				: " + ownerName);
+				logger.info("Activity ownerEmailAddress		: " + ownerEmailAddress);
+				logger.info("Activity subject				: " + subject);
+				logger.info("Activity activityDescription	: " + activityDescription);
+				logger.info("Activity leadId				: " + leadId);
+				logger.info("Activity leadName				: " + leadName);
+				logger.info("Activity opportunityId			: " + opportunityId);
+				logger.info("Activity opportunityName		: " + opportunityName);
+				logger.info("Activity primaryContactId		: " + primaryContactId);
+				logger.info("Activity primaryContactName	: " + primaryContactName);
+				logger.info("Activity visitResult_c			: " + visitResult_c);
+				logger.info("Activity visitDate_c			: " + visitDate_c);
+				logger.info("Activity initialDate_c			: " + initialDate_c);
+				logger.info("Activity createdBy				: " + createdBy);
+				logger.info("Activity creationDate			: " + creationDate);
+				logger.info("Activity lastUpdateDate		: " + lastUpdateDate);
+				logger.info("Activity lastUpdatedBy			: " + lastUpdatedBy);
+				logger.info("Activity actBranch_c			: " + actBranch_c);
+				logger.info("Activity privateFlag			: " + privateFlag);
+				
+				
+				rvo.setActivityId(activityId);
+				rvo.setActivityNumber(activityNumber);
+				rvo.setAccountId(accountId);
+				rvo.setAccountName(accountName);
+				rvo.setActivityFunctioncode(activityFunctioncode);
+				rvo.setActivityTypeCode(activityTypeCode);
+				rvo.setActivityStartDate(activityStartDate);
+				rvo.setActivityEndDate(activityEndDate);
+				rvo.setOwnerId(ownerId);
+				rvo.setOwnerName(ownerName);
+				rvo.setOwnerEmailAddress(ownerEmailAddress);
+				rvo.setSubject(subject);
+				rvo.setActivityDescription(activityDescription);
+				rvo.setLeadId(leadId);
+				rvo.setLeadName(leadName);
+				rvo.setOpportunityId(opportunityId);
+				rvo.setOpportunityName(opportunityName);
+				rvo.setPrimaryContactId(primaryContactId);
+				rvo.setPrimaryContactName(primaryContactName);
+				rvo.setVisitResult_c(visitResult_c);
+				rvo.setVisitDate_c(visitDate_c);
+				rvo.setInitialDate_c(initialDate_c);
+				rvo.setCreatedBy(createdBy);
+				rvo.setCreationDate(creationDate);
+				rvo.setLastUpdateDate(lastUpdateDate);
+				rvo.setLastUpdatedBy(lastUpdatedBy);
+				rvo.setActBranch_c(actBranch_c);
+				rvo.setPrivateFlag(privateFlag);
+				
+				tgtList.add(rvo);
+				
 			}
-			String accountName =  "";
-			if(activity.getAccountName() != null) {
-				accountName = activity.getAccountName().getValue();
-			}
-			String activityFunctioncode = activity.getActivityFunctionCode();
-			String activityTypeCode =  "";
-			if(activity.getActivityTypeCode() != null) {
-				activityTypeCode = activity.getActivityTypeCode().getValue();
-			}
-			String activityStartDate	= null;
-			if(activity.getActivityStartDate().getValue() != null) {
-				activityStartDate = activity.getActivityStartDate().getValue().toString();
-			}
-			String activityEndDate = null;
-			if(activity.getActivityEndDate().getValue() != null) {
-				activityEndDate = activity.getActivityEndDate().getValue().toString();
-			}
-			String ownerId				= activity.getOwnerId().toString();
-			String ownerName =  "";
-			if(activity.getOwnerName() != null) {
-				ownerName = activity.getOwnerName().getValue();
-			}
-			String ownerEmailAddress =  "";
-			if(activity.getOwnerEmailAddress().getValue() != null) {
-				ownerEmailAddress = activity.getOwnerEmailAddress().getValue();
-			}
-			String subject = activity.getSubject();
-			String activityDescription = "";
-			if(activity.getActivityDescription() != null) {
-				byte[] activityDesc = activity.getActivityDescription().getValue();
-				activityDescription = new String(activityDesc, "UTF-8");
-			}
-			String leadId	= null ;
-	        if(activity.getLeadId().getValue() != null) {
-	        	leadId = activity.getLeadId().getValue().toString();
-			}
-	        String leadName = "";
-	        if(activity.getLeadName().getValue() != null) {
-	        	leadName = activity.getLeadName().getValue();
-			}
-	        String opportunityId = null;
-	        if(activity.getOpportunityId().getValue() != null) {
-	        	opportunityId = activity.getOpportunityId().getValue().toString();
-			}
-	        String opportunityName =  "";
-	        if(activity.getOpportunityName().getValue() != null) {
-	        	opportunityName = activity.getOpportunityName().getValue();
-			}
-	        String primaryContactId = null;
-	        if(activity.getPrimaryContactId().getValue() != null) {
-	        	primaryContactId = activity.getPrimaryContactId().getValue().toString();
-			}
-	        String primaryContactName =  "";
-	        if(activity.getPrimaryContactName().getValue() != null) {
-	        	primaryContactName = activity.getPrimaryContactName().getValue();
-			}
-	        String visitResult_c =  "";
-	        if(activity.getVisitResultC().getValue() != null) {
-	        	visitResult_c = activity.getVisitResultC().getValue();
-			}
-	        String visitDate_c = null;
-	        if(activity.getVisitDateC().getValue() != null) {
-	        	visitDate_c = activity.getVisitDateC().getValue().toString();
-			}
-	        String initialDate_c = null;
-	        if(activity.getInitialDateC().getValue() != null) {
-	        	initialDate_c = activity.getInitialDateC().getValue().toString();
-			}
-	        String createdBy		= activity.getCreatedBy();
-	        String creationDate 	= activity.getCreationDate().toString();
-	        String lastUpdateDate	= activity.getLastUpdateDate().toString();
-	        String lastUpdatedBy	= activity.getLastUpdatedBy();
-			
-			logger.info("#["+i+"]");
-			logger.info("Activity activityId			: " + activityId);
-			logger.info("Activity activityNumber		: " + activityNumber);
-			logger.info("Activity accountId				: " + accountId);
-			logger.info("Activity accountName			: " + accountName);
-			logger.info("Activity activityFunctioncode	: " + activityFunctioncode);
-			logger.info("Activity activityTypeCode		: " + activityTypeCode);
-			logger.info("Activity activityStartDate		: " + activityStartDate);
-			logger.info("Activity activityEndDate		: " + activityEndDate);
-			logger.info("Activity ownerId				: " + ownerId);
-			logger.info("Activity ownerName				: " + ownerName);
-			logger.info("Activity ownerEmailAddress		: " + ownerEmailAddress);
-			logger.info("Activity subject				: " + subject);
-			logger.info("Activity activityDescription	: " + activityDescription);
-			logger.info("Activity leadId				: " + leadId);
-			logger.info("Activity leadName				: " + leadName);
-			logger.info("Activity opportunityId			: " + opportunityId);
-			logger.info("Activity opportunityName		: " + opportunityName);
-			logger.info("Activity primaryContactId		: " + primaryContactId);
-			logger.info("Activity primaryContactName	: " + primaryContactName);
-			logger.info("Activity visitResult_c			: " + visitResult_c);
-			logger.info("Activity visitDate_c			: " + visitDate_c);
-			logger.info("Activity initialDate_c			: " + initialDate_c);
-			logger.info("Activity createdBy				: " + createdBy);
-			logger.info("Activity creationDate			: " + creationDate);
-			logger.info("Activity lastUpdateDate		: " + lastUpdateDate);
-			logger.info("Activity lastUpdatedBy			: " + lastUpdatedBy);
-			
-			
-			rvo.setActivityId(activityId);
-			rvo.setActivityNumber(activityNumber);
-			rvo.setAccountId(accountId);
-			rvo.setAccountName(accountName);
-			rvo.setActivityFunctioncode(activityFunctioncode);
-			rvo.setActivityTypeCode(activityTypeCode);
-			rvo.setActivityStartDate(activityStartDate);
-			rvo.setActivityEndDate(activityEndDate);
-			rvo.setOwnerId(ownerId);
-			rvo.setOwnerName(ownerName);
-			rvo.setOwnerEmailAddress(ownerEmailAddress);
-			rvo.setSubject(subject);
-			rvo.setActivityDescription(activityDescription);
-			rvo.setLeadId(leadId);
-			rvo.setLeadName(leadName);
-			rvo.setOpportunityId(opportunityId);
-			rvo.setOpportunityName(opportunityName);
-			rvo.setPrimaryContactId(primaryContactId);
-			rvo.setPrimaryContactName(primaryContactName);
-			rvo.setVisitResult_c(visitResult_c);
-			rvo.setVisitDate_c(visitDate_c);
-			rvo.setInitialDate_c(initialDate_c);
-			rvo.setCreatedBy(createdBy);
-			rvo.setCreationDate(creationDate);
-			rvo.setLastUpdateDate(lastUpdateDate);
-			rvo.setLastUpdatedBy(lastUpdatedBy);
-			
-			tgtList.add(rvo);
-			
+		
+			pageNum++;
 		}
+		while(resultSize == pageSize);
 		
 		logger.info("End SalesCloud GetAllActivity");
-		
 		return tgtList;
 	}	
+	/**
+	 * delFlag를 Y로 셋팅
+	 * */
+	public int updateDelFlag() throws Exception
+	{
+		logger.info("InterFace SC_Opportunity delFalg Update");
+		int update = 0;
+		
+		session.update("interface.updateActivityDelflg");
+		session.commit();
+		
+		return update;
+	}
 	
 	//영업활동 my-sql DB 저장
 	public int insertActivity(List<ActivityVO> activityList) throws Exception 
@@ -256,7 +324,7 @@ public class ActivityManagement {
 		
 		int result1        = 0;
 		int result2        = 0;
-		int splitSize     = 1000;	// partition 나누기
+		int splitSize     = 70;	// partition 나누기
 		
 		session.delete("interface.deleteActivityTemp");
 		
@@ -289,37 +357,6 @@ public class ActivityManagement {
 		}
 
 		return result2;
-	}
-	
-	public FindCriteria getCriteria(String itemAttribute, String itemValue, String[] items) throws Exception
-	{
-		FindCriteria findCriteria = new FindCriteria();
-		findCriteria.setFetchStart(0);
-		findCriteria.setFetchSize(-1);
-
-		if (itemValue != null && itemValue != "") 
-		{
-			ViewCriteria filter = new ViewCriteria();
-			ViewCriteriaRow group1 = new ViewCriteriaRow();
-			ViewCriteriaItem item1 = new ViewCriteriaItem();
-
-			item1.setUpperCaseCompare(true);
-			item1.setAttribute(itemAttribute);
-			item1.setOperator("=");
-			item1.getValue().add(itemValue);
-
-			group1.getItem().add(item1);
-			group1.setConjunction(Conjunction.AND);
-
-			filter.getGroup().add(group1);
-			findCriteria.setFilter(filter);
-		}
-
-		for (int i = 0; i < items.length; i++) {
-			findCriteria.getFindAttribute().add(items[i]);
-		}
-
-		return findCriteria;
 	}
 	   
 }

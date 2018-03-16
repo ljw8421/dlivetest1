@@ -20,7 +20,7 @@ public class CommonUtil {
    
    private static Logger logger = Logger.getLogger(CommonUtil.class);
    
-   public List<Map<String, Object>> filterList(String[] itemAttribute
+   public List<Map<String, Object>> addFilterList(String[] itemAttribute
          , String[] itemValue, boolean[] upperCaseCompare, String[] operator){
       
       List<Map<String, Object>> filterList = null;

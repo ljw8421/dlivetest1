@@ -31,8 +31,22 @@ public class ActivityVO {
 	private String creationDate;
 	private String lastUpdateDate;
 	private String lastUpdatedBy;
+	private String actBranch_c;
+	private String privateFlag;
 	
 	
+	public String getPrivateFlag() {
+		return privateFlag;
+	}
+	public void setPrivateFlag(String privateFlag) {
+		this.privateFlag = privateFlag;
+	}
+	public String getActBranch_c() {
+		return actBranch_c;
+	}
+	public void setActBranch_c(String actBranch_c) {
+		this.actBranch_c = actBranch_c;
+	}
 	public String getActivityId() {
 		return activityId;
 	}
@@ -207,7 +221,6 @@ public class ActivityVO {
 	public void setLastUpdatedBy(String lastUpdatedBy) {
 		this.lastUpdatedBy = lastUpdatedBy;
 	}
-	
 	@Override
 	public String toString() {
 		return "ActivityVO [activityId=" + activityId + ", activityNumber=" + activityNumber + ", accountId="
@@ -221,6 +234,8 @@ public class ActivityVO {
 				+ visitResult_c + ", visitDate_c=" + visitDate_c + ", initialDate_c=" + initialDate_c
 				+ ", initialDateF_c=" + initialDateF_c + ", initialDateTextF_c=" + initialDateTextF_c + ", createdBy="
 				+ createdBy + ", creationDate=" + creationDate + ", lastUpdateDate=" + lastUpdateDate
-				+ ", lastUpdatedBy=" + lastUpdatedBy + "]";
+				+ ", lastUpdatedBy=" + lastUpdatedBy + ", actBranch_c=" + actBranch_c + "]";
 	}
+	
+	
 }

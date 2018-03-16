@@ -19,6 +19,7 @@ import vo.AccountVO;
 import vo.ActivityVO;
 import vo.LeadVO;
 import vo.OpportunityVO;
+import vo.OpptyLeadVO;
 import vo.ResourcesVO;
 import vo.ApprovalVO;
 
@@ -39,6 +40,11 @@ public class DliveMain {
 	private static ActivityManagement    			activity;
 	private static LeadManagement		 			lead;
 	private static ServiceRequestServiceManagement	serviceRequest;
+	private static ApprovalByOpptyManagement  apprByOppty;
+	
+	private static ImpAccountManagement  impAccount;
+	private static ImpApprovalByOpptyManagement impApprByOppty;
+	
 	private static ImpSrManagement					impSrManagement;
 	private static CreateCsvFile					createCsvFile  = new CreateCsvFile();
 	private static ImportCsv						importCsv;
@@ -70,6 +76,7 @@ public class DliveMain {
             
             SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
             Calendar today = Calendar.getInstance();
+            Calendar today2 = Calendar.getInstance();
             String nowYear  = ""+today.get(Calendar.YEAR);
             
             //오늘
@@ -78,6 +85,10 @@ public class DliveMain {
             //어제
             today.add(Calendar.DATE, -1);
             toDt = dateForm.format(today.getTime());
+          //2일전
+            String toDt2 = "";
+            today2.add(Calendar.DATE, -2);
+            toDt2 = dateForm.format(today.getTime());
             
             int yesterday_month = today.get(Calendar.MONTH) + 1;
             
@@ -127,6 +138,15 @@ public class DliveMain {
 	    	/* Service Request */
 //	    	service_request_in(restId, restPw, restUrl, map, mssession);
 	    	
+	    	/* Approval by Oppty */
+//	    	apprByOppty_in(restId, restPw, restUrl, map, mssession);
+	    	
+	    	/* imp Account */
+//	    	imp_account_in(map, mssession);
+	    	
+	    	/* imp Approval by Oppty */
+//	    	imp_apprByOppty_in(map, mssession);
+	    	
 	    	    	
 		} catch (Exception e) {
 			logger.info("Exception - " + e.toString());
@@ -174,10 +194,21 @@ public class DliveMain {
 		opportunity = new OpportunityManagement(mysession, map);		// Account
 		opportunity.initialize(restId, restPw, restUrl);			// webService 호출
 
-		List<OpportunityVO> resultList = opportunity.getAllOpportunity();				// 거래처 List
-		if(resultList != null) {
+		Map<String,Object> resultMap = opportunity.getAllOpportunity();// 거래처 List
+		
+		List<OpportunityVO> opptyList = new ArrayList<OpportunityVO>();
+		List<OpptyLeadVO> opptyLeadlist = new ArrayList<OpptyLeadVO>();
+		int result;
+		
+		opptyList = (List<OpportunityVO>) resultMap.get("opptyList");
+		opptyLeadlist = (List<OpptyLeadVO>) resultMap.get("opptyLeadList");
+		
+		if(opptyList != null) {
 //			opportunity.updateDelFlag();
-//			opportunity.insertOpportunity(resultList);
+			result = opportunity.insertOpportunity(opptyList);
+			if(result != 0){
+				opportunity.insertOpportunityLead(opptyLeadlist);
+			}
 		}
 		else {
 			logger.info("dosen't exist Oracle Sales Cloud Opportunity List");
@@ -226,6 +257,61 @@ public class DliveMain {
 		}
 		else {
 			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
+		}
+	}
+	
+	private static void apprByOppty_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
+	{
+		apprByOppty = new ApprovalByOpptyManagement(mssession, map);			// Resource
+		apprByOppty.initialize(restId, restPw, restUrl);					// webService 호출
+		
+		List<ApprovalVO> resultList = apprByOppty.getAllApprovalByOppty();	// resources 조회
+		
+		if(resultList != null) {
+			apprByOppty.insertApprovalByOppty(resultList);				// resources insert
+		}
+		else {
+			logger.info("dosen't exist Oracle Sales Cloud Activity List");
+		}
+	}
+	
+	private static void imp_account_in(Map<String, String> map, SqlSession mssession) throws Exception 
+	{
+		impAccount = new ImpAccountManagement(mssession, map);			// Resource
+		impAccount.insertImpAccount();					// webService 호출
+	}
+	
+	private static void imp_apprByOppty_in(Map<String, String> map, SqlSession mssession) throws Exception 
+	{
+		impApprByOppty = new ImpApprovalByOpptyManagement(mssession, map);			// Resource
+		impApprByOppty.insertImpApprovalByOppty();					// webService 호출
+	}
+	
+	/**
+	 * CSV 데이터 조회 시 temp 테이블도 insert
+	 * */
+	private static void selectTmpTableInsert(String headerDiv)
+	{
+		switch(headerDiv)
+		{
+		case "002":
+			mssession.delete("interface.deleteTransAccountTemp");	// delete ResultTgtBizPartner
+			mssession.commit();
+			mssession.update("interface.insertTransAccountTemp");	// insert ResultTgtBizPartner
+			mssession.commit();
+			break;
+		}
+	}
+	
+	private static void trnsYnUpdate(String importMethod)
+	{
+		logger.info("trnsYn Y importMethod : " + importMethod);
+		switch(importMethod)
+		{
+		case "002":
+			mssession.update("interface.updateImpAccount");	// update ResultTgtBizPartner
+			mssession.commit();
+			break;
 		}
 	}
 }

@@ -26,6 +26,7 @@ import com.oracle.xmlns.apps.crmcommon.salesparties.accountservice.Account;
 import com.oracle.xmlns.apps.crmcommon.salesparties.accountservice.AccountService;
 import com.oracle.xmlns.apps.crmcommon.salesparties.accountservice.AccountService_Service;
 
+import util.CommonUtil;
 import vo.AccountVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
@@ -38,6 +39,8 @@ public class AccountManagement {
 	
 	SqlSession session;
 	private String batchJobId;
+	private String toDt2;
+	CommonUtil commonUtil;
 	
 	private static Logger logger = Logger.getLogger(AccountManagement.class);
 	
@@ -78,18 +81,45 @@ public class AccountManagement {
 		logger.info("SalesCloud AccountManagement getAllAccount List");
 		
 		String items[] = {
-							"PartyId","PartyNumber","SourceSystem","SourceSystemReferenceValue","OrganizationName","Type"
-							,"OwnerPartyId","OwnerPartyNumber","OwnerEmailAddress","OwnerName","SalesProfileStatus","CreatedBy"
-							,"CreationDate","LastUpdateDate","LastUpdatedBy","PhoneCountryCode","PhoneAreaCode","PhoneNumber"
-							,"PhoneExtension","PrimaryAddress","OrganizationDEO_SocietyType_c","OrganizationDEO_NewBuildFlag_c"
-							,"OrganizationDEO_BuildDate_c","OrganizationDEO_NetworkInDate_c"
-							,"OrganizationDEO_HouseholdNumber_c","OrganizationDEO_InvasionRate_c","OrganizationDEO_StandardFee_c"
-							,"OrganizationDEO_SurFee_c","OrganizationDEO_ConaId_c","OrganizationDEO_DTVCount_c"
-							,"OrganizationDEO_ISPCount_c","OrganizationDEO_VoIPCount_c","OrganizationDEO_ShareRate_c"
-							,"OrganizationDEO_RemarkF_c","OrganizationDEO_TypeOfBusiness_c"
-							,"OrganizationDEO_OTTCount_c","OrganizationDEO_ContractFrom_c","OrganizationDEO_ContractTo_c"
-							,"OrganizationDEO_InvasionRateF_c","OrganizationDEO_BranchNm_c","OrganizationDEO_SocietyTypeF_c"
-						  };
+				"PartyId","PartyNumber","SourceSystem","SourceSystemReferenceValue","OrganizationName","Type"
+				,"OwnerPartyId","OwnerPartyNumber","OwnerEmailAddress","OwnerName","SalesProfileStatus","CreatedBy"
+				,"CreationDate","LastUpdateDate","LastUpdatedBy","PhoneCountryCode","PhoneAreaCode","PhoneNumber"
+				,"PhoneExtension","PrimaryAddress","OrganizationDEO_SocietyType_c","OrganizationDEO_NewBuildFlag_c"
+				,"OrganizationDEO_BuildDate_c","OrganizationDEO_NetworkInDate_c"
+				,"OrganizationDEO_HouseholdNumber_c"
+//				,"OrganizationDEO_InvasionRate_c"
+				,"OrganizationDEO_StandardFee_c"
+				,"OrganizationDEO_SurFee_c","OrganizationDEO_ConaId_c","OrganizationDEO_DTVCount_c"
+				,"OrganizationDEO_ISPCount_c","OrganizationDEO_VoIPCount_c","OrganizationDEO_ShareRate_c"
+				,"OrganizationDEO_RemarkF_c","OrganizationDEO_TypeOfBusiness_c"
+				,"OrganizationDEO_OTTCount_c","OrganizationDEO_ContractFrom_c","OrganizationDEO_ContractTo_c"
+				,"OrganizationDEO_InvasionRateF_c","OrganizationDEO_BranchNm_c","OrganizationDEO_SocietyTypeF_c"
+			  };
+		
+		String itemAttribute[] = {
+				"PartyId"
+			 };
+
+		String itemValue[] = {
+					""
+				 };
+		
+		boolean upperCaseCompare[] = {
+							true
+						 };
+		
+		String operator[] = {
+					"="
+				};
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		List<Map<String, Object>> filterList = null;
+		
+		commonUtil = new CommonUtil();
+		filterList = commonUtil.addFilterList(itemAttribute,itemValue,upperCaseCompare,operator);
+		
+		
 		int pageNum = 1;
 		int pageSize = 500;
 		int resultSize = 0;
@@ -106,9 +136,7 @@ public class AccountManagement {
 		do
 		{
 			findCriteria = null;
-			findCriteria = getCriteria("PartyId", "", items, pageNum, pageSize);
-//			findCriteria = getCriteria("OrganizationName", "수서경찰서", items, pageNum, pageSize);
-//			findCriteria = getCriteria("LastUpdateDate", "2018-02-07T12:50:46.831135Z", items, pageNum, pageSize);
+			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
 
 			accountResult = accountService.findAccount(findCriteria, findControl);
 			accountList = accountResult.getValue();
@@ -214,10 +242,10 @@ public class AccountManagement {
 				if(account.getOrganizationDEOHouseholdNumberC().getValue() != null){
 					organizationDEO_HouseholdNumber_c = account.getOrganizationDEOHouseholdNumberC().getValue().toString();
 				}
-				String organizationDEO_InvasionRate_c     = null;
-				if(account.getOrganizationDEOInvasionRateC().getValue() != null){
-					organizationDEO_InvasionRate_c = account.getOrganizationDEOInvasionRateC().getValue().toString();
-				}
+//				String organizationDEO_InvasionRate_c     = null;
+//				if(account.getOrganizationDEOInvasionRateC().getValue() != null){
+//					organizationDEO_InvasionRate_c = account.getOrganizationDEOInvasionRateC().getValue().toString();
+//				}
 				String organizationDEO_StandardFee_c      = null;
 				if(account.getOrganizationDEOStandardFeeC().getValue() != null){
 					organizationDEO_StandardFee_c = account.getOrganizationDEOStandardFeeC().getValue().toString();
@@ -305,7 +333,7 @@ public class AccountManagement {
 				avo.setBuildDate_c(organizationDEO_BuildDate_c);
 				avo.setNetworkInDate_c(organizationDEO_NetworkInDate_c);
 				avo.setHouseholdNumber_c(organizationDEO_HouseholdNumber_c);
-				avo.setInvasionRate_c(organizationDEO_InvasionRate_c);
+//				avo.setInvasionRate_c(organizationDEO_InvasionRate_c);
 				avo.setStandardFee_c(organizationDEO_StandardFee_c);
 				avo.setSurFee_c(organizationDEO_SurFee_c);
 				avo.setConaId_c(organizationDEO_ConaId_c);
@@ -356,7 +384,7 @@ public class AccountManagement {
 				logger.info("Account buildDate_c                : " + organizationDEO_BuildDate_c);
 				logger.info("Account networkInDate_c            : " + organizationDEO_NetworkInDate_c);
 				logger.info("Account householdNumber_c          : " + organizationDEO_HouseholdNumber_c);
-				logger.info("Account invasionRate_c             : " + organizationDEO_InvasionRate_c);
+//				logger.info("Account invasionRate_c             : " + organizationDEO_InvasionRate_c);
 				logger.info("Account standardFee_c              : " + organizationDEO_StandardFee_c);
 				logger.info("Account surFee_c                   : " + organizationDEO_SurFee_c);
 				logger.info("Account conaId_c                   : " + organizationDEO_ConaId_c);
@@ -441,80 +469,5 @@ public class AccountManagement {
 		
 		return result2;
 	}
-	
-	public FindCriteria getCriteria(String itemAttribute, String itemValue, String[] items, int pageNum, int size) throws Exception 
-	{
-		int start = (pageNum - 1) * size;
-
-		FindCriteria findCriteria = new FindCriteria();
-		findCriteria.setFetchStart(start);
-		findCriteria.setFetchSize(size);
-
-		if (itemValue != null && itemValue != "") 
-		{
-			ViewCriteria filter = new ViewCriteria();
-			ViewCriteriaRow group1 = new ViewCriteriaRow();
-			ViewCriteriaItem item1 = new ViewCriteriaItem();
-
-			item1.setUpperCaseCompare(true);
-			item1.setAttribute(itemAttribute);
-			item1.setOperator("=");
-			item1.getValue().add(itemValue);
-
-			group1.getItem().add(item1);
-			group1.setConjunction(Conjunction.AND);
-
-			filter.getGroup().add(group1);
-			findCriteria.setFilter(filter);
-		}
-		
-		for (int i = 0; i < items.length; i++) {
-			findCriteria.getFindAttribute().add(items[i]);
-		}
-		
-		return findCriteria;
-	}
-	
-	/**
-	 * StackTrace를 문자열로 변환.
-	 * 
-	 * @param e
-	 * @return StackTrace String
-	 */
-	public String printStackTraceToString(Throwable e) 
-	{
-		StringBuffer sb = new StringBuffer();
-		try {
-			sb.append(e.toString());
-			sb.append("\n");
-			StackTraceElement element[] = e.getStackTrace();
-			for (int idx = 0; idx < element.length; idx++) {
-				sb.append("\tat ");
-				sb.append(element[idx].toString());
-				sb.append("\n");
-			}
-		} catch (Exception ex) {
-			return e.toString();
-		}
-		return sb.toString();
-	 }
-	   
-	/**
-	 * String Null 체크메소드.
-	 * 
-	 * @param text
-	 * @return String Text
-	 */
-	public String dataNullChk(String text) 
-	{
-		String replaceText = "";
-
-		if (text == null || text == "" || text == "null") {
-			return replaceText;
-		} else {
-			return text;
-		}
-	}
-
 
 }

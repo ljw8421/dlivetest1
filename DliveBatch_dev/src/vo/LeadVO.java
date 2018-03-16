@@ -9,6 +9,7 @@ public class LeadVO {
 	private String OwnerId;
 	private String StatusCode;
 	private String StatusCdMeaning;
+	private String SalesChannelMeaning;
 	private String CustomerPartyName;
 	private String CustomerRegistryId;
 	private String CustomerId;
@@ -35,6 +36,12 @@ public class LeadVO {
 	private String LastUpdateDate;
 	private String LastUpdatedBy;
 	
+	public String getSalesChannelMeaning() {
+		return SalesChannelMeaning;
+	}
+	public void setSalesChannelMeaning(String salesChannelMeaning) {
+		SalesChannelMeaning = salesChannelMeaning;
+	}
 	public String getLeadId() {
 		return LeadId;
 	}

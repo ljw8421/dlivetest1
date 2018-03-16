@@ -111,7 +111,7 @@ public class ServiceRequestServiceManagement {
 		List<Map<String, Object>> filterList = null;
 		
 		commonUtil = new CommonUtil();
-		filterList = commonUtil.filterList(itemAttribute,itemValue,upperCaseCompare,operator);
+		filterList = commonUtil.addFilterList(itemAttribute,itemValue,upperCaseCompare,operator);
 		
 		int pageNum = 1;
 		int pageSize = 500;
