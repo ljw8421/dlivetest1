@@ -1165,7 +1165,6 @@
 				, A.GOOD4_C				= B.GOOD4_C
 				, A.GOOD4QTY_C			= B.GOOD4QTY_C
 				, A.TARGETYN			= B.TARGETYN
-				, A.CREATIONDATE		= B.CREATIONDATE
 				, A.LASTUPDATEDATE		= B.LASTUPDATEDATE
 				, A.APPROVALYN_C		= B.APPROVALYN_C
       WHEN NOT MATCHED THEN
@@ -1540,8 +1539,9 @@
 				, A.STATUS				= B.STATUS
 				, A.ASSIGNEEPERSON		= B.ASSIGNEEPERSON
 				, A.DLIVECLOSEDT_C		= B.DLIVECLOSEDT_C
+				, A.PROBLEMDESCRIPTION  = B.PROBLEMDESCRIPTION
 				, A.TRNSYN				= 'N'
-				, A.IMPORTDATE			= GETDATE()
+				, A.TRNSDATE			= GETDATE()
 	      WHEN NOT MATCHED THEN
 	         INSERT
 	         (
@@ -1552,6 +1552,7 @@
 		         , STATUS
 		         , ASSIGNEEPERSON
 		         , DLIVECLOSEDT_C
+		         , PROBLEMDESCRIPTION
 		         , TRNSYN
 		         , IMPORTDATE
 	         )
@@ -1564,6 +1565,7 @@
 		         , B.STATUS
 		         , B.ASSIGNEEPERSON
 		         , B.DLIVECLOSEDT_C
+		         , B.PROBLEMDESCRIPTION
 		         , 'N'
 		         , GETDATE()
 	         );
@@ -1598,34 +1600,11 @@
    <select id="selectImpApprovalSrCSV" resultType="java.util.Map">
    		SELECT 
    			   ID					as ID
-	         , OBJ_TYPE				as ObjType
 	         , APPROVALID_C			as ApprovalIdC
 	         , TYPE					as Type
-	         , ACCOUNTNAME			as AccountName
-	         , PARTYNUMBER			as PartyNumber
-	         , ADDRESS				as Address
-	         , CONAID_C				as ConaIDC
-	         , OTTCOUNT_C			as OTTCountC
-	         , DTVCOUNT_C			as DTVCountC
-	         , ISPCOUNT_C			as ISPCountC
-	         , VOIPCOUNT_C			as VOIPCountC
-	         , CONTRACTTO_C			as ContractToC
-	         , CONTRACTFROM_C		as ContractFromC
-	         , OPPORTUNITYNM		as OpportunityNm
-	         , EMPNUMBER			as EmpNumber
-	         , OPTYBRANCH_C			as OptyBranchC
-	         , GOOD3_C				as Good3C
-	         , GOOD3QTY_C			as Good3QtyC
-	         , GOOD1_C				as Good1C
-	         , GOOD1QTY_C			as Good1QtyC
-	         , GOOD2_C				as Good2C
-	         , GOOD2QTY_C			as Good2QtyC
-	         , GOOD4_C				as Good4C
-	         , GOOD4QTY_C			as Good4QtyC
 	         , TRNSYN				as TrnsYN
 	         , IMPORTDATE			as ImportDate
 	         , TRNSDATE				as TrnsDate
-	         , APPROVALYN_C			as ApprovalYNC
    		FROM IMP_APPROVAL_SR	
    </select>
     
