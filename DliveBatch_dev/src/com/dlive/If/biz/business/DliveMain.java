@@ -22,6 +22,7 @@ import vo.OpportunityVO;
 import vo.OpptyLeadVO;
 import vo.ResourcesVO;
 import vo.ApprovalVO;
+import vo.CodeVO;
 
 /**
  * 각 함수 실행하는 Main Function
@@ -40,10 +41,13 @@ public class DliveMain {
 	private static ActivityManagement    			activity;
 	private static LeadManagement		 			lead;
 	private static ServiceRequestServiceManagement	serviceRequest;
-	private static ApprovalByOpptyManagement  apprByOppty;
+	private static ApprovalByOpptyManagement        apprByOppty;
 	
-	private static ImpAccountManagement  impAccount;
-	private static ImpApprovalByOpptyManagement impApprByOppty;
+	private static ImpAccountManagement             impAccount;
+	private static ImpApprovalByOpptyManagement     impApprByOppty;
+	
+	// stg -> if
+	private static StgInImpOppty         sio;
 	
 	private static ImpSrManagement					impSrManagement;
 	private static CreateCsvFile					createCsvFile  = new CreateCsvFile();
@@ -61,8 +65,9 @@ public class DliveMain {
 		try {
 			/* DB 접속 */
 			msdb = new MssqlDBUtil();			// Interface (MS-SQL)
-			
 			mssession = msdb.getSqlSession();
+			
+			CodeVO codeVo = new CodeVO();
 			
 			int size = args.length;
 			
@@ -147,6 +152,37 @@ public class DliveMain {
 	    	/* imp Approval by Oppty */
 //	    	imp_apprByOppty_in(map, mssession);
 	    	
+	    	/* stg -> imp oppty / oppty_account insert */
+    		sio = new StgInImpOppty();
+	    	sio.stgInImp(mssession, map);
+	    	
+	    	/* Code Table get cd_val */
+	    	codeVo.setType("dlive_batch_job_out");
+	    	codeVo.setCd_name("imp_oppty_import");
+	    	
+	    	CodeVO importCodeVo = mssession.selectOne("interface.selectCode", codeVo);
+	    	importMethod = importCodeVo.getCd_name();
+	    	
+	    	/* CSV fileName and headerDiv set */
+	    	fileName  = importMethod+"_"+paramDt;
+	    	headerDiv = importCodeVo.getCd_val();
+	    	
+	    	/* File Import */
+	    	List<Map<String, Object>> targetList = new ArrayList<Map<String,Object>>();				// targetList : import 할 쿼리 리스트
+	    	targetList = mssession.selectList(importMethod);
+
+	    	/* tmp imp insert */
+	    	selectTmpTableInsert(headerDiv);
+
+	    	createCsvFile.csvFileTemplet(targetList, fileName, "Y", headerDiv);					// Create CSV File
+	    	
+//	    	String response = importCsv.importJob(headerDiv, fileName);							// Import Sales Cloud CSV File
+//	    	logger.info("response : " + response);
+//	    	
+//	    	if("success".equals(response)) {
+//	    		// imp table TrnsYn -> Y update
+//	    		trnsYnUpdate(headerDiv);
+//	    	}
 	    	    	
 		} catch (Exception e) {
 			logger.info("Exception - " + e.toString());
@@ -294,10 +330,22 @@ public class DliveMain {
 	{
 		switch(headerDiv)
 		{
+		case "001":
+			mssession.delete("interface.deleteTmpImpOppty");		// delete deleteTmpImpOppty
+			mssession.commit();
+			mssession.update("interface.insertTmpImpOppty");		// insert ResultTgtBizPartner
+			mssession.commit();
+			break;
 		case "002":
 			mssession.delete("interface.deleteTransAccountTemp");	// delete ResultTgtBizPartner
 			mssession.commit();
 			mssession.update("interface.insertTransAccountTemp");	// insert ResultTgtBizPartner
+			mssession.commit();
+			break;
+		case "004":
+			mssession.delete("interface.deleteTmpImpOpptyAccount");	// delete deleteTmpImpOppty
+			mssession.commit();
+			mssession.update("interface.insertTmpImpOpptyAccout");	// insert ResultTgtBizPartner
 			mssession.commit();
 			break;
 		}
@@ -308,8 +356,16 @@ public class DliveMain {
 		logger.info("trnsYn Y importMethod : " + importMethod);
 		switch(importMethod)
 		{
+		case "001":
+			mssession.update("interface.updateOpptyTrnsYN");	// update Imp Oppty TrnsYN Y
+			mssession.commit();
+			break;
 		case "002":
-			mssession.update("interface.updateImpAccount");	// update ResultTgtBizPartner
+			mssession.update("interface.updateImpAccount");		// update ResultTgtBizPartner
+			mssession.commit();
+			break;
+		case "004":
+			mssession.update("updateOpptyAccoutnTrnsYN");		// update Imp Oppty Account TrnsYN Y
 			mssession.commit();
 			break;
 		}

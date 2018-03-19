@@ -49,15 +49,21 @@ public class CreateCsvFile {
 		switch(headerDiv)
 		{
 		case "001":		// 영업/수금 목표
-			header.add("recordName");
-			header.add("deptC");
-			header.add("teamC");
-			header.add("partC");
-			header.add("type");
-			header.add("memberC");
-			header.add("recordNameM");
-			header.add("targetMotherC");
-			header.add("targerAmountC");
+			header.add("영업기회번호");
+			header.add("영업기회명");
+			header.add("마감일자");
+			header.add("BuName");
+			header.add("상태");
+			header.add("OptyCurcyCode");
+			header.add("생성 일자");
+			header.add("생성자");
+			header.add("OptyLastUpdateDate");
+			header.add("최종 업데이트 생성자");
+			header.add("ResourcePartyNumber");
+			header.add("ResourcePartyNumber");
+			header.add("CustPartyNumber");
+			header.add("영업기회유형");
+			header.add("유치 지사");
 			break;
 		case "003":		// 담당영업사원
 			header.add("partynumber");
