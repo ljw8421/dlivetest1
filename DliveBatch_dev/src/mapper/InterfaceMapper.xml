@@ -1237,106 +1237,33 @@
 	<update id="insertImpApprovalSr" parameterType="java.util.Map">
 		MERGE INTO IMP_APPROVAL_SR A
 	      USING (SELECT 
-				 	  ID, OBJ_TYPE, APPROVALID_C, TYPE, ACCOUNTNAME
-				 	, PARTYNUMBER, ADDRESS, CONAID_C, OTTCOUNT_C, DTVCOUNT_C
-				 	, ISPCOUNT_C, VOIPCOUNT_C, CONTRACTTO_C, CONTRACTFROM_C, OPPORTUNITYNM
-				 	, EMPNUMBER, OPTYBRANCH_C, GOOD3_C, GOOD3QTY_C, GOOD1_C
-				 	, GOOD1QTY_C, GOOD2_C, GOOD2QTY_C, GOOD4_C, GOOD4QTY_C
-				 	, TARGETYN, CREATIONDATE, LASTUPDATEDATE, APPROVALYN_C
+				 	  ID, APPROVALID_C, TYPE, TARGETYN, CREATIONDATE
+				 	, LASTUPDATEDATE
 				 FROM STG_APPROVAL 
 				 WHERE OBJ_TYPE = 'SR' AND TARGETYN = 'Y' ) B
 	      ON (A.ID = B.ID)
 	      WHEN MATCHED THEN
 	      UPDATE SET
-				  A.OBJ_TYPE 			= B.OBJ_TYPE
-				, A.APPROVALID_C		= B.APPROVALID_C  
+				  A.APPROVALID_C		= B.APPROVALID_C  
 				, A.TYPE 				= B.TYPE
-				, A.ACCOUNTNAME 		= B.ACCOUNTNAME
-				, A.PARTYNUMBER 		= B.PARTYNUMBER
-				, A.ADDRESS				= B.ADDRESS
-				, A.CONAID_C			= B.CONAID_C
-				, A.OTTCOUNT_C			= B.OTTCOUNT_C
-				, A.DTVCOUNT_C			= B.DTVCOUNT_C
-				, A.ISPCOUNT_C			= B.ISPCOUNT_C
-				, A.VOIPCOUNT_C			= B.VOIPCOUNT_C
-				, A.CONTRACTTO_C		= B.CONTRACTTO_C
-				, A.CONTRACTFROM_C		= B.CONTRACTFROM_C
-				, A.OPPORTUNITYNM		= B.OPPORTUNITYNM
-				, A.EMPNUMBER			= B.EMPNUMBER
-				, A.OPTYBRANCH_C		= B.OPTYBRANCH_C
-				, A.GOOD3_C				= B.GOOD3_C
-				, A.GOOD3QTY_C			= B.GOOD3QTY_C
-				, A.GOOD1_C				= B.GOOD1_C
-				, A.GOOD1QTY_C			= B.GOOD1QTY_C
-				, A.GOOD2_C				= B.GOOD2_C
-				, A.GOOD2QTY_C			= B.GOOD2QTY_C
-				, A.GOOD4_C				= B.GOOD4_C
-				, A.GOOD4QTY_C			= B.GOOD4QTY_C
 				, A.TRNSYN				= 'N'
-				, A.IMPORTDATE			= GETDATE()
-				, A.APPROVALYN_C		= B.APPROVALYN_C
+				, A.TRNSDATE			= GETDATE()
       WHEN NOT MATCHED THEN
          INSERT
          (
                ID
-	         , OBJ_TYPE
 	         , APPROVALID_C
 	         , TYPE
-	         , ACCOUNTNAME
-	         , PARTYNUMBER
-	         , ADDRESS
-	         , CONAID_C
-	         , OTTCOUNT_C
-	         , DTVCOUNT_C
-	         , ISPCOUNT_C
-	         , VOIPCOUNT_C
-	         , CONTRACTTO_C
-	         , CONTRACTFROM_C
-	         , OPPORTUNITYNM
-	         , EMPNUMBER
-	         , OPTYBRANCH_C
-	         , GOOD3_C
-	         , GOOD3QTY_C
-	         , GOOD1_C
-	         , GOOD1QTY_C
-	         , GOOD2_C
-	         , GOOD2QTY_C
-	         , GOOD4_C
-	         , GOOD4QTY_C
 	         , TRNSYN
 	         , IMPORTDATE
-	         , APPROVALYN_C
          )
          VALUES
          (
                B.ID
-	         , B.OBJ_TYPE
 	         , B.APPROVALID_C
 	         , B.TYPE
-	         , B.ACCOUNTNAME
-	         , B.PARTYNUMBER
-	         , B.ADDRESS
-	         , B.CONAID_C
-	         , B.OTTCOUNT_C
-	         , B.DTVCOUNT_C
-	         , B.ISPCOUNT_C
-	         , B.VOIPCOUNT_C
-	         , B.CONTRACTTO_C
-	         , B.CONTRACTFROM_C
-	         , B.OPPORTUNITYNM
-	         , B.EMPNUMBER
-	         , B.OPTYBRANCH_C
-	         , B.GOOD3_C
-	         , B.GOOD3QTY_C
-	         , B.GOOD1_C
-	         , B.GOOD1QTY_C
-	         , B.GOOD2_C
-	         , B.GOOD2QTY_C
-	         , B.GOOD4_C
-	         , B.GOOD4QTY_C
 	         , 'N'
 	         , GETDATE()
-	         , B.APPROVALYN_C
          );
    </update>	
    
