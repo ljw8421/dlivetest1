@@ -1740,7 +1740,7 @@
 		 WHERE    TRNSYN          = 'N'
    </select>
    
-   	<!-- 18.03.19 재욱 -->
+	<!-- 18.03.14 재욱 -->
 	<!-- Oppty -->
 	<delete id="deleteTmpImpOppty">
 		TRUNCATE TABLE tmp_imp_oppty
@@ -1775,7 +1775,7 @@
 	
 	<!-- stg oppty merge imp oppty-->
 	<update id="mergeImpOppty" parameterType="java.util.Map">
-		MERGE INTO imp_oppty A
+		MERGE INTO imp_oppty T
 	   	USING (
 	   		SELECT
 				  C.Seq
@@ -1796,7 +1796,7 @@
 					, Name
 					, EffectiveDate
 					, SalesStage
-					, EmpNumber
+					, dbo.fn_getPartyNumberByUserName(EmpNumber) as EmpNumber
 					, OpptyType_c
 					, OptyBranch_c
 					, PartyNumber
@@ -1805,37 +1805,41 @@
 				FROM
 					 stg_opportunity A
 				WHERE 
-					 CONVERT(VARCHAR(10), A.CreationDate, 23) = #{date}
+				     TargetYN = 'Y'
+				AND	 CONVERT(VARCHAR(10), A.CreationDate, 23) = #{date}
 			) C
 	   	) B
-		ON (A.seq = B.seq)
+		ON (T.seq = B.seq)
 		WHEN MATCHED THEN
 		   UPDATE SET
-			  A.seq           = B.seq           
-			, A.Name          = B.Name          
-			, A.EffectiveDate = B.EffectiveDate 
-			, A.SalesStage    = B.SalesStage    
-			, A.EmpNumber     = B.EmpNumber     
-			, A.PartyNumber   = B.PartyNumber   
-			, A.OpptyType_c   = B.OpptyType_c   
-			, A.OptyBranch_c  = B.OptyBranch_c 
+			  T.Name          = B.Name          
+			, T.EffectiveDate = B.EffectiveDate 
+			, T.SalesStage    = B.SalesStage    
+			, T.EmpNumber     = B.EmpNumber     
+			, T.PartyNumber   = B.PartyNumber   
+			, T.OpptyType_c   = B.OpptyType_c   
+			, T.OptyBranch_c  = B.OptyBranch_c
+			, T.TrnsYN        = 'N'
+			, T.ImportDate    = getDate()
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
 				  Seq, Name, EffectiveDate, SalesStage
 				, EmpNumber, PartyNumber, OpptyType_c, OptyBranch_c
+				, TrnsYN, ImportDate
 			)
 			VALUES
 			(
 				  B.Seq, B.Name, B.EffectiveDate, B.SalesStage
 				, B.EmpNumber, B.PartyNumber, B.OpptyType_c, B.OptyBranch_c
+				, 'N', getDate()
 				
 			);
 	</update>
 	
 	<!-- stg oppty account merge imp oppty account -->
 	<update id="mergeImpOpptyAccount" parameterType="java.util.Map">
-		MERGE INTO imp_oppty_account A
+		MERGE INTO imp_oppty_account T
 	   	USING (
 			SELECT
 				  case when B.partynumber is null then A.seq end as PartyNumber
@@ -1854,7 +1858,7 @@
 				(
 					SELECT
 						  PartyNumber
-						, EmpNumber
+						, dbo.fn_getPartyNumberByUserName(EmpNumber) as EmpNumber
 						, OrganizationName
 						, Country
 						, Province
@@ -1871,37 +1875,42 @@
 						 PartyNumber is null
 					 AND TargetYN = 'Y'
 					 AND CONVERT(VARCHAR(10), CreationDate, 23) = #{date}
+					 AND EmpNumber is not null
 				) A left join sc_account B on A.ConaId_c = B.ConaId_c
 			WHERE B.PartyNumber is null 
-	   	) B
-		ON (A.PartyNumber = B.PartyNumber)
+	   	) C
+		ON (T.PartyNumber = C.PartyNumber)
 		WHEN MATCHED THEN
 			UPDATE SET
-				  A.PartyNumber      = B.PartyNumber
-				, A.OrganizationName = B.OrganizationName
-				, A.Country          = B.Country
-				, A.Province         = B.Province
-				, A.State            = B.State
-				, A.City             = B.City
-				, A.AddressLine1     = B.AddressLine1
-				, A.AddressLine2     = B.AddressLine2
-				, A.BranchNm_c       = B.BranchNm_c
-				, A.ConaId_c         = B.ConaId_c
+				  T.OrganizationName = C.OrganizationName
+				, T.EmpNumber        = C.EmpNumber
+				, T.Country          = C.Country
+				, T.Province         = C.Province
+				, T.State            = C.State
+				, T.City             = C.City
+				, T.AddressLine1     = C.AddressLine1
+				, T.AddressLine2     = C.AddressLine2
+				, T.BranchNm_c       = C.BranchNm_c
+				, T.ConaId_c         = C.ConaId_c
+				, T.TrnsYN           = 'N'
+				, T.ImportDate       = getDate()
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
 				  PartyNumber, OrganizationName, Country, Province, State
 				, City, AddressLine1, AddressLine2, BranchNm_c, ConaId_c
+				, TrnsYN, ImportDate, EmpNumber
 			)
 			VALUES
 			(
-				  B.PartyNumber, B.OrganizationName, B.Country, B.Province, B.State       
-				, B.City, B.AddressLine1, B.AddressLine2, B.BranchNm_c, B.ConaId_c
+				  C.PartyNumber, C.OrganizationName, C.Country, C.Province, C.State       
+				, C.City, C.AddressLine1, C.AddressLine2, C.BranchNm_c, C.ConaId_c
+				, 'N', getDate(), C.EmpNumber
 			);
 	</update>
 	
 	<!-- Insert Tmp Imp Oppty -->
-	<insert id="insertTmpImpOppty">
+	<insert id="insertTmpImpOppty"  parameterType="java.util.Map">
 		INSERT INTO tmp_imp_oppty
 		(
 			  seq
@@ -1925,7 +1934,6 @@
 			imp_oppty_account
 		WHERE
 			TrnsYN = 'N'
-		AND CONVERT(VARCHAR(10), CreationDate, 23) = #{date}
 	</insert>
 	
 	<insert id="insertTmpStgOppty" parameterType="java.util.Map">
@@ -1961,7 +1969,8 @@
 		ON (A.seq = B.seq)
 		WHEN MATCHED THEN
 		   UPDATE SET
-		        A.TrnsYN = 'Y'; 
+		          A.TrnsYN   = 'Y'
+		        , A.TrnsDate = getDate(); 
 	</update>
 	
 	<update id="updateOpptyAccountTrnsYN">
@@ -1970,7 +1979,8 @@
 		ON (A.PartyNumber = B.PartyNumber)
 		WHEN MATCHED THEN
 		   UPDATE SET
-		        A.TrnsYN = 'Y'; 
+		          A.TrnsYN   = 'Y'
+		        , A.TrnsDate = getDate(); 
 	</update>
 	
 	<!-- Code -->
@@ -1997,54 +2007,55 @@
 	</select>
 	
 	<!-- CSV Oppty -->
-	<select id="imp_oppty_import" resultType="java.util.Map">
+	<select id="imp_oppty" resultType="java.util.Map">
 		SELECT
-			  seq                                                as "영업기회번호"
-			, Name                                               as "영업기회명"
-			, substring(EffectiveDate, 1, 4) + '-' + substring(EffectiveDate, 5, 2) + '-' + substring(EffectiveDate, 7, 2)        as "마감일자"
-			, '주식회사 딜라이브 BU'                                    as "BuName"
-			, SalesStage			             	             as "상태"
-			, 'KRW'                                              as "OptyCurcyCode"
-			, CONVERT(VARCHAR(25), getDate(), 127)+'-0700'       as "생성일자"
-			, 'IF'                                               as "생성자"
-			, CONVERT(VARCHAR(25), getDate(), 127)+'-0700'       as "OptyLastUpdateDate"
-			, 'IF'                                               as "최종 업데이트 생성자"
-			, dbo.fn_getPartyIdByUserName(EmpNumber)             as "ResourcePartyNumber1"
-			, dbo.fn_getPartyIdByUserName(EmpNumber)             as "ResourcePartyNumber2"
-			, PartyNumber                                        as "CustPartyNumber"
-			, OpptyType_c                                        as "영업기회유형"
-			, OptyBranch_c                                       as "유치 지사"
+			  seq                                                        as "seq"
+			, Name                                                       as "Name"
+			, substring(EffectiveDate, 1, 4) + '-' + substring(EffectiveDate, 5, 2) + '-' + substring(EffectiveDate, 7, 2)        as "EffectiveDate"
+			, '주식회사 딜라이브 BU'                                            as "BuName"
+			, SalesStage                                                 as "SalesStage"
+			, 'KRW'                                                      as "OptyCurcyCode"
+			, CONVERT(VARCHAR(25), getDate(), 23)+'T01:00:00.000-0700'   as "OptyCreateDate"
+			, 'IF'                                                       as "Created"
+			, CONVERT(VARCHAR(25), getDate(), 23)+'T01:00:00.000-0700'   as "OptyLastUpdateDate"
+			, 'IF'                                                       as "OptyLastUpdated"
+			, EmpNumber                                                  as "ResourcePartyNumber1"
+			, EmpNumber                                                  as "ResourcePartyNumber2"
+			, PartyNumber                                                as "CustPartyNumber"
+			, OpptyType_c                                                as "OpptyType_c"
+			, OptyBranch_c                                               as "OptyBranch_c"
 		FROM
 			dbo.imp_oppty
 		WHERE
 			TrnsYN = 'N'
 	</select>
 	
-	<select id="imp_oppty_account_import">
+	<select id="imp_oppty_account" resultType="java.util.Map">
 		SELECT
 			  PartyNumber                              as "PartyNumber"
 			, 'CSV'                                    as "PartyOrigSystem"
 			, PartyNumber                              as "PartyOrigSysRef"
-			, OrganizationName                         as "계정명"
-			, 'ZCA_CUSTOMER'	                       as "유형"
-			, dbo.fn_getPartyIdByUserName(EmpNumber)   as "owner"
-			, 'ADDRESS#' + PartyNumber                 as "사이트번호"
-			, Country                                  as "국가"
-			, ''                                       as "우편번호"
-			, Province                                 as "도"
-			, State                                    as "시도"
-			, City                                     as "구군시"
-			, AddressLine1                             as "주소1"
-			, AddressLine2                             as "주소2"
+			, OrganizationName                         as "OrganizationName"
+			, 'ZCA_CUSTOMER'                           as "유형"
+			, EmpNumber                                as "Owner"
+			, 'ADDRESS#' + PartyNumber                 as "SiteNo"
+			, Country                                  as "Country"
+			, ''                                       as "PostNo"
+			, Province                                 as "Province"
+			, State                                    as "State"
+			, City                                     as "City"
+			, AddressLine1                             as "AddressLine1"
+			, AddressLine2                             as "AddressLine2"
 		    , 'SELL_TO'                                as "용도"
 		    , 'SMB'                                    as "단체유형"
 		    , '99'                                     as "업종"
-			, BranchNm_c                               as "담당지사"
-            , ConaId_c                                 as "conaid"
+			, BranchNm_c                               as "BranchNm_c"
+            , ConaId_c                                 as "ConaId_c"
 		FROM
 			dbo.imp_oppty_account
 		WHERE
 			TrnsYN = 'N'
+		AND EmpNumber is not null
 	</select>
 	
 	

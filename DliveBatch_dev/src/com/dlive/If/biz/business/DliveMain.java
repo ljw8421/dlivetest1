@@ -47,7 +47,7 @@ public class DliveMain {
 	private static ImpApprovalByOpptyManagement     impApprByOppty;
 	
 	// stg -> if
-	private static StgInImpOppty         sio;
+	private static StgInImpOppty                    sio;
 	
 	private static ImpSrManagement					impSrManagement;
 	private static CreateCsvFile					createCsvFile  = new CreateCsvFile();
@@ -157,12 +157,11 @@ public class DliveMain {
 //	    	imp_apprByOppty_in(map, mssession);
 	    	
 	    	/* stg -> imp oppty / oppty_account insert */
-    		sio = new StgInImpOppty();
-	    	sio.stgInImp(mssession, map);
+    		imp_oppty_in(map, mssession);
 	    	
 	    	/* Code Table get cd_val */
 	    	codeVo.setType("dlive_batch_job_out");
-	    	codeVo.setCd_name("imp_oppty_import");
+	    	codeVo.setCd_name("imp_oppty");
 	    	
 	    	CodeVO importCodeVo = mssession.selectOne("interface.selectCode", codeVo);
 	    	importMethod = importCodeVo.getCd_name();
@@ -180,13 +179,13 @@ public class DliveMain {
 
 	    	createCsvFile.csvFileTemplet(targetList, fileName, "Y", headerDiv);					// Create CSV File
 	    	
-//	    	String response = importCsv.importJob(headerDiv, fileName);							// Import Sales Cloud CSV File
-//	    	logger.info("response : " + response);
-//	    	
-//	    	if("success".equals(response)) {
-//	    		// imp table TrnsYn -> Y update
-//	    		trnsYnUpdate(headerDiv);
-//	    	}
+	    	String response = importCsv.importJob(headerDiv, fileName);							// Import Sales Cloud CSV File
+	    	logger.info("response : " + response);
+	    	
+	    	if("success".equals(response)) {
+	    		// imp table TrnsYn -> Y update
+	    		trnsYnUpdate(headerDiv);
+	    	}
 	    	    	
 		} catch (Exception e) {
 			logger.info("Exception - " + e.toString());
@@ -325,6 +324,12 @@ public class DliveMain {
 	{
 		impApprByOppty = new ImpApprovalByOpptyManagement(mssession, map);			// Resource
 		impApprByOppty.insertImpApprovalByOppty();					// webService 호출
+	}
+	
+	private static void imp_oppty_in(Map<String, String> map, SqlSession mssession) throws Exception
+	{
+		sio = new StgInImpOppty();
+    	sio.stgInImp(mssession, map);
 	}
 	
 	/**

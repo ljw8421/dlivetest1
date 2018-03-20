@@ -5,7 +5,6 @@ import java.util.*;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 
-import vo.ImpOpptyVO;
 
 public class StgInImpOppty {
 	
@@ -13,6 +12,7 @@ public class StgInImpOppty {
 
 	public void stgInImp(SqlSession mssession, Map<String, String> map)
 	{
+		logger.info("From Stg oppty To imp oppty/oppty_account insert");
 		
 		try {
 			int result1 = 0;
@@ -24,22 +24,33 @@ public class StgInImpOppty {
 			
 			logger.info("dateMap : " + dateList);
 			
-			mssession.insert("interface.deleteTmpStgOppty");
+			int delete = mssession.insert("interface.deleteTmpStgOppty");
+			logger.info("tmp table delete : " + delete);
 			
 			for(Map<String, String> dateMap : dateList) {
 				result1 = mssession.update("interface.mergeImpOpptyAccount", dateMap);
-				result2 = mssession.update("interface.mergeImpOppty", dateMap);
-				
-				mssession.insert("insertTmpStgOppty", dateMap);
-				
 				logger.info("oppty account result : " + result1);
-				logger.info("oppty result : " + result2);
 				
-				mssession.commit();
+				if(result1 != 0) {
+					mssession.commit();
+					logger.info("imp oppty account insert commit");
+				}
 			}
 			
+			for(Map<String, String> dateMap : dateList) {
+				result2 = mssession.update("interface.mergeImpOppty", dateMap);
+				mssession.insert("interface.insertTmpStgOppty", dateMap);
+				logger.info("oppty result : " + result2);
+				
+				if(result2 != 0) {
+					mssession.commit();
+					logger.info("imp insert commit");
+				}
+			}
+			
+			/* TargetYN N set*/
 			result3 = mssession.update("interface.updateOpptyTargetYN");
-			logger.info("result3 : " + result3);
+			logger.info("Target Set N : " + result3);
 			
 			if(result3 != 0) {
 				mssession.commit();
@@ -52,7 +63,16 @@ public class StgInImpOppty {
 			logger.info("error : " + e.toString());
 		}
 		
-		
-		
 	}
 }
+
+
+/**
+ * 
+ * create / update 할 때 수행해야되는 작업 (기회, 계정, 기회)에 맞는 ObjectFactory를 import 한 뒤에 
+ * 값 셋팅하면 된다.
+ * 
+ * ObjectFactory obj = new ObjectFactory();
+   obj.createOpportunityApprovalIDC("");
+ * 
+ * */
