@@ -2,17 +2,36 @@ package com.dlive.If.biz.business;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceRef;
 
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONObject;
 
 import com.google.common.collect.Lists;
 import com.oracle.xmlns.adf.svc.types.Conjunction;
@@ -21,14 +40,14 @@ import com.oracle.xmlns.adf.svc.types.FindCriteria;
 import com.oracle.xmlns.adf.svc.types.ViewCriteria;
 import com.oracle.xmlns.adf.svc.types.ViewCriteriaItem;
 import com.oracle.xmlns.adf.svc.types.ViewCriteriaRow;
+import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ObjectFactory;
 import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequest;
 import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequestService;
 import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequestService_Service;
 
 import util.CommonUtil;
-import vo.ActivityVO;
-import vo.LeadVO;
 import vo.ApprovalVO;
+import vo.ImpSrVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
 public class ServiceRequestServiceManagement {
@@ -78,7 +97,7 @@ public class ServiceRequestServiceManagement {
 		logger.info("End serviceRequestService initialize");
 	}
 	
-	
+	// SalesCloud -> 값 내리기
 	public List<ApprovalVO> getAllServiceRequestService() throws Exception 
 	{
 		logger.info("Start SalesCloud GetServiceRequestService");
@@ -248,7 +267,6 @@ public class ServiceRequestServiceManagement {
 				approvalID = serviceRequest.getApprovalIDC().getValue();
 			}
 					
-			
 			logger.info("#["+i+"]");
 			logger.info("serviceRequest id				: " + id);
 			logger.info("serviceRequest objType			: " + objType);
@@ -307,12 +325,118 @@ public class ServiceRequestServiceManagement {
 			tgtList.add(srvo);
 			
 		}
-		
 		logger.info("End SalesCloud GetAllServiceRequest");
 		
 		return tgtList;
 	}
 
+	// Imp_sr Table -> wedService SalesCloud 
+	public List<ServiceRequest> getImpSrList(SqlSession mssession, List<ImpSrVO> impSrList) throws Exception 
+	{
+		List<ServiceRequest> serviceRequestList = new ArrayList<ServiceRequest>(); 
+		
+		for (ImpSrVO srvo : impSrList) {
+			
+			ServiceRequest serviceRequest = new ServiceRequest();
+			ObjectFactory objF = new ObjectFactory();
+			
+			String srtitle    	   = srvo.getTitle();
+			String partyId	  	   = srvo.getPartyId();
+			String statusCd		   = srvo.getStatus();
+			String assigneePerson  = srvo.getAssigneePerson();
+			String srserviceType   = srvo.getServiceType_c();
+			String dliveCloseDt    = srvo.getDliveCloseDt_c();
+			String pdesc		   = srvo.getProblemDescription();
+			
+            DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+            Date date = format.parse(dliveCloseDt);
+            GregorianCalendar cal = new GregorianCalendar();
+            cal.setTime(date);
+
+            XMLGregorianCalendar dliveCloseDt01 =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+
+            serviceRequest.setTitle(srtitle);
+            serviceRequest.setServiceTypeC(srserviceType);
+            serviceRequest.setAccountPartyId(objF.createServiceRequestAccountPartyId(new Long(partyId)));
+            serviceRequest.setStatusCd(objF.createServiceRequestStatusCd(statusCd));
+            serviceRequest.setAssigneeResourceId(objF.createServiceRequestAssigneeResourceId(new Long(assigneePerson)));
+            serviceRequest.setDliveCloseDtC(objF.createServiceRequestDliveCloseDtC(dliveCloseDt01));
+            serviceRequest.setProblemDescription(objF.createServiceRequestProblemDescription(pdesc));
+            serviceRequest.setServiceStageC(objF.createServiceRequestServiceStageC("접수"));
+            serviceRequest.setSeverityCd(objF.createServiceRequestSeverityCd("ORA_SVC_SEV3"));
+            serviceRequest.setOwnerTypeCd(objF.createServiceRequestOwnerTypeCd("ORA_SVC_CUSTOMER"));
+
+			serviceRequestList.add(serviceRequest);
+		}
+
+		return serviceRequestList;
+	}	
+	
+	// SalesCloud Create
+	public void createSR(List<ServiceRequest> serviceRequestList, SqlSession mssession, List<ImpSrVO> impSrList) throws Exception 
+	{
+		logger.info("Start SalesCloud createSrManagement");
+		logger.info("createSR serviceRequestList : " + serviceRequestList.size());
+		
+		ServiceRequest result = new ServiceRequest();
+		
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+	    List<List<ImpSrVO>> subList  = new ArrayList<List<ImpSrVO>>();      // list를 나누기 위한 temp
+	     
+	    int result1        = 0;
+	    int result2        = 0;
+	    int splitSize     = 2000;   // partition 나누기
+		
+		for (ServiceRequest serviceRequest: serviceRequestList) 
+		{
+			
+			logger.info("ServiceRequest getTitle() 		: " + serviceRequest.getTitle() );
+			logger.info("ServiceRequest getServiceTypeC()	: " + serviceRequest.getServiceTypeC());
+			logger.info("ServiceRequest getAccountPartyId()	: " + serviceRequest.getAccountPartyId().getValue());
+			logger.info("ServiceRequest getStatusCd()	: " + serviceRequest.getStatusCd().getValue());
+			logger.info("ServiceRequest getAssigneeResourceId(): " + serviceRequest.getAssigneeResourceId().getValue());
+			logger.info("ServiceRequest getDliveCloseDtC()	: " + serviceRequest.getDliveCloseDtC().getValue());
+			logger.info("ServiceRequest getProblemDescription()	: " + serviceRequest.getProblemDescription().getValue());
+			logger.info("ServiceRequest getSeverityCd() 	: " + serviceRequest.getSeverityCd().getValue());
+			logger.info("ServiceRequest getOwnerTypeCd()	: " + serviceRequest.getOwnerTypeCd().getValue());
+			logger.info("ServiceRequest getServiceStageC()	: " + serviceRequest.getServiceStageC().getValue());
+			
+			result = serviceRequestService.createServiceRequest(serviceRequest);
+			logger.info("createServiceRequest result : " + result.getSrNumber());
+			
+		}
+		
+		if(result.getSrNumber() != null)
+	    {
+	         session.delete("interface.deleteTrnsSRTemp");
+	         
+	         if(impSrList.size() > splitSize) {
+	            subList = Lists.partition(impSrList, splitSize);
+	            
+	            logger.info("subList size " + subList.size());
+	            
+	            for(int i=0; i<subList.size(); i++) {
+	               batchMap.put("list", subList.get(i));
+	               result1 = session.update("interface.insertTrnsSRTemp", batchMap);      // addbatch
+	            }
+	         }
+	         else {
+	            batchMap.put("list", impSrList);
+	            result1 = session.update("interface.insertTrnsSRTemp", batchMap);
+	         }
+	         
+	         if(result1 != 0 ) {
+				int result3 = mssession.update("interface.updateImpSrTrnsYN");
+				
+				if (result3 > 0) {
+					session.commit();
+					logger.info("commit success!!");
+				}
+	         }
+	    }
+		logger.info("End SalesCloud createSrManagement");
+	}	
+	
 	//Service Request my-sql DB 저장
 	public int insertServiceRequest(List<ApprovalVO> ServiceRequestList) throws Exception 
 	{
@@ -330,9 +454,9 @@ public class ServiceRequestServiceManagement {
 		session.delete("interface.deleteServiceRequestTmp");
 		logger.info("Interface ServiceRequest Delete");
 		
-		if(ServiceRequestList.size() > splitSize) {
+		if(ServiceRequestList.size() > splitSize) 
+		{
 			subList = Lists.partition(ServiceRequestList, splitSize);
-			
 			logger.info("subList size " + subList.size());
 			
 			for(int i=0; i<subList.size(); i++) {
@@ -341,15 +465,17 @@ public class ServiceRequestServiceManagement {
 				logger.info("Interface insert tmp_approval_sr");
 			}
 		}
-		else {
+		else 
+		{
 			batchMap.put("list", ServiceRequestList);
 			result1 = session.update("interface.insertServiceRequestTmp", batchMap);
 			logger.info("Interface insert tmp_approval_sr");
 		}
 		
-		if(result1 != 0) {
+		if(result1 != 0) 
+		{
 			result2 = session.update("interface.insertServiceRequest");
-			logger.info("Interface merge Stg_Approval");
+			logger.info("Interface merge stg_Approval");
 			
 			if(result2 != 0) {
 				// TRUNCATE -> INSERT
@@ -368,14 +494,119 @@ public class ServiceRequestServiceManagement {
 				}
 			}
 		}
-		else {
+		else 
+		{
 			logger.info("Temp Table Insert ERROR");
 		}
-
 		return result2;
-		
-	
 	}
+	
+	// stg_sr -> Imp_sr table my-sql DB 저장
+	public int insertImpSrManagement(SqlSession mssession) throws Exception
+	{
+		logger.info("InterFace ImpSrManagement Table Insert Start");
+		
+		int result         = 0;
+		int result1        = 0;
+		int result2        = 0;
+		int result3        = 0;
+		
+		List<Map<String, String>> dateList = new ArrayList<>();
+        dateList = mssession.selectList("interface.selectDateCount");   // 날짜 쿼리.
+        
+        for (Map<String, String> dateMap: dateList )
+        {
+    		// TRUNCATE -> INSERT
+    		mssession.delete("interface.deletetImpSrTmp");		
+    		result1 = mssession.update("interface.insertImpSrTmp", dateMap);		
+    		
+    		result2 = mssession.update("interface.insertImpSr", dateMap);		
+    		logger.info("result2 : " + result2);
+    		if(result2 != 0) {
+    			//imp_table로 이관 끝나면stg_approval TargetYN을 N 으로 변경
+    			result3 = mssession.update("interface.updateStgTargetYNTmp");	
+    			logger.info("result3 : " + result3);
+    			
+    			if(result3 != 0) {
+    				mssession.commit();
+    				logger.info("commit success!!");
+    				logger.info("InterFace ImpSrManagement Table Insert End");
+    			}
+    		}
+    		else 
+    		{
+    			logger.info("Temp Table Insert ERROR");
+    		}
+    	}
+		return result3;
+	}
+	
+	// SalesClod  update > imp_approval_sr
+	public String updateApprovalIdCSR() throws Exception
+	{
+	      logger.info("InterFace ApprovalIdC_Oppty SC Update Start");
+	      
+	      List<ApprovalVO> approvalList = new ArrayList<ApprovalVO>();
+	      Map<String, Object> batchMap = new HashMap<String, Object>();
+	      List<List<ApprovalVO>> subList = new ArrayList<List<ApprovalVO>>();      // list를 나누기 위한 temp
+	      
+	      int result1        = 0;
+	      int result2        = 0;
+	      int splitSize     = 2000;   // partition 나누기
+	      
+	      approvalList = session.selectList("interface.selectApprovalIdCSR");
+	      ServiceRequest returnMessage = new ServiceRequest();
+	      
+	      for(ApprovalVO avo:approvalList)
+	      {
+	    	  ServiceRequest serviceRequest = new ServiceRequest();
+	    	  ObjectFactory objF = new ObjectFactory();
+	         
+	    	  Long   srId      = Long.parseLong(avo.getId());
+	    	  String approvalIdC = avo.getApprovalId_c();
+	         
+	    	  serviceRequest.setSrId(srId);
+	    	  serviceRequest.setApprovalIDC(objF.createServiceRequestApprovalIDC(approvalIdC));
+	         
+	    	  logger.info("serviceRequest srId       : " + serviceRequest.getSrId());
+	    	  logger.info("serviceRequest ApprovalIDC  : " + serviceRequest.getApprovalIDC().getValue());
+	         
+	    	  returnMessage = serviceRequestService.updateServiceRequest(serviceRequest);
+	      }
+
+	      if(returnMessage.getApprovalIDC().getValue() != null)
+	      {
+	         session.delete("interface.deleteTrnsApprovalBySRTemp");
+	         
+	         if(approvalList.size() > splitSize) {
+	            subList = Lists.partition(approvalList, splitSize);
+	            
+	            logger.info("subList size " + subList.size());
+	            
+	            for(int i=0; i<subList.size(); i++) {
+	               batchMap.put("list", subList.get(i));
+	               result1 = session.update("interface.insertTrnsApprovalBySRTemp", batchMap);      // addbatch
+	            }
+	         }
+	         else {
+	            batchMap.put("list", approvalList);
+	            result1 = session.update("interface.insertTrnsApprovalBySRTemp", batchMap);
+	            
+	         }
+	         if(result1 != 0){
+	            result2 = session.update("interface.updateImpApprovalBySR");
+	            if(result2 != 0){
+	               session.commit();
+	               logger.info("InterFace ApprovalIdC_SR SC update End");
+	            }else {
+	               logger.info("ApprovalIdC_SR SC update ERROR");
+	            }
+	         }
+	      }
+	      
+	      
+	      return null;
+	   }
 	
 	
 	public FindCriteria getCriteria(String itemAttribute, String itemValue, String[] items) throws Exception

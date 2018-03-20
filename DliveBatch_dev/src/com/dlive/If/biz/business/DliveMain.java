@@ -13,6 +13,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
+import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequest;
 
 import util.MssqlDBUtil;
 import vo.AccountVO;
@@ -23,6 +24,7 @@ import vo.OpptyLeadVO;
 import vo.ResourcesVO;
 import vo.ApprovalVO;
 import vo.CodeVO;
+import vo.ImpSrVO;
 
 /**
  * 각 함수 실행하는 Main Function
@@ -143,9 +145,12 @@ public class DliveMain {
 	    	/* Service Request */
 //	    	service_request_in(restId, restPw, restUrl, map, mssession);
 	    	
-	    	/* ImpSr */
-//	    	impSrManagement = new ImpSrManagement();
-//	    	impSrManagement.insertImpSrManagement(mssession);
+	    	/* SR  Imp_sr Table > SalesCloud */
+//	    	sr_request_in(restId, restPw, restUrl, map, mssession);
+//	    	sr_request_create(restId, restPw, restUrl, map, mssession);
+	    	
+	    	/* SR Imp_approval_sr > SalesCloud */
+//	    	sr_request_update(restId, restPw, restUrl, map, mssession);
 	    	
 	    	/* Approval by Oppty */
 //	    	apprByOppty_in(restId, restPw, restUrl, map, mssession);
@@ -289,7 +294,7 @@ public class DliveMain {
 		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
 		serviceRequest.initialize(restId, restPw, restUrl);											// webService 호출
 		
-		List<ApprovalVO> resultList = serviceRequest.getAllServiceRequestService();	// ServiceRequestService 조회
+		List<ApprovalVO> resultList = serviceRequest.getAllServiceRequestService();					// ServiceRequestService 조회
 		
 		if(resultList != null) {
 			serviceRequest.insertServiceRequest(resultList);										// ServiceRequestService insert
@@ -297,6 +302,42 @@ public class DliveMain {
 		else {
 			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
 		}
+	}
+	
+	private static void sr_request_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
+	{
+		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
+		
+		int result = serviceRequest.insertImpSrManagement(mssession);		 						// ServiceRequestService 조회
+		
+		if(result > 0) {
+			logger.info("result : " + result);
+		}
+		else {
+			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
+		}
+	}
+	
+	private static void sr_request_create(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
+	{
+		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
+		serviceRequest.initialize(restId, restPw, restUrl);			
+		// webService 호출
+		List<ImpSrVO> impSrList = mssession.selectList("interface.selectImpSr");
+		
+		List<ServiceRequest> serviceRequestList = serviceRequest.getImpSrList(mssession, impSrList); 			// GETIMPSRLIST 조회
+		logger.info("create serviceRequestList : " + serviceRequestList);
+		
+		serviceRequest.createSR(serviceRequestList, mssession, impSrList);	 									// createSR
+		
+	}
+	
+	private static void sr_request_update(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
+	{
+		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
+		serviceRequest.initialize(restId, restPw, restUrl);											// webService 호출
+		
+		serviceRequest.updateApprovalIdCSR();	 									
 	}
 	
 	private static void apprByOppty_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 

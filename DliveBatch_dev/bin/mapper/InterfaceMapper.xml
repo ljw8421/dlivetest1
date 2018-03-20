@@ -1134,8 +1134,8 @@
 		</foreach>
 	</update>
 	
-	 <!-- Temp Table -> ServiceRequest Table Update -->
-   <update id="insertServiceRequest" parameterType="java.util.Map">
+	<!-- Temp Table -> ServiceRequest Table Update -->
+	<update id="insertServiceRequest" parameterType="java.util.Map">
       MERGE INTO STG_APPROVAL A
       USING TMP_APPROVAL_SR B
       ON (A.ID = B.ID)
@@ -1230,7 +1230,7 @@
 	         , B.LASTUPDATEDATE
 	         , B.APPROVALYN_C
          );
-   </update>
+	</update>
 	
 	<!-- stg_approval -> imp_approval_sr -->
 	<update id="insertImpApprovalSr" parameterType="java.util.Map">
@@ -1282,8 +1282,8 @@
 		WHERE OBJ_TYPE = 'SR' AND TARGETYN = 'Y'
 	</insert>
 	
-   <!-- tmp_imp table 이관 후 stg table TargetYN update -->
-   <update id="updateStgApproTargetYNTmp">
+	<!-- tmp_imp table 이관 후 stg table TargetYN update -->
+	<update id="updateStgApproTargetYNTmp">
 		MERGE INTO STG_APPROVAL A 
 		USING (SELECT ID FROM  TMP_IMP_APPROVAL_SR ) B
 		ON (A.ID = B.ID)
@@ -1291,12 +1291,202 @@
 		UPDATE SET
 			  A.TARGETYN = 'N'
 			, A.LASTUPDATEDATE = GETDATE();
-   </update>
+	</update>
    
-   <delete id="deleteApprByOpttyTemp">
-		TRUNCATE TABLE TMP_APPROVAL_OPPTY
+	<!-- select date -->
+	<select id="selectDateCount" resultType="java.util.Map">
+      SELECT CONVERT(VARCHAR(10), CreationDate, 23) as date
+      FROM STG_SR
+      WHERE TargetYN = 'Y'
+      GROUP BY CONVERT(VARCHAR(10), CreationDate, 23)
+      ORDER BY date
+	</select>
+   
+	<select id="selectImpSr" parameterType="java.util.Map" resultType="vo.ImpSrVO" >
+   		SELECT 
+			  seq
+			, Title
+			, ServiceType_c
+			, PartyId
+			, Status
+			, AssigneePerson
+			, DATEADD(dd, 1, ImportDate) as DliveCloseDt_c
+			, ProblemDescription
+			, TrnsYN
+			, ImportDate
+			, TrnsDate 
+   		FROM IMP_SR
+   		WHERE TRNSYN = 'N'
+   			and AssigneePerson is not null
+	</select>
+
+	<update id="insertImpSr" parameterType="java.util.Map">
+		MERGE INTO IMP_SR A
+	    USING ( SELECT  
+    	   		    SEQ
+    	   		  , TITLE
+    	   		  , SERVICETYPE_C
+    	   		  , dbo.fn_getPartyIdByPartyNumber(PARTYNUMBER) as PARTYID
+    	   		  , STATUS
+    	   		  ,  dbo.fn_getPartyIdByUserName(ASSIGNEEPERSON) as ASSIGNEEPERSON
+    	   		  , DLIVECLOSEDT_C
+    	   		  , PROBLEMDESCRIPTION
+	    	   FROM STG_SR 
+	    	   WHERE TARGETYN = 'Y' AND CONVERT(VARCHAR(10), CREATIONDATE, 23) = #{date}
+	    	  ) B 
+	    ON (A.SEQ = B.SEQ)
+	    WHEN MATCHED THEN
+   	 	UPDATE SET
+				  A.SEQ 				= B.SEQ
+				, A.TITLE 				= B.TITLE
+				, A.SERVICETYPE_C 		= B.SERVICETYPE_C
+				, A.PARTYID				= B.PARTYID
+				, A.STATUS				= B.STATUS
+				, A.ASSIGNEEPERSON		= B.ASSIGNEEPERSON
+				, A.DLIVECLOSEDT_C		= convert(varchar(10), dateadd(dd, 1, getdate()), 23)
+				, A.PROBLEMDESCRIPTION  = B.PROBLEMDESCRIPTION
+				, A.TRNSYN				= 'N'
+				, A.IMPORTDATE			= GETDATE()
+	      WHEN NOT MATCHED THEN
+	         INSERT
+	         (
+	               SEQ
+		         , TITLE
+		         , SERVICETYPE_C
+		         , PARTYID
+		         , STATUS
+		         , ASSIGNEEPERSON
+		         , DLIVECLOSEDT_C
+		         , PROBLEMDESCRIPTION
+		         , TRNSYN
+		         , IMPORTDATE
+	         )
+	         VALUES
+	         (
+	               B.SEQ
+		         , B.TITLE
+		         , B.SERVICETYPE_C
+		         , B.PARTYID
+		         , B.STATUS
+		         , B.ASSIGNEEPERSON
+		         , convert(varchar(10), dateadd(dd, 1, getdate()), 23)
+		         , B.PROBLEMDESCRIPTION
+		         , 'N'
+		         , GETDATE()
+	         );
+	</update>
+   
+	<!-- imp_sr Delete -->
+	<delete id="deletetImpSrTmp">
+		TRUNCATE TABLE TMP_IMP_SR
 	</delete>
 	
+	<insert id="insertImpSrTmp" parameterType="java.util.Map">
+		INSERT INTO TMP_IMP_SR
+		(
+			SEQ 
+		)
+		SELECT
+			SEQ 
+		FROM STG_SR
+		WHERE TARGETYN = 'Y'
+			AND CONVERT(VARCHAR(10), CREATIONDATE, 23) = #{date}
+	</insert>
+	
+	 <!-- imp table 이관 후 stg table TargetYN update -->
+   	<update id="updateStgTargetYNTmp">
+		MERGE INTO STG_SR A 
+		USING (SELECT SEQ FROM TMP_IMP_SR) B
+		ON (A.SEQ = B.SEQ)
+		WHEN MATCHED THEN
+		UPDATE SET
+			  A.TARGETYN = 'N'
+			, A.LASTUPDATEDATE = GETDATE();
+  	</update>
+   
+	<!-- TMP_TRNS_SR delete -->
+	<delete id="deleteTrnsSRTemp">
+   		 TRUNCATE TABLE TMP_TRNS_SR
+	</delete>
+   
+	<!-- TMP_TRNS_SR seq insert  -->
+    <update id="insertTrnsSRTemp" parameterType="java.util.Map">
+      INSERT INTO TMP_TRNS_SR
+      (
+           SEQ
+      )
+      values
+      <foreach item="trnsSR" index="index" collection="list" open="" separator="," close="">
+         (
+              #{trnsSR.seq}
+         )
+      </foreach>
+	</update>
+   
+	<!-- SalesCLoud insert 후 Imp_sr TrnsYN Y set -->
+	<update id="updateImpSrTrnsYN">
+   		MERGE INTO IMP_SR A 
+		USING (SELECT SEQ FROM TMP_TRNS_SR) B
+		ON (A.SEQ = B.SEQ)
+		WHEN MATCHED THEN
+		UPDATE SET
+			  A.TRNSYN = 'Y'
+			, A.TRNSDATE = GETDATE();
+	</update>
+   
+	<select id="selectImpApprovalSrCSV" resultType="java.util.Map">
+   		SELECT 
+   			   ID					as ID
+	         , APPROVALID_C			as ApprovalIdC
+	         , TYPE					as Type
+	         , TRNSYN				as TrnsYN
+	         , IMPORTDATE			as ImportDate
+	         , TRNSDATE				as TrnsDate
+   		FROM IMP_APPROVAL_SR	
+	</select>
+	
+	<!-- IMP_APPROVAL_SR 조회 -->
+	<select id="selectApprovalIdCSR" resultType="vo.ApprovalVO">
+		SELECT  
+			ID
+		  , APPROVALID_C
+		FROM  IMP_APPROVAL_SR
+		WHERE  TRNSYN  = 'N'
+	</select>
+   
+	<!-- TMP_TRNS_APPROVAL_SR insert 전 delete -->   
+	<delete id="deleteTrnsApprovalBySRTemp">
+		TRUNCATE TABLE TMP_TRNS_APPROVAL_SR
+	</delete>
+   
+	<!-- TMP_TRNS_APPROVAL_SR insert -->
+	<update id="insertTrnsApprovalBySRTemp" parameterType="java.util.Map">
+	INSERT INTO TMP_TRNS_APPROVAL_SR
+    (
+		ID
+     )
+	values
+		<foreach item="approvalBysr" index="index" collection="list" open="" separator="," close="">
+		(
+			#{approvalBysr.id}
+		)
+		</foreach>
+	</update>
+   
+   <!-- IMP_APPROVAL_SR TRNSYN Y update -->
+	<update id="updateImpApprovalBySR">
+		MERGE INTO IMP_APPROVAL_SR A
+      	USING (SELECT ID
+               FROM TMP_TRNS_APPROVAL_SR) B
+      	ON (A.ID = B.ID)
+      	WHEN MATCHED THEN
+        UPDATE SET
+              A.TRNSYN        = 'Y'
+            , A.TRNSDATE     = GETDATE()
+        ;
+	</update>
+   
+
 	<!-- Opportunity Temp Table Insert -->
 	<update id="insertApprByOpttyTemp" parameterType="java.util.Map">
 		INSERT INTO TMP_APPROVAL_OPPTY

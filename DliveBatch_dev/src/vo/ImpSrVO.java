@@ -6,12 +6,14 @@ public class ImpSrVO {
 	private String title;
 	private String serviceType_c;
 	private String partyNumber;
+	private String partyId;
 	private String status;
 	private String assigneePerson;
 	private String dliveCloseDt_c;
-	private String targetYN;
-	private String creationDate;
-	private String lastUpdateDate;
+	private String problemDescription;
+	private String trnsYN;
+	private String importDate;
+	private String trnsDate;
 	
 	public String getSeq() {
 		return seq;
@@ -37,6 +39,12 @@ public class ImpSrVO {
 	public void setPartyNumber(String partyNumber) {
 		this.partyNumber = partyNumber;
 	}
+	public String getPartyId() {
+		return partyId;
+	}
+	public void setPartyId(String partyId) {
+		this.partyId = partyId;
+	}
 	public String getStatus() {
 		return status;
 	}
@@ -55,30 +63,35 @@ public class ImpSrVO {
 	public void setDliveCloseDt_c(String dliveCloseDt_c) {
 		this.dliveCloseDt_c = dliveCloseDt_c;
 	}
-	public String getTargetYN() {
-		return targetYN;
+	public String getProblemDescription() {
+		return problemDescription;
 	}
-	public void setTargetYN(String targetYN) {
-		this.targetYN = targetYN;
+	public void setProblemDescription(String problemDescription) {
+		this.problemDescription = problemDescription;
 	}
-	public String getCreationDate() {
-		return creationDate;
+	public String getTrnsYN() {
+		return trnsYN;
 	}
-	public void setCreationDate(String creationDate) {
-		this.creationDate = creationDate;
+	public void setTrnsYN(String trnsYN) {
+		this.trnsYN = trnsYN;
 	}
-	public String getLastUpdateDate() {
-		return lastUpdateDate;
+	public String getImportDate() {
+		return importDate;
 	}
-	public void setLastUpdateDate(String lastUpdateDate) {
-		this.lastUpdateDate = lastUpdateDate;
+	public void setImportDate(String importDate) {
+		this.importDate = importDate;
 	}
-	
+	public String getTrnsDate() {
+		return trnsDate;
+	}
+	public void setTrnsDate(String trnsDate) {
+		this.trnsDate = trnsDate;
+	}
 	@Override
 	public String toString() {
 		return "ImpSrVO [seq=" + seq + ", title=" + title + ", serviceType_c=" + serviceType_c + ", partyNumber="
-				+ partyNumber + ", status=" + status + ", assigneePerson=" + assigneePerson + ", dliveCloseDt_c="
-				+ dliveCloseDt_c + ", targetYN=" + targetYN + ", creationDate=" + creationDate + ", lastUpdateDate="
-				+ lastUpdateDate + "]";
+				+ partyNumber + ", partyId=" + partyId + ", status=" + status + ", assigneePerson=" + assigneePerson
+				+ ", dliveCloseDt_c=" + dliveCloseDt_c + ", problemDescription=" + problemDescription + ", trnsYN="
+				+ trnsYN + ", importDate=" + importDate + ", trnsDate=" + trnsDate + "]";
 	}
 }

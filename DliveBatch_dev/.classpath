@@ -38,8 +38,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/ResourceServiceV2_dlive.jar"/>
 	<classpathentry kind="lib" path="lib/SalesPartiesAccountService.jar"/>
 	<classpathentry kind="lib" path="lib/LeadIntegrationService.jar"/>
-	<classpathentry kind="lib" path="lib/ServiceRequestService.jar"/>
 	<classpathentry kind="lib" path="lib/ActivityService.jar"/>
 	<classpathentry kind="lib" path="lib/OpportunityService.jar"/>
+	<classpathentry kind="lib" path="lib/ServiceRequestService.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
