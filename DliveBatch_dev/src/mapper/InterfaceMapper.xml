@@ -1400,8 +1400,7 @@
 		ON (A.SEQ = B.SEQ)
 		WHEN MATCHED THEN
 		UPDATE SET
-			  A.TARGETYN = 'N'
-			, A.LASTUPDATEDATE = GETDATE();
+			  A.TARGETYN = 'N';
   	</update>
    
 	<!-- TMP_TRNS_SR delete -->
@@ -1482,8 +1481,7 @@
       	WHEN MATCHED THEN
         UPDATE SET
               A.TRNSYN        = 'Y'
-            , A.TRNSDATE     = GETDATE()
-        ;
+            , A.TRNSDATE     = GETDATE();
 	</update>
    
 
