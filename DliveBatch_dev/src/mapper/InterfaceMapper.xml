@@ -1433,16 +1433,7 @@
 			, A.TRNSDATE = GETDATE();
 	</update>
    
-	<select id="selectImpApprovalSrCSV" resultType="java.util.Map">
-   		SELECT 
-   			   ID					as ID
-	         , APPROVALID_C			as ApprovalIdC
-	         , TYPE					as Type
-	         , TRNSYN				as TrnsYN
-	         , IMPORTDATE			as ImportDate
-	         , TRNSDATE				as TrnsDate
-   		FROM IMP_APPROVAL_SR	
-	</select>
+
 	
 	<!-- IMP_APPROVAL_SR 조회 -->
 	<select id="selectApprovalIdCSR" resultType="vo.ApprovalVO">
