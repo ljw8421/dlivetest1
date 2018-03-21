@@ -42,7 +42,7 @@ public class DliveMain {
 	private static OpportunityManagement 			opportunity;
 	private static ActivityManagement    			activity;
 	private static LeadManagement		 			lead;
-	private static ServiceRequestServiceManagement	serviceRequest;
+	
 	private static ApprovalByOpptyManagement        apprByOppty;
 	
 	private static ImpAccountManagement             impAccount;
@@ -142,16 +142,6 @@ public class DliveMain {
 	    	/* Lead */
 //	    	lead_in(restId, restPw, restUrl, map, mssession);
 	   
-	    	/* Service Request */
-//	    	service_request_in(restId, restPw, restUrl, map, mssession);
-	    	
-	    	/* SR  Imp_sr Table > SalesCloud */
-//	    	sr_request_in(restId, restPw, restUrl, map, mssession);
-//	    	sr_request_create(restId, restPw, restUrl, map, mssession);
-	    	
-	    	/* SR Imp_approval_sr > SalesCloud */
-//	    	sr_request_update(restId, restPw, restUrl, map, mssession);
-	    	
 	    	/* Approval by Oppty */
 //	    	apprByOppty_in(restId, restPw, restUrl, map, mssession);
 	    	
@@ -289,71 +279,6 @@ public class DliveMain {
 		}
 	}
 	
-	private static void service_request_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
-	{
-		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
-		serviceRequest.initialize(restId, restPw, restUrl);											// webService 호출
-		
-		List<ApprovalVO> resultList = serviceRequest.getAllServiceRequestService();					// ServiceRequestService 조회
-		
-		if(resultList != null) {
-			serviceRequest.insertServiceRequest(resultList);										// ServiceRequestService insert
-		}
-		else {
-			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
-		}
-	}
-	
-	private static void sr_request_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
-	{
-		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
-		
-		int result = serviceRequest.insertImpSrManagement(mssession);		 						// ServiceRequestService 조회
-		
-		if(result > 0) {
-			logger.info("result : " + result);
-		}
-		else {
-			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
-		}
-	}
-	
-	private static void sr_request_create(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
-	{
-		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
-		serviceRequest.initialize(restId, restPw, restUrl);			
-		// webService 호출
-		List<ImpSrVO> impSrList = mssession.selectList("interface.selectImpSr");
-		
-		List<ServiceRequest> serviceRequestList = serviceRequest.getImpSrList(mssession, impSrList); 			// GETIMPSRLIST 조회
-		logger.info("create serviceRequestList : " + serviceRequestList);
-		
-		serviceRequest.createSR(serviceRequestList, mssession, impSrList);	 									// createSR
-		
-	}
-	
-	private static void sr_request_update(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
-	{
-		serviceRequest = new ServiceRequestServiceManagement(mssession, map);						// ServiceRequestService
-		serviceRequest.initialize(restId, restPw, restUrl);											// webService 호출
-		
-		serviceRequest.updateApprovalIdCSR();	 									
-	}
-	
-	private static void apprByOppty_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
-	{
-		apprByOppty = new ApprovalByOpptyManagement(mssession, map);			// Resource
-		apprByOppty.initialize(restId, restPw, restUrl);					// webService 호출
-		
-		List<ApprovalVO> resultList = apprByOppty.getAllApprovalByOppty();	// resources 조회
-		
-		if(resultList != null) {
-			apprByOppty.insertApprovalByOppty(resultList);				// resources insert
-		}
-		else {
-			logger.info("dosen't exist Oracle Sales Cloud Activity List");
-		}
-	}
 	
 	private static void imp_account_in(Map<String, String> map, SqlSession mssession) throws Exception 
 	{
@@ -361,11 +286,6 @@ public class DliveMain {
 		impAccount.insertImpAccount();					// webService 호출
 	}
 	
-	private static void imp_apprByOppty_in(Map<String, String> map, SqlSession mssession) throws Exception 
-	{
-		impApprByOppty = new ImpApprovalByOpptyManagement(mssession, map);			// Resource
-		impApprByOppty.insertImpApprovalByOppty();					// webService 호출
-	}
 	
 	private static void imp_oppty_in(Map<String, String> map, SqlSession mssession) throws Exception
 	{
