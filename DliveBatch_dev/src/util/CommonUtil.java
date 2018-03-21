@@ -9,7 +9,6 @@ import java.util.Map;
 
 import org.apache.log4j.Logger;
 
-import com.dlive.If.biz.business.OpportunityManagement;
 import com.oracle.xmlns.adf.svc.types.Conjunction;
 import com.oracle.xmlns.adf.svc.types.FindCriteria;
 import com.oracle.xmlns.adf.svc.types.ViewCriteria;
@@ -172,6 +171,14 @@ public class CommonUtil {
         }
 
         return false;
+    }
+    
+    public String nullToZero(String str){
+    	if(str == null || "".equals(str)){
+    		str = "0";
+    	}
+    	
+    	return str;
     }
 
 }
