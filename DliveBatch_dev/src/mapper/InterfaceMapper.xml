@@ -1063,12 +1063,12 @@
 	
 	<!-- SR Delete -->
 	<delete id="deleteServiceRequestTmp">
-		TRUNCATE TABLE tmp_approval_sr
+		TRUNCATE TABLE TMP_APPROVAL_SR
 	</delete>
 	
 	<!-- SR Insert -->
 	<update id="insertServiceRequestTmp" parameterType="java.util.Map">
-		INSERT INTO tmp_approval_sr
+		INSERT INTO TMP_APPROVAL_SR
 	     (
 	           ID
 	         , OBJ_TYPE
@@ -1116,7 +1116,7 @@
 	            , #{serviceRequest.contractTo_c}
 	            , #{serviceRequest.contractFrom_c}
 	            , #{serviceRequest.opportunityNm}
-	            , #{serviceRequest.empNumber}
+	            , dbo.fn_getUserNameByPartyId(#{serviceRequest.empNumber})
 	            , #{serviceRequest.optyBranch_c}
 	            , #{serviceRequest.good3_c}
 	            , #{serviceRequest.good3Qty_c}
