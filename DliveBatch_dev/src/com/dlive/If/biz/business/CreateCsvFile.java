@@ -31,16 +31,12 @@ public class CreateCsvFile {
 	 * */
 	void csvFileTemplet(List<Map<String, Object>> list, String fileName, String headerType, String headerDiv) throws Exception
 	{
+		logger.info("Create CSV File csvFileTemplet Start");
+
 		Properties sp = new Properties();
     	sp.load(new FileInputStream("./conf/Saas.properties"));
     	
     	String csvLocation = sp.getProperty("csvLocation");
-    	
-		logger.info("Create CSV File csvFileTemplet Start");
-		logger.info("Create CSV File csvFileTemplet fileName - " + fileName);
-		logger.info("Create CSV File csvFileTemplet list.size() - " + list.size());
-		logger.info("Create CSV File csvFileTemplet headerDiv - " + headerDiv);
-		logger.info("csvLocation : " + csvLocation);
 		
 		List<String> header = new ArrayList<>();
 		String[] data = null;
@@ -48,137 +44,43 @@ public class CreateCsvFile {
 		// Header 선택
 		switch(headerDiv)
 		{
-		case "001":		// 영업/수금 목표
-			header.add("영업기회번호");
-			header.add("영업기회명");
-			header.add("마감일자");
-			header.add("BuName");
-			header.add("상태");
-			header.add("OptyCurcyCode");
-			header.add("생성 일자");
-			header.add("생성자");
-			header.add("OptyLastUpdateDate");
-			header.add("최종 업데이트 생성자");
-			header.add("ResourcePartyNumber");
-			header.add("ResourcePartyNumber");
-			header.add("CustPartyNumber");
-			header.add("영업기회유형");
-			header.add("유치 지사");
-			break;
-		case "003":		// 담당영업사원
-			header.add("partynumber");
-			header.add("PartyOrigSystem");
-			header.add("PartyOrigSystemReference");
-			header.add("TYPE");
-			header.add("OwnerPartyId");
-			header.add("DEPT");
-			header.add("TEAM");
-			header.add("PART");
-			header.add("JANAMT");
-			break;
-		case "004":		// 계약 
+		case "001":		// oppty_account
 			header.add("PartyNumber");
-			header.add("ExtPartyNumber");
-			header.add("RECORDNAME");
-			header.add("contractNo");
-			header.add("contractDt");
-			header.add("repreNm");
-			header.add("bpCd");
-			header.add("bpNm");
-			header.add("bpFullNm");
-			header.add("bpRgstNo");
-			header.add("salesGrpNm");
-			header.add("salesOrgNm1");
-			header.add("salesOrgNm2");
-			header.add("systemCd");
-			header.add("systemCdNm");
-			header.add("contractAmt");
-			header.add("dcRate");
-			header.add("applyAmt");
-			header.add("applyRate");
-			header.add("janAmt");
-			header.add("signType");
-			header.add("signTypeNm");
-			header.add("newType");
-			header.add("newtypenm");
-			header.add("instMon");
-			header.add("ingYn");
-			header.add("freeCmt");
-			header.add("insusernm");
-			header.add("endDt");
-			header.add("cmt");
-			header.add("etc");
-			break;
-		case "005":		// 수금
-			header.add("PARTYNUM1");
-			header.add("PARTYNUM2");
-			header.add("RECORDNAME");
-			header.add("ISSUEDDT");
-			header.add("ACCTNM");
-			header.add("ITEMLOCAMT");
-			break;
-		case "006":
-			header.add("PARTYNUM1");
-			header.add("PARTYNUM2");
-			header.add("RECORDNAME");
-			header.add("actualGiDt");
-			header.add("itemCd");
-			header.add("giAmtLoc");
-			header.add("giQty");
-			break;
-		case "007":
-			header.add("PARTYNUMBER");
 			header.add("PartyOrigSystem");
 			header.add("PartyOrigSysRef");
 			header.add("OrganizationName");
-			header.add("JgzzFiscalCode");
-			header.add("Type");
-			header.add("Address_PartySiteNumber");
-			header.add("Address1");
-			header.add("Address2");
-			header.add("PostalCode");
+			header.add("유형");
+			header.add("Owner");
+			header.add("SiteNo");
 			header.add("Country");
-			header.add("PhoneCpOrigSystem");
-			header.add("PhoneCpOrigSysmRef");
-			header.add("PhoneCountryCode");
-			header.add("PhoneAreaCode");
-			header.add("PhoneNumber");
-			header.add("FaxCpOrigSystem");
-			header.add("FaxCpOrigSysRef");
-			header.add("FaxCountryCode");
-			header.add("FaxAreaCode");
-			header.add("FaxNumber");
-			header.add("AccountClassType");
+			header.add("PostNo");
+			header.add("Province");
+			header.add("State");
+			header.add("City");
+			header.add("AddressLine1");
+			header.add("AddressLine2");
+			header.add("용도");
+			header.add("단체유형");
+			header.add("업종");
+			header.add("BranchNm_c");
+			header.add("ConaId_c");
 			break;
-		case "008":
-			header.add("itemCd");
-			header.add("itemNm");
-			header.add("spec");
-			header.add("acctNm");
-			header.add("basicUnit");
-			header.add("sNm");
-			header.add("dNm");
-			header.add("jNm");
-			header.add("eNm");
-			header.add("g1Nm");
-			header.add("g2Nm");
-			header.add("g3Nm");
-			header.add("g4Nm");
-			header.add("g5Nm");
-			header.add("g6Nm");
-			header.add("g7Nm");
-			header.add("g8Nm");
-			header.add("g9Nm");
-			break;
-		case "009" :
-			header.add("bpCd");
-			header.add("bpNm");
-			header.add("bpFullNm");
-			header.add("preAmt");
-			header.add("giAmt");
-			header.add("inAmt");
-			header.add("janAmt");
-			header.add("salesGrpNm");
+		case "002":		// oppty
+			header.add("seq");
+			header.add("Name");
+			header.add("EffectiveDate");
+			header.add("BuName");
+			header.add("SalesStage");
+			header.add("OptyCurcyCode");
+			header.add("OptyCreateDate");
+			header.add("Created");
+			header.add("OptyLastUpdateDate");
+			header.add("OptyLastUpdated");
+			header.add("ResourcePartyNumber1");
+			header.add("ResourcePartyNumber2");
+			header.add("CustPartyNumber");
+			header.add("OpptyType_c");
+			header.add("OptyBranch_c");
 			break;
 		}
 		
@@ -203,9 +105,6 @@ public class CreateCsvFile {
 				try {
 					// DB에서 가지고 온 데이터 CSV파일로
 					String[] csvList = new String[header.size()];
-					
-					logger.info("csvList header size : " + csvList.length);
-					logger.info("target list size : " + list.size());
 					
 					for(Map<String, Object> map : list)
 					{
