@@ -79,7 +79,6 @@ public class OpportunityManagement {
 		
 		String items[] = {
 							"OptyId","OptyNumber"
-//							,"OptyLeadId"
 							,"Name","TargetPartyId","TargetPartyName","OwnerResourcePartyId"
 							,"StatusCode","SalesStage","Comments","EffectiveDate","WinProb","PrimaryContactPartyName"
 							,"SalesChannelCd","OpptyType_c","Competitor_c","CompetitorETC_c","OpenType_c","CompleteType_c"
@@ -133,7 +132,6 @@ public class OpportunityManagement {
 		{
 			findCriteria = null;
 			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
-//			findCriteria = getCriteria("LastUpdateDate", "2018-02-07T12:50:46.831135Z", items, pageNum, pageSize);
 			
 			opportunityResult = opportunityService.findOpportunity(findCriteria, findControl);
 			resultSize= opportunityResult.size();
@@ -145,7 +143,6 @@ public class OpportunityManagement {
 				
 				String optyId                    = opportunity.getOptyId().toString();
 				String optyNumber                = opportunity.getOptyNumber();
-				//String optyLeadId                = opportunity.getChildRevenue().getOptyLeadId();
 				String name                      = opportunity.getName();
 				String targetPartyId             = null;
 				if(opportunity.getTargetPartyId().getValue() != null){
@@ -304,7 +301,6 @@ public class OpportunityManagement {
 				
 				ovo.setOptyId(optyId);
 				ovo.setOptyNumber(optyNumber);
-//				ovo.setOptyLeadId(optyLeadId);
 				ovo.setName(name);
 				ovo.setTargetPartyId(targetPartyId);
 				ovo.setTargetPartyNam(targetPartyName);
@@ -348,12 +344,10 @@ public class OpportunityManagement {
 				ovo.setCreationDate(creationDate);
 				ovo.setLastUpdateDate(lastUpdateDate);
 				ovo.setLastUpdatedBy(lastUpdatedBy);
-//				ovo.setBatchJobId(batchJobId);
 				
 				logger.info("#["+i+"]==========================================================");
 				logger.info("Opportunity optyId                  : " + optyId);
 				logger.info("Opportunity optyNumber              : " + optyNumber);
-//				logger.info("Opportunity optyLeadId              : " + optyLeadId);
 				logger.info("Opportunity name                    : " + name);
 				logger.info("Opportunity targetPartyId           : " + targetPartyId);
 				logger.info("Opportunity targetPartyNam          : " + targetPartyName);
@@ -411,20 +405,6 @@ public class OpportunityManagement {
 		tgtMap.put("opptyLeadList", tgtChlidList);
 		
 		return tgtMap;
-	}
-	
-	/**
-	 * delFlag를 Y로 셋팅
-	 * */
-	public int updateDelFlag() throws Exception
-	{
-		logger.info("InterFace SC_Opportunity delFalg Update");
-		int update = 0;
-		
-		session.update("interface.updateOpportunityDelflg");
-		session.commit();
-		
-		return update;
 	}
 	
 	public int insertOpportunity(List<OpportunityVO> opportunityList) throws Exception

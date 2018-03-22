@@ -19,9 +19,6 @@ import com.oracle.xmlns.adf.svc.types.Conjunction;
 import com.oracle.xmlns.adf.svc.types.DataObjectResult;
 import com.oracle.xmlns.adf.svc.types.FindControl;
 import com.oracle.xmlns.adf.svc.types.FindCriteria;
-import com.oracle.xmlns.adf.svc.types.ViewCriteria;
-import com.oracle.xmlns.adf.svc.types.ViewCriteriaItem;
-import com.oracle.xmlns.adf.svc.types.ViewCriteriaRow;
 import com.oracle.xmlns.apps.crmcommon.salesparties.accountservice.Account;
 import com.oracle.xmlns.apps.crmcommon.salesparties.accountservice.AccountService;
 import com.oracle.xmlns.apps.crmcommon.salesparties.accountservice.AccountService_Service;
@@ -47,6 +44,7 @@ public class AccountManagement {
 	public AccountManagement(SqlSession session, Map<String, String> map) {
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
+		this.toDt2      = map.get("toDt2");
 	}
 
 	public void initialize(String username, String password, String url)
@@ -81,25 +79,25 @@ public class AccountManagement {
 		logger.info("SalesCloud AccountManagement getAllAccount List");
 		
 		String items[] = {
-				"PartyId","PartyNumber","SourceSystem","SourceSystemReferenceValue","OrganizationName","Type"
-				,"OwnerPartyId","OwnerPartyNumber","OwnerEmailAddress","OwnerName","SalesProfileStatus","CreatedBy"
-				,"CreationDate","LastUpdateDate","LastUpdatedBy","PhoneCountryCode","PhoneAreaCode","PhoneNumber"
-				,"PhoneExtension","PrimaryAddress","OrganizationDEO_SocietyType_c","OrganizationDEO_NewBuildFlag_c"
-				,"OrganizationDEO_BuildDate_c","OrganizationDEO_NetworkInDate_c"
-				,"OrganizationDEO_HouseholdNumber_c"
-//				,"OrganizationDEO_InvasionRate_c"
-				,"OrganizationDEO_StandardFee_c"
-				,"OrganizationDEO_SurFee_c","OrganizationDEO_ConaId_c","OrganizationDEO_DTVCount_c"
-				,"OrganizationDEO_ISPCount_c","OrganizationDEO_VoIPCount_c","OrganizationDEO_ShareRate_c"
-				,"OrganizationDEO_RemarkF_c","OrganizationDEO_TypeOfBusiness_c"
-				,"OrganizationDEO_OTTCount_c","OrganizationDEO_ContractFrom_c","OrganizationDEO_ContractTo_c"
-				,"OrganizationDEO_InvasionRateF_c","OrganizationDEO_BranchNm_c","OrganizationDEO_SocietyTypeF_c"
-			  };
+							"PartyId","PartyNumber","SourceSystem","SourceSystemReferenceValue","OrganizationName","Type"
+							,"OwnerPartyId","OwnerPartyNumber","OwnerEmailAddress","OwnerName","SalesProfileStatus","CreatedBy"
+							,"CreationDate","LastUpdateDate","LastUpdatedBy","PhoneCountryCode","PhoneAreaCode","PhoneNumber"
+							,"PhoneExtension","PrimaryAddress","OrganizationDEO_SocietyType_c","OrganizationDEO_NewBuildFlag_c"
+							,"OrganizationDEO_BuildDate_c","OrganizationDEO_NetworkInDate_c"
+							,"OrganizationDEO_HouseholdNumber_c"
+//							,"OrganizationDEO_InvasionRate_c"
+							,"OrganizationDEO_StandardFee_c"
+							,"OrganizationDEO_SurFee_c","OrganizationDEO_ConaId_c","OrganizationDEO_DTVCount_c"
+							,"OrganizationDEO_ISPCount_c","OrganizationDEO_VoIPCount_c","OrganizationDEO_ShareRate_c"
+							,"OrganizationDEO_RemarkF_c","OrganizationDEO_TypeOfBusiness_c"
+							,"OrganizationDEO_OTTCount_c","OrganizationDEO_ContractFrom_c","OrganizationDEO_ContractTo_c"
+							,"OrganizationDEO_InvasionRateF_c","OrganizationDEO_BranchNm_c","OrganizationDEO_SocietyTypeF_c"
+						  };
 		
 		String itemAttribute[] = {
-				"PartyId"
-			 };
-
+						"PartyId"
+					 };
+		
 		String itemValue[] = {
 					""
 				 };
@@ -118,8 +116,6 @@ public class AccountManagement {
 		
 		commonUtil = new CommonUtil();
 		filterList = commonUtil.addFilterList(itemAttribute,itemValue,upperCaseCompare,operator);
-		
-		
 		int pageNum = 1;
 		int pageSize = 500;
 		int resultSize = 0;
@@ -468,6 +464,36 @@ public class AccountManagement {
 		}
 		
 		return result2;
+	}
+	
+	public int insertImpAccount() throws Exception{
+		
+		logger.info("InterFace Imp_Account Table Insert Start");
+		
+		int result1      = 0;
+		int result3      = 0;
+		
+		session.delete("interface.deleteImpAccountTemp");
+		
+		List<Map<String, String>> dateGroup = new ArrayList<>();
+		session.update("interface.insertImpAccountTemp");
+		dateGroup = session.selectList("interface.selectStgAccountDateGroup");
+		
+		for(Map<String, String> dateMap : dateGroup){
+			result1 = session.update("interface.insertImpAccount", dateMap);
+		}
+		
+		if(result1 !=0){
+			result3 = session.update("interface.updateStgAccount");
+			if(result3 != 0){
+				session.commit();
+				logger.info("InterFace Imp_Account Table Insert End");
+			}
+		}else{
+			logger.info("Temp Table Insert ERROR");
+		}
+		
+		return result3;
 	}
 
 }

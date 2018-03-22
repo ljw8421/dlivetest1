@@ -407,68 +407,65 @@
 	
 	<update id="insertImpAccount">
 		MERGE INTO IMP_ACCOUNT A
-		USING (SELECT   
-					  SEQ
-					, CONAID_C
-					, LTRIM(RTRIM(PARTYNUMBER))
-					, LTRIM(RTRIM(OTTCOUNT_C)) AS OTTCOUNT_C
-					, LTRIM(RTRIM(DTVCOUNT_C)) AS DTVCOUNT_C
-					, LTRIM(RTRIM(ISPCOUNT_C)) AS ISPCOUNT_C
-					, LTRIM(RTRIM(VOIPCOUNT_C)) AS VOIPCOUNT_C
-					, LTRIM(RTRIM(STANDARDFEE_C)) AS STANDARDFEE_C
-					, LTRIM(RTRIM(SURFEE_C)) AS SURFEE_C
-					, CONTRACTTO_C
-					, CONTRACTFROM_C
-				FROM 
-					STG_ACCOUNT
-				WHERE 
-					TARGETYN = 'Y'
-		) B
-		ON (A.SEQ = B.SEQ)
+		USING (SELECT C.SEQ
+					, C.CONAID_C
+					, LTRIM(RTRIM(PARTYNUMBER)) AS PARTYNUMBER
+					, LTRIM(RTRIM(ISNULL(C.OTTCOUNT_C,'0'))) AS OTTCOUNT_C
+					, LTRIM(RTRIM(ISNULL(C.DTVCOUNT_C,'0'))) AS DTVCOUNT_C
+					, LTRIM(RTRIM(ISNULL(C.ISPCOUNT_C,'0'))) AS ISPCOUNT_C
+					, LTRIM(RTRIM(ISNULL(C.VOIPCOUNT_C,'0'))) AS VOIPCOUNT_C
+					, LTRIM(RTRIM(ISNULL(C.STANDARDFEE_C,'0'))) AS STANDARDFEE_C
+					, LTRIM(RTRIM(ISNULL(C.SURFEE_C,'0'))) AS SURFEE_C
+					, C.CONTRACTTO_C
+					, C.CONTRACTFROM_C
+				           FROM   STG_ACCOUNT C, TMP_IMP_ACCOUNT D
+				          WHERE   1=1
+				            AND   C.SEQ = D.SEQ
+				            AND   C.TARGETYN = 'Y'
+				            AND   C.CREATIONDATE BETWEEN #{DATE} AND #{DATE} + ' 23:59:59.999') B
+		ON (A.PARTYNUMBER = B.PARTYNUMBER)
 		WHEN MATCHED THEN
 			UPDATE SET
-			, A.CONAID_C       = B.CONAID_C
-			, A.PARTYNUMBER    = B.PARTYNUMBER
-			, A.OTTCOUNT_C     = B.OTTCOUNT_C
-			, A.DTVCOUNT_C     = B.DTVCOUNT_C
-			, A.ISPCOUNT_C     = B.ISPCOUNT_C
-			, A.VOIPCOUNT_C    = B.VOIPCOUNT_C
-			, A.STANDARDFEE_C  = B.STANDARDFEE_C
-			, A.SURFEE_C       = B.SURFEE_C
-			, A.CONTRACTTO_C   = B.CONTRACTTO_C
-			, A.CONTRACTFROM_C = B.CONTRACTFROM_C
-			, A.TRNSYN         = 'N'
-			, A.IMPORTDATE     = GETDATE()
+					  A.CONAID_C       = B.CONAID_C
+					, A.PARTYNUMBER    = B.PARTYNUMBER
+					, A.OTTCOUNT_C     = B.OTTCOUNT_C
+					, A.DTVCOUNT_C     = B.DTVCOUNT_C
+					, A.ISPCOUNT_C     = B.ISPCOUNT_C
+					, A.VOIPCOUNT_C    = B.VOIPCOUNT_C
+					, A.STANDARDFEE_C  = B.STANDARDFEE_C
+					, A.SURFEE_C       = B.SURFEE_C
+					, A.CONTRACTTO_C   = B.CONTRACTTO_C
+					, A.CONTRACTFROM_C = B.CONTRACTFROM_C
+					, A.TRNSYN         = 'N'
+					, A.IMPORTDATE     = GETDATE()
 		WHEN NOT MATCHED THEN
 			INSERT(
-				SEQ
-				, CONAID_C
-				, PARTYNUMBER
-				, OTTCOUNT_C
-				, DTVCOUNT_C
-				, ISPCOUNT_C
-				, VOIPCOUNT_C
-				, STANDARDFEE_C
-				, SURFEE_C
-				, CONTRACTTO_C
-				, CONTRACTFROM_C
-				, TRNSYN
-				, IMPORTDATE
+					  CONAID_C
+					, PARTYNUMBER
+					, OTTCOUNT_C
+					, DTVCOUNT_C
+					, ISPCOUNT_C
+					, VOIPCOUNT_C
+					, STANDARDFEE_C
+					, SURFEE_C
+					, CONTRACTTO_C
+					, CONTRACTFROM_C
+					, TRNSYN
+					, IMPORTDATE
 			)
 			VALUES(
-				  B.SEQ
-				, B.CONAID_C
-				, B.PARTYNUMBER
-				, B.OTTCOUNT_C
-				, B.DTVCOUNT_C
-				, B.ISPCOUNT_C
-				, B.VOIPCOUNT_C
-				, B.STANDARDFEE_C
-				, B.SURFEE_C
-				, B.CONTRACTTO_C
-				, B.CONTRACTFROM_C
-				, 'N'
-				, GETDATE()
+					  B.CONAID_C
+					, B.PARTYNUMBER
+					, B.OTTCOUNT_C
+					, B.DTVCOUNT_C
+					, B.ISPCOUNT_C
+					, B.VOIPCOUNT_C
+					, B.STANDARDFEE_C
+					, B.SURFEE_C
+					, B.CONTRACTTO_C
+					, B.CONTRACTFROM_C
+					, 'N'
+					, GETDATE()
 			);
 	</update>
 	
@@ -492,7 +489,6 @@
       	WHEN MATCHED THEN
 			UPDATE SET
 	              A.TARGETYN          = 'N'
-	            , A.LASTUPDATEDATE     = GETDATE()
 		;
 	</update>
 	
@@ -838,16 +834,6 @@
 				, 'N'            
 			);
 	</update>
-	
-	<!-- 영업기회(Opportunity) -->
-	<update id="updateActivityDelflg" >
-		UPDATE SC_ACTIVITY
-		SET 
-			DELYN = 'Y'
-	</update>
-	
-	
-	
 	
 	<!-- Activity -->
 	<!-- Activity Temp Delete -->

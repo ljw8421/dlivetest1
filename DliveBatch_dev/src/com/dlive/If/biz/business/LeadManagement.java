@@ -17,10 +17,9 @@ import com.google.common.collect.Lists;
 import com.oracle.xmlns.adf.svc.types.Conjunction;
 import com.oracle.xmlns.adf.svc.types.FindControl;
 import com.oracle.xmlns.adf.svc.types.FindCriteria;
-import com.oracle.xmlns.apps.marketing.leadmgmt.leads.leadservicev3.LeadIntegrationService;
-import com.oracle.xmlns.apps.marketing.leadmgmt.leads.leadservicev3.LeadIntegrationService_Service;
-import com.oracle.xmlns.apps.marketing.leadmgmt.leads.leadservicev3.SalesLead;
-import com.oracle.xmlns.apps.marketing.leadmgmt.leads.leadservicev3.SalesLeadResult;
+import com.oracle.xmlns.apps.marketing.leadmgmt.leads.leadservice.SalesLeadService;
+import com.oracle.xmlns.apps.marketing.leadmgmt.leads.leadservice.SalesLeadService_Service;
+import com.oracle.xmlns.oracle.apps.marketing.leadmgmt.leads.leadservice.MklLead;
 
 import util.CommonUtil;
 
@@ -32,8 +31,8 @@ import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 public class LeadManagement {
 
 	@WebServiceRef
-	static LeadIntegrationService leadIntegrationService;
-	static LeadIntegrationService_Service leadIntegrationService_Service;
+	static SalesLeadService salesLeadService;
+	static SalesLeadService_Service salesLeadService_Service;
 	
 	private static QName serviceName = null;
 	
@@ -53,10 +52,10 @@ public class LeadManagement {
 		logger.info("Start SalesLeadManagement initialize");
 		
 		URL wsdlLocation = null;
-		serviceName = new QName("http://xmlns.oracle.com/apps/marketing/leadMgmt/leads/leadServiceV3/", "LeadIntegrationService");
+		serviceName = new QName("http://xmlns.oracle.com/apps/marketing/leadMgmt/leads/leadService/", "SalesLeadService");
 		
 		try {
-			wsdlLocation = new URL(""+url+":443/crmService/LeadIntegrationService?WSDL");	// 13 ver 뒤에 ?WSDL까지 써줘야 된다.
+			wsdlLocation = new URL(""+url+":443/crmService/SalesLeadService?WSDL");	// 13 ver 뒤에 ?WSDL까지 써줘야 된다.
 			logger.info("WSDL : " + wsdlLocation);
 			logger.info("QName : " + serviceName);
 
@@ -66,11 +65,11 @@ public class LeadManagement {
 			logger.info("Error : " + e.toString());
 		}
 		
-		leadIntegrationService_Service = new LeadIntegrationService_Service(wsdlLocation, serviceName);
+		salesLeadService_Service = new SalesLeadService_Service(wsdlLocation, serviceName);
 		SecurityPoliciesFeature securityFeatures = new SecurityPoliciesFeature(new String[] { "oracle/wss_username_token_over_ssl_client_policy" });
-		leadIntegrationService = leadIntegrationService_Service.getLeadIntegrationServiceSoapHttpPort(securityFeatures); 
+		salesLeadService = salesLeadService_Service.getSalesLeadServiceSoapHttpPort(securityFeatures); 
 		
-		Map<String, Object> reqContext = ((BindingProvider)leadIntegrationService).getRequestContext();
+		Map<String, Object> reqContext = ((BindingProvider)salesLeadService).getRequestContext();
 		reqContext.put(BindingProvider.USERNAME_PROPERTY, username);
 		reqContext.put(BindingProvider.PASSWORD_PROPERTY, password);
 		
@@ -85,7 +84,7 @@ public class LeadManagement {
 		String items[] = {
 							   "LeadId", "Name", "LeadNumber", "OwnerPartyName"
 							 , "OwnerId", "StatusCode", "StatusCdMeaning", "CustomerPartyName"
-							 , "CustomerRegistryId", "CustomerId", "Description", "ChannelType"
+							 , "CustomerRegistryId", "CustomerId", "Description", "ChannelType","SalesChannelMeaning"
 							 , "ChannelTypeMeaning", "PrimaryContactPartyName", "PrimaryContactId", "PrimaryContactCountry"
 							 , "PrimaryContactProvince", "PrimaryContactState", "PrimaryContactCity", "PrimaryContactAddress1"
 							 , "PrimaryContactAddress2", "PrimaryContactPostalCode", "RetiredDateTime", "ConvertedTimestamp"
@@ -123,24 +122,23 @@ public class LeadManagement {
 		FindCriteria findCriteria = null;
 		FindControl findControl = new FindControl();
 		
-		SalesLeadResult leadIntegrationResult = null;
+		List<MklLead> salesLeadResult = null;
 		List leadList = null;
 		List<LeadVO> tgtList = new ArrayList<LeadVO>();
 		
-
 		do
 		{
 			findCriteria = null;
 			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
 			
-			leadIntegrationResult = leadIntegrationService.findSalesLead(findCriteria, findControl);
-			leadList = leadIntegrationResult.getValue();
+			salesLeadResult = salesLeadService.findSalesLead(findCriteria, findControl);
+			leadList = salesLeadResult;
 			resultSize= leadList.size();
 			
 			for (int i = 0; i < leadList.size(); i++) {
 				
 				LeadVO leadVo = new LeadVO();
-				SalesLead lead = (SalesLead) leadList.get(i);
+				MklLead lead = (MklLead) leadList.get(i);
 				
 				String leadId  = lead.getLeadId().toString();
 				

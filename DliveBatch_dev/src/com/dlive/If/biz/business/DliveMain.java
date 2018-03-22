@@ -41,7 +41,6 @@ public class DliveMain {
 	
 	/* Staging / Import */
 	private static StgInImpOppty                    sio;
-	private static ImpAccountManagement             impAccount;
 	
 	/* File Import */
 	private static CreateCsvFile					createCsvFile  = new CreateCsvFile();
@@ -341,8 +340,8 @@ public class DliveMain {
 	/* imp Account */
 	private static void imp_account_in(Map<String, String> map, SqlSession mssession) throws Exception 
 	{
-		impAccount = new ImpAccountManagement(mssession, map);			// Resource
-		impAccount.insertImpAccount();									// webService 호출
+		account = new AccountManagement(mssession, map);			// Resource
+		account.insertImpAccount();									// webService 호출
 	}
 	
 	/* imp oppty_account / oppty insert */
