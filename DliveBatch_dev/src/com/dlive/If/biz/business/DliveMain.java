@@ -133,54 +133,54 @@ public class DliveMain {
 						break;
     				}
     			}
-    			else
-    			{
-    				// All
-    				logger.info("Start All BI & IMP Batch");
-    				logger.info("map : " + map);
-    				
-    				codeVo.setType("dlive_batch_job_in");
-    				List<CodeVO> workJobList = mssession.selectList("interface.selectCode", codeVo);
-    				logger.info("workJobList size : " + workJobList.size());
-    				
-    				for(CodeVO vo : workJobList) 
-    				{
-    					workJob = vo.getCd_name();
-    					logger.info("workJob Name : " + workJob);
-    					
-    					try {
-							
-    						switch(workJob) {
-    						case "oppty_in":
-    							opportunity_in(restId, restPw, restUrl, map, mssession);
-    							break;
-    						case "account_in":
-    							account_in(restId, restPw, restUrl, map, mssession);
-    							break;
-    						case "resouces_in":
-    							resources_in(restId, restPw, restUrl, map, mssession);
-    							break;
-    						case "activity_in":
-    							activity_in(restId, restPw, restUrl, map, mssession);
-    							break;
-    						case "lead_in":
-    							lead_in(restId, restPw, restUrl, map, mssession);
-    							break;
-    						case "imp_oppty_in":
-    							imp_oppty_in(map, mssession);
-    							break;
-    						case "imp_account_in":
-    							imp_account_in(map, mssession);
-    							break;
-    						}
-    						
-						} catch (Exception e) {
-							// TODO: handle exception
-							logger.info("All Batch Error");
-						}
-    				}
-    			}
     		}
+    		else
+			{
+				// All
+				logger.info("Start All BI & IMP Batch");
+				logger.info("map : " + map);
+				
+				codeVo.setType("dlive_batch_job_in");
+				List<CodeVO> workJobList = mssession.selectList("interface.selectCode", codeVo);
+				logger.info("workJobList size : " + workJobList.size());
+				
+				for(CodeVO vo : workJobList) 
+				{
+					workJob = vo.getCd_name();
+					logger.info("workJob Name : " + workJob);
+					
+					try {
+						
+						switch(workJob) {
+						case "oppty_in":
+							opportunity_in(restId, restPw, restUrl, map, mssession);
+							break;
+						case "account_in":
+							account_in(restId, restPw, restUrl, map, mssession);
+							break;
+						case "resouces_in":
+							resources_in(restId, restPw, restUrl, map, mssession);
+							break;
+						case "activity_in":
+							activity_in(restId, restPw, restUrl, map, mssession);
+							break;
+						case "lead_in":
+							lead_in(restId, restPw, restUrl, map, mssession);
+							break;
+						case "imp_oppty_in":
+							imp_oppty_in(map, mssession);
+							break;
+						case "imp_account_in":
+							imp_account_in(map, mssession);
+							break;
+						}
+						
+					} catch (Exception e) {
+						// TODO: handle exception
+						logger.info("All Batch Error");
+					}
+				}
+			}
     		
 		} catch (Exception e) {
 			logger.info("Main Exception - " + e.toString());
