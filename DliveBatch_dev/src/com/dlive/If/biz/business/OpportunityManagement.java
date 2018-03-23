@@ -55,7 +55,7 @@ public class OpportunityManagement {
 		
 		try {
 			wsdlLocation = new URL(""+url+":443/crmService/OpportunityService?WSDL");
-			logger.info(wsdlLocation);
+			logger.debug(wsdlLocation);
 			
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -345,53 +345,53 @@ public class OpportunityManagement {
 				ovo.setLastUpdateDate(lastUpdateDate);
 				ovo.setLastUpdatedBy(lastUpdatedBy);
 				
-				logger.info("#["+i+"]==========================================================");
-				logger.info("Opportunity optyId                  : " + optyId);
-				logger.info("Opportunity optyNumber              : " + optyNumber);
-				logger.info("Opportunity name                    : " + name);
-				logger.info("Opportunity targetPartyId           : " + targetPartyId);
-				logger.info("Opportunity targetPartyNam          : " + targetPartyName);
-				logger.info("Opportunity ownerResourcePartyId    : " + ownerResourcePartyId);
-				logger.info("Opportunity statusCode              : " + statusCode);
-				logger.info("Opportunity salesStage              : " + salesStage);
-				logger.info("Opportunity comments                : " + comments);
-				logger.info("Opportunity effectiveDate           : " + effectiveDate);
-				logger.info("Opportunity winProb                 : " + winProb);
-				logger.info("Opportunity primaryContactPartyName : " + primaryContactPartyName);
-				logger.info("Opportunity salesChannelCd          : " + salesChannelCd);
-				logger.info("Opportunity opptyType_c             : " + opptyType_c);
-				logger.info("Opportunity competitor_c            : " + competitor_c);
-				logger.info("Opportunity competitorETC_c         : " + competitorETC_c);
-				logger.info("Opportunity openType_c              : " + openType_c);
-				logger.info("Opportunity completeType_c          : " + completeType_c);
-				logger.info("Opportunity successCause_c          : " + successCause_c);
-				logger.info("Opportunity failCause_c             : " + failCause_c);
-				logger.info("Opportunity branchNameF_c           : " + branchNameF_c);
-				logger.info("Opportunity branchCodeF_c           : " + branchCodeF_c);
-				logger.info("Opportunity approvalID_c            : " + approvalID_c);
-				logger.info("Opportunity good1_c                 : " + good1_c);
-				logger.info("Opportunity good1Qty_c              : " + good1Qty_c);
-				logger.info("Opportunity good1Price_c            : " + good1Price_c);
-				logger.info("Opportunity good2_c                 : " + good2_c);
-				logger.info("Opportunity good2Price_c            : " + good2Price_c);
-				logger.info("Opportunity good2Qty_c              : " + good2Qty_c);
-				logger.info("Opportunity good3_c                 : " + good3_c);
-				logger.info("Opportunity good4_c                 : " + good4_c);
-				logger.info("Opportunity good3Price_c            : " + good3Price_c);
-				logger.info("Opportunity good4Price_c            : " + good4Price_c);
-				logger.info("Opportunity good3Qty_c              : " + good3Qty_c);
-				logger.info("Opportunity good4Qty_c              : " + good4Qty_c);
-				logger.info("Opportunity good1CalcF_c            : " + good1CalcF_c);
-				logger.info("Opportunity good2CalcF_c            : " + good2CalcF_c);
-				logger.info("Opportunity good3CalcF_c            : " + good3CalcF_c);
-				logger.info("Opportunity good4CalcF_c            : " + good4CalcF_c);
-				logger.info("Opportunity goodTotalCalcF_c        : " + goodTotalCalcF_c);
-				logger.info("Opportunity optyBranch_c            : " + optyBranch_c);
-				logger.info("Opportunity createdBy               : " + createdBy);
-				logger.info("Opportunity creationDate            : " + creationDate);
-				logger.info("Opportunity lastUpdateDate          : " + lastUpdateDate);
-				logger.info("Opportunity lastUpdatedBy           : " + lastUpdatedBy);
-				logger.info("#["+i+"]==========================================================");
+				logger.debug("#["+i+"]==========================================================");
+				logger.debug("Opportunity optyId                  : " + optyId);
+				logger.debug("Opportunity optyNumber              : " + optyNumber);
+				logger.debug("Opportunity name                    : " + name);
+				logger.debug("Opportunity targetPartyId           : " + targetPartyId);
+				logger.debug("Opportunity targetPartyNam          : " + targetPartyName);
+				logger.debug("Opportunity ownerResourcePartyId    : " + ownerResourcePartyId);
+				logger.debug("Opportunity statusCode              : " + statusCode);
+				logger.debug("Opportunity salesStage              : " + salesStage);
+				logger.debug("Opportunity comments                : " + comments);
+				logger.debug("Opportunity effectiveDate           : " + effectiveDate);
+				logger.debug("Opportunity winProb                 : " + winProb);
+				logger.debug("Opportunity primaryContactPartyName : " + primaryContactPartyName);
+				logger.debug("Opportunity salesChannelCd          : " + salesChannelCd);
+				logger.debug("Opportunity opptyType_c             : " + opptyType_c);
+				logger.debug("Opportunity competitor_c            : " + competitor_c);
+				logger.debug("Opportunity competitorETC_c         : " + competitorETC_c);
+				logger.debug("Opportunity openType_c              : " + openType_c);
+				logger.debug("Opportunity completeType_c          : " + completeType_c);
+				logger.debug("Opportunity successCause_c          : " + successCause_c);
+				logger.debug("Opportunity failCause_c             : " + failCause_c);
+				logger.debug("Opportunity branchNameF_c           : " + branchNameF_c);
+				logger.debug("Opportunity branchCodeF_c           : " + branchCodeF_c);
+				logger.debug("Opportunity approvalID_c            : " + approvalID_c);
+				logger.debug("Opportunity good1_c                 : " + good1_c);
+				logger.debug("Opportunity good1Qty_c              : " + good1Qty_c);
+				logger.debug("Opportunity good1Price_c            : " + good1Price_c);
+				logger.debug("Opportunity good2_c                 : " + good2_c);
+				logger.debug("Opportunity good2Price_c            : " + good2Price_c);
+				logger.debug("Opportunity good2Qty_c              : " + good2Qty_c);
+				logger.debug("Opportunity good3_c                 : " + good3_c);
+				logger.debug("Opportunity good4_c                 : " + good4_c);
+				logger.debug("Opportunity good3Price_c            : " + good3Price_c);
+				logger.debug("Opportunity good4Price_c            : " + good4Price_c);
+				logger.debug("Opportunity good3Qty_c              : " + good3Qty_c);
+				logger.debug("Opportunity good4Qty_c              : " + good4Qty_c);
+				logger.debug("Opportunity good1CalcF_c            : " + good1CalcF_c);
+				logger.debug("Opportunity good2CalcF_c            : " + good2CalcF_c);
+				logger.debug("Opportunity good3CalcF_c            : " + good3CalcF_c);
+				logger.debug("Opportunity good4CalcF_c            : " + good4CalcF_c);
+				logger.debug("Opportunity goodTotalCalcF_c        : " + goodTotalCalcF_c);
+				logger.debug("Opportunity optyBranch_c            : " + optyBranch_c);
+				logger.debug("Opportunity createdBy               : " + createdBy);
+				logger.debug("Opportunity creationDate            : " + creationDate);
+				logger.debug("Opportunity lastUpdateDate          : " + lastUpdateDate);
+				logger.debug("Opportunity lastUpdatedBy           : " + lastUpdatedBy);
+				logger.debug("#["+i+"]==========================================================");
 				
 				tgtList.add(ovo);
 				i++;
@@ -418,11 +418,9 @@ public class OpportunityManagement {
 		int splitSize     = 40;	// partition 나누기
 		
 		session.delete("interface.deleteOpportunityTemp");
-		logger.info("OpportunityList.size() : " + opportunityList.size());
+		
 		if(opportunityList.size() > splitSize) {
 			subList = Lists.partition(opportunityList, splitSize);
-			
-			logger.info("subList size " + subList.size());
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
@@ -461,11 +459,9 @@ public class OpportunityManagement {
 		int splitSize     = 40;	// partition 나누기
 		
 		session.delete("interface.deleteOpportunityLeadTemp");
-		logger.info("OpportunityList.size() : " + oppotyLeadList.size());
+
 		if(oppotyLeadList.size() > splitSize) {
 			subList = Lists.partition(oppotyLeadList, splitSize);
-			
-			logger.info("subList size " + subList.size());
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));

@@ -56,8 +56,8 @@ public class ResourcesManagement {
 		
 		try {
 			wsdlLocation = new URL(""+url+":443/crmService/ResourceServiceV2?WSDL");	// 13 ver 뒤에 ?WSDL까지 써줘야 된다.
-			logger.info("WSDL : " + wsdlLocation);
-			logger.info("QName : " + serviceName);
+			logger.debug("WSDL : " + wsdlLocation);
+			logger.debug("QName : " + serviceName);
 
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
@@ -127,18 +127,18 @@ public class ResourcesManagement {
 				dliveBranchCode = resource.getResourceEODliveBranchCodeC().getValue();
 			}
 			
-			logger.info("#["+i+"]");
-			logger.info("Resource ResourceProfileId   : " + resourceProfileId);
-			logger.info("Resource PartyId             : " + partyId);
-			logger.info("Resource PartyName           : " + partyName);
-			logger.info("Resource PartyNumber         : " + partyNumber);
-			logger.info("Resource Roles               : " + roles);
-			logger.info("Resource EmailAddress        : " + emailAddress);
-			logger.info("Resource UserName            : " + userName);
-			logger.info("Resource Manager             : " + manager);
-			logger.info("Resource ManagerId           : " + managerId);
-			logger.info("Resource Organizations       : " + organizations);
-			logger.info("Resource DliveBranchCode     : " + dliveBranchCode);
+			logger.debug("#["+i+"]");
+			logger.debug("Resource ResourceProfileId   : " + resourceProfileId);
+			logger.debug("Resource PartyId             : " + partyId);
+			logger.debug("Resource PartyName           : " + partyName);
+			logger.debug("Resource PartyNumber         : " + partyNumber);
+			logger.debug("Resource Roles               : " + roles);
+			logger.debug("Resource EmailAddress        : " + emailAddress);
+			logger.debug("Resource UserName            : " + userName);
+			logger.debug("Resource Manager             : " + manager);
+			logger.debug("Resource ManagerId           : " + managerId);
+			logger.debug("Resource Organizations       : " + organizations);
+			logger.debug("Resource DliveBranchCode     : " + dliveBranchCode);
 			
 			rvo.setResourceProfileId(resourceProfileId);
 			rvo.setPartyId(partyId);
@@ -176,8 +176,6 @@ public class ResourcesManagement {
 		
 		if(resourcesList.size() > splitSize) {
 			subList = Lists.partition(resourcesList, splitSize);
-			
-			logger.info("subList size " + subList.size());
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));

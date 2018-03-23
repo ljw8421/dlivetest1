@@ -131,6 +131,16 @@
 	<delete id="deleteTransAccountTemp">
 		TRUNCATE TABLE TMP_TRNS_ACCOUNT
 	</delete>
+
+	<select id="selectStgAccountDateGroup" resultType="java.util.Map">
+		SELECT 
+			CONVERT(VARCHAR(10),CREATIONDATE,23)AS DATE
+		FROM 
+			STG_ACCOUNT
+		WHERE 
+			TARGETYN = 'Y'
+		GROUP BY CREATIONDATE
+	</select>
 	
 	<!-- Account Temp Table Insert -->
 	<update id="insertAccountTemp" parameterType="java.util.Map">
@@ -1170,7 +1180,7 @@
 			FROM 
 			(
 				SELECT
-					  Seq
+					  A.Seq
 					, Name
 					, EffectiveDate
 					, SalesStage
@@ -1181,10 +1191,9 @@
 					, (select max(PartyNumber) from sc_account where ConaId_c = A.ConaId_c) as PartyNumCona
 					, ConaId_c
 				FROM
-					 stg_opportunity A
+					 stg_opportunity A , tmp_stg_opportunity toppty
 				WHERE 
-				     TargetYN = 'Y'
-				AND	 CONVERT(VARCHAR(10), A.CreationDate, 23) = #{date}
+				     A.seq = toppty.seq
 			) C
 	   	) B
 		ON (T.seq = B.seq)
@@ -1246,13 +1255,12 @@
 						, AddressLine2
 						, Branchnm_c
 						, ConaId_c
-						, Seq
+						, so.Seq
 					FROM
-						 stg_opportunity
+						 stg_opportunity so, tmp_stg_opportunity toppty
 					WHERE
 						 PartyNumber is null
-					 AND TargetYN = 'Y'
-					 AND CONVERT(VARCHAR(10), CreationDate, 23) = #{date}
+					 AND so.Dseq = toppty.Dseq
 					 AND EmpNumber is not null
 				) A left join sc_account B on A.ConaId_c = B.ConaId_c
 			WHERE B.PartyNumber is null 
@@ -1417,9 +1425,9 @@
 			, '주식회사 딜라이브 BU'                                            as "BuName"
 			, SalesStage                                                 as "SalesStage"
 			, 'KRW'                                                      as "OptyCurcyCode"
-			, CONVERT(VARCHAR(25), getDate(), 23)+'T01:00:00.000-0700'   as "OptyCreateDate"
+			, SUBSTRING(CONVERT(VARCHAR(20), DATEADD(MI, -1, DATEADD( HH, -9, GETDATE())), 127),1,20)+'000-0000'   as "OptyCreateDate"
 			, 'IF'                                                       as "Created"
-			, CONVERT(VARCHAR(25), getDate(), 23)+'T01:00:00.000-0700'   as "OptyLastUpdateDate"
+			, SUBSTRING(CONVERT(VARCHAR(20), DATEADD(MI, -1, DATEADD( HH, -9, GETDATE())), 127),1,20)+'000-0000'   as "OptyLastUpdateDate"
 			, 'IF'                                                       as "OptyLastUpdated"
 			, EmpNumber                                                  as "ResourcePartyNumber1"
 			, EmpNumber                                                  as "ResourcePartyNumber2"

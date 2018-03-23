@@ -35,9 +35,10 @@ public class AccountManagement {
 	private static QName serviceName = null;
 	
 	SqlSession session;
+	CommonUtil commonUtil;
+	
 	private String batchJobId;
 	private String toDt2;
-	CommonUtil commonUtil;
 	
 	private static Logger logger = Logger.getLogger(AccountManagement.class);
 	
@@ -56,7 +57,7 @@ public class AccountManagement {
 		
 		try {
 			wsdlLocation = new URL(""+url+":443/crmService/SalesPartiesAccountService?WSDL");
-			logger.info(wsdlLocation);
+			logger.debug(wsdlLocation);
 			
 		} catch (MalformedURLException e) {
 			e.printStackTrace();
@@ -238,10 +239,6 @@ public class AccountManagement {
 				if(account.getOrganizationDEOHouseholdNumberC().getValue() != null){
 					organizationDEO_HouseholdNumber_c = account.getOrganizationDEOHouseholdNumberC().getValue().toString();
 				}
-//				String organizationDEO_InvasionRate_c     = null;
-//				if(account.getOrganizationDEOInvasionRateC().getValue() != null){
-//					organizationDEO_InvasionRate_c = account.getOrganizationDEOInvasionRateC().getValue().toString();
-//				}
 				String organizationDEO_StandardFee_c      = null;
 				if(account.getOrganizationDEOStandardFeeC().getValue() != null){
 					organizationDEO_StandardFee_c = account.getOrganizationDEOStandardFeeC().getValue().toString();
@@ -329,7 +326,6 @@ public class AccountManagement {
 				avo.setBuildDate_c(organizationDEO_BuildDate_c);
 				avo.setNetworkInDate_c(organizationDEO_NetworkInDate_c);
 				avo.setHouseholdNumber_c(organizationDEO_HouseholdNumber_c);
-//				avo.setInvasionRate_c(organizationDEO_InvasionRate_c);
 				avo.setStandardFee_c(organizationDEO_StandardFee_c);
 				avo.setSurFee_c(organizationDEO_SurFee_c);
 				avo.setConaId_c(organizationDEO_ConaId_c);
@@ -347,57 +343,56 @@ public class AccountManagement {
 				avo.setSocietyTypeF_c(organizationDEO_SocietyTypeF_c);
 //				avo.setBatchJobId(batchJobId);
 				
-				logger.info("#["+i+"]==========================================================");
-				logger.info("Account partyId                    : " + partyId);
-				logger.info("Account partyNumber                : " + partyNumber);
-				logger.info("Account sourceSystem               : " + sourceSystem);
-				logger.info("Account sourceSystemReferenceValue : " + sourceSystemReferenceValue);
-				logger.info("Account organizationName           : " + organizationName);
-				logger.info("Account type                       : " + type);
-				logger.info("Account ownerPartyId               : " + ownerPartyId);
-				logger.info("Account ownerPartyNumber           : " + ownerPartyNumber);
-				logger.info("Account ownerEmailAddress          : " + ownerEmailAddress);
-				logger.info("Account ownerName                  : " + ownerName);
-				logger.info("Account salesProfileStatus         : " + salesProfileStatus);
-				logger.info("Account createdBy                  : " + createdBy);
-				logger.info("Account creationDate               : " + creationDate);
-				logger.info("Account lastUpdateDate             : " + lastUpdateDate);
-				logger.info("Account lastUpdatedBy              : " + lastUpdatedBy);
-				logger.info("Account phoneCountryCode           : " + phoneCountryCode);
-				logger.info("Account phoneAreaCode              : " + phoneAreaCode);
-				logger.info("Account phoneNumber                : " + phoneNumber);
-				logger.info("Account phoneExtension             : " + phoneExtension);
-				logger.info("Account addressNumber              : " + addressNumber);
-				logger.info("Account addressLine1               : " + addressLine1);
-				logger.info("Account addressLine2               : " + addressLine2);
-				logger.info("Account city                       : " + city);
-				logger.info("Account country                    : " + country);
-				logger.info("Account postalCode                 : " + postalCode);
-				logger.info("Account province                   : " + province);
-				logger.info("Account state                      : " + state);
-				logger.info("Account societyType_c              : " + organizationDEO_SocietyType_c);
-				logger.info("Account newBuildFlag_c             : " + organizationDEO_NewBuildFlag_c);
-				logger.info("Account buildDate_c                : " + organizationDEO_BuildDate_c);
-				logger.info("Account networkInDate_c            : " + organizationDEO_NetworkInDate_c);
-				logger.info("Account householdNumber_c          : " + organizationDEO_HouseholdNumber_c);
-//				logger.info("Account invasionRate_c             : " + organizationDEO_InvasionRate_c);
-				logger.info("Account standardFee_c              : " + organizationDEO_StandardFee_c);
-				logger.info("Account surFee_c                   : " + organizationDEO_SurFee_c);
-				logger.info("Account conaId_c                   : " + organizationDEO_ConaId_c);
-				logger.info("Account dTVCount_c                 : " + organizationDEO_DTVCount_c);
-				logger.info("Account iSPCount_c                 : " + organizationDEO_ISPCount_c);
-				logger.info("Account voIPCount_c                : " + organizationDEO_VoIPCount_c);
-				logger.info("Account shareRate_c                : " + organizationDEO_ShareRate_c);
-				logger.info("Account remarkF_c                  : " + organizationDEO_RemarkF_c);
-				logger.info("Account typeOfBusiness_c           : " + organizationDEO_TypeOfBusiness_c);
-				logger.info("Account oTTCount_c                 : " + organizationDEO_OTTCount_c);
-				logger.info("Account contractFrom_c             : " + organizationDEO_ContractFrom_c);
-				logger.info("Account contractTo_c               : " + organizationDEO_ContractTo_c);
-				logger.info("Account invasionRateF_c            : " + organizationDEO_InvasionRateF_c);
-				logger.info("Account branchNm_c                 : " + organizationDEO_BranchNm_c);
-				logger.info("Account societyTypeF_c             : " + organizationDEO_SocietyTypeF_c);
-				logger.info("#["+i+"]==========================================================");
-				logger.info("batchJobId 						: "+batchJobId);
+				logger.debug("#["+i+"]==========================================================");
+				logger.debug("Account partyId                    : " + partyId);
+				logger.debug("Account partyNumber                : " + partyNumber);
+				logger.debug("Account sourceSystem               : " + sourceSystem);
+				logger.debug("Account sourceSystemReferenceValue : " + sourceSystemReferenceValue);
+				logger.debug("Account organizationName           : " + organizationName);
+				logger.debug("Account type                       : " + type);
+				logger.debug("Account ownerPartyId               : " + ownerPartyId);
+				logger.debug("Account ownerPartyNumber           : " + ownerPartyNumber);
+				logger.debug("Account ownerEmailAddress          : " + ownerEmailAddress);
+				logger.debug("Account ownerName                  : " + ownerName);
+				logger.debug("Account salesProfileStatus         : " + salesProfileStatus);
+				logger.debug("Account createdBy                  : " + createdBy);
+				logger.debug("Account creationDate               : " + creationDate);
+				logger.debug("Account lastUpdateDate             : " + lastUpdateDate);
+				logger.debug("Account lastUpdatedBy              : " + lastUpdatedBy);
+				logger.debug("Account phoneCountryCode           : " + phoneCountryCode);
+				logger.debug("Account phoneAreaCode              : " + phoneAreaCode);
+				logger.debug("Account phoneNumber                : " + phoneNumber);
+				logger.debug("Account phoneExtension             : " + phoneExtension);
+				logger.debug("Account addressNumber              : " + addressNumber);
+				logger.debug("Account addressLine1               : " + addressLine1);
+				logger.debug("Account addressLine2               : " + addressLine2);
+				logger.debug("Account city                       : " + city);
+				logger.debug("Account country                    : " + country);
+				logger.debug("Account postalCode                 : " + postalCode);
+				logger.debug("Account province                   : " + province);
+				logger.debug("Account state                      : " + state);
+				logger.debug("Account societyType_c              : " + organizationDEO_SocietyType_c);
+				logger.debug("Account newBuildFlag_c             : " + organizationDEO_NewBuildFlag_c);
+				logger.debug("Account buildDate_c                : " + organizationDEO_BuildDate_c);
+				logger.debug("Account networkInDate_c            : " + organizationDEO_NetworkInDate_c);
+				logger.debug("Account householdNumber_c          : " + organizationDEO_HouseholdNumber_c);
+				logger.debug("Account standardFee_c              : " + organizationDEO_StandardFee_c);
+				logger.debug("Account surFee_c                   : " + organizationDEO_SurFee_c);
+				logger.debug("Account conaId_c                   : " + organizationDEO_ConaId_c);
+				logger.debug("Account dTVCount_c                 : " + organizationDEO_DTVCount_c);
+				logger.debug("Account iSPCount_c                 : " + organizationDEO_ISPCount_c);
+				logger.debug("Account voIPCount_c                : " + organizationDEO_VoIPCount_c);
+				logger.debug("Account shareRate_c                : " + organizationDEO_ShareRate_c);
+				logger.debug("Account remarkF_c                  : " + organizationDEO_RemarkF_c);
+				logger.debug("Account typeOfBusiness_c           : " + organizationDEO_TypeOfBusiness_c);
+				logger.debug("Account oTTCount_c                 : " + organizationDEO_OTTCount_c);
+				logger.debug("Account contractFrom_c             : " + organizationDEO_ContractFrom_c);
+				logger.debug("Account contractTo_c               : " + organizationDEO_ContractTo_c);
+				logger.debug("Account invasionRateF_c            : " + organizationDEO_InvasionRateF_c);
+				logger.debug("Account branchNm_c                 : " + organizationDEO_BranchNm_c);
+				logger.debug("Account societyTypeF_c             : " + organizationDEO_SocietyTypeF_c);
+				logger.debug("#["+i+"]==========================================================");
+				logger.debug("batchJobId 						: "+batchJobId);
 				
 				tgtList.add(avo);
 			}
@@ -409,36 +404,20 @@ public class AccountManagement {
 		return tgtList;
 	}
 	
-	/**
-	 * delFlag를 Y로 셋팅
-	 * */
-	public int updateDelFlag() throws Exception
-	{
-		logger.info("InterFace SC_Account delFalg Update");
-		int update = 0;
-		
-		session.update("interface.updateAccountDelflg");
-		session.commit();
-		
-		return update;
-	}
-	
 	public int insertAccount(List<AccountVO> accountList) throws Exception
 	{
-		logger.info("InterFace SC_Account Table Insert Start");
+		logger.debug("InterFace SC_Account Table Insert Start");
 		Map<String, Object> batchMap = new HashMap<String, Object>();
 		List<List<AccountVO>> subList = new ArrayList<List<AccountVO>>();		// list를 나누기 위한 temp
 		
 		int result1        = 0;
 		int result2        = 0;
-		int splitSize     = 40;	// partition 나누기
+		int splitSize      = 40;	// partition 나누기
 		
 		session.delete("interface.deleteAccountTemp");
-		logger.info("accountList.size() : " + accountList.size());
+		
 		if(accountList.size() > splitSize) {
 			subList = Lists.partition(accountList, splitSize);
-			
-			logger.info("subList size " + subList.size());
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
@@ -466,31 +445,37 @@ public class AccountManagement {
 		return result2;
 	}
 	
-	public int insertImpAccount() throws Exception{
-		
+	public int insertImpAccount() throws Exception
+	{
 		logger.info("InterFace Imp_Account Table Insert Start");
 		
 		int result1      = 0;
+		int result2      = 0;
 		int result3      = 0;
 		
 		session.delete("interface.deleteImpAccountTemp");
 		
 		List<Map<String, String>> dateGroup = new ArrayList<>();
-		session.update("interface.insertImpAccountTemp");
+		result2 = session.update("interface.insertImpAccountTemp");
 		dateGroup = session.selectList("interface.selectStgAccountDateGroup");
 		
-		for(Map<String, String> dateMap : dateGroup){
-			result1 = session.update("interface.insertImpAccount", dateMap);
-		}
-		
-		if(result1 !=0){
-			result3 = session.update("interface.updateStgAccount");
-			if(result3 != 0){
-				session.commit();
-				logger.info("InterFace Imp_Account Table Insert End");
+		if(result2 != 0) 
+		{
+			logger.info("1");
+			for(Map<String, String> dateMap : dateGroup){
+				result1 = session.update("interface.insertImpAccount", dateMap);
 			}
-		}else{
-			logger.info("Temp Table Insert ERROR");
+			logger.info("2");
+			
+			if(result1 !=0){
+				result3 = session.update("interface.updateStgAccount");
+				if(result3 != 0){
+					session.commit();
+					logger.info("InterFace Imp_Account Table Insert End");
+				}
+			}else{
+				logger.info("Temp Table Insert ERROR");
+			}
 		}
 		
 		return result3;

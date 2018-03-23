@@ -8,53 +8,60 @@ import org.apache.log4j.Logger;
 
 public class StgInImpOppty {
 	
+	SqlSession mssession;
+	
+	private String batchJobId;
+	
 	private static Logger logger = Logger.getLogger(StgInImpOppty.class);
+	
+	public StgInImpOppty(SqlSession mssession, Map<String, String> map) {
+		this.mssession  = mssession;
+		this.batchJobId = map.get("batchJobId");
+	}
 
-	public void stgInImp(SqlSession mssession, Map<String, String> map)
+	public void stgInImp()
 	{
 		logger.info("From Stg oppty To imp oppty/oppty_account insert");
 		
 		try {
-			int result1 = 0;
-			int result2 = 0;
-			int result3 = 0;
+			int tmp_insert_result    = 0;
+			int oppty_account_result = 0;
+			int oppty_result         = 0;
+			int target_result        = 0;
 			
 			List<Map<String, String>> dateList = new ArrayList<>();
 			dateList = mssession.selectList("interface.selectDateCount");	// 날짜 쿼리.
 			
-			logger.info("dateMap : " + dateList);
-			
 			int delete = mssession.insert("interface.deleteTmpStgOppty");
-			logger.info("tmp table delete : " + delete);
+			logger.debug("tmp table delete : " + delete);
 			
-			for(Map<String, String> dateMap : dateList) {
-				result1 = mssession.update("interface.mergeImpOpptyAccount", dateMap);
-				logger.info("oppty account result : " + result1);
+			for(Map<String, String> dateMap : dateList) 
+			{
+				// tmp table insert
+				tmp_insert_result = mssession.insert("interface.insertTmpStgOppty", dateMap);
 				
-				if(result1 != 0) {
-					mssession.commit();
-					logger.info("imp oppty account insert commit");
-				}
-			}
-			
-			for(Map<String, String> dateMap : dateList) {
-				result2 = mssession.update("interface.mergeImpOppty", dateMap);
-				mssession.insert("interface.insertTmpStgOppty", dateMap);
-				logger.info("oppty result : " + result2);
-				
-				if(result2 != 0) {
-					mssession.commit();
-					logger.info("imp insert commit");
+				if(tmp_insert_result != 0) 
+				{
+					// oppty_account & oppty imp table insert
+					oppty_account_result = mssession.update("interface.mergeImpOpptyAccount", dateMap);
+					oppty_result         = mssession.update("interface.mergeImpOppty", dateMap);
+					
+					logger.debug("oppty account result : " + oppty_account_result);
+					logger.debug("oppty result         : " + oppty_result);
+					
+					if(oppty_account_result != 0 || oppty_result != 0) {
+						mssession.commit();
+						logger.info("imp oppty account & imp oppty insert commit");
+					}
 				}
 			}
 			
 			/* TargetYN N set*/
-			result3 = mssession.update("interface.updateOpptyTargetYN");
-			logger.info("Target Set N : " + result3);
+			target_result = mssession.update("interface.updateOpptyTargetYN");
+			logger.debug("Target Set N : " + target_result);
 			
-			if(result3 != 0) {
+			if(target_result != 0) {
 				mssession.commit();
-				
 				logger.info("TargetYN set N success");
 			}
 			

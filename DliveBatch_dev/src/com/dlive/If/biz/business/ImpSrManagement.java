@@ -26,7 +26,7 @@ public class ImpSrManagement {
 		int result3        = 0;
 		
 		List<ImpSrVO> impSrList = mssession.selectList("interface.selectStgSr");
-		logger.info("impSrList : " + impSrList);
+		logger.debug("impSrList : " + impSrList);
 		
 		
 		if (impSrList.size() != 0) {
@@ -42,7 +42,7 @@ public class ImpSrManagement {
 				
 				if(result3 != 0) {
 					mssession.commit();
-					logger.info("commit success!!");
+					logger.info("commit success");
 					logger.info("InterFace ImpSrManagement Table Insert End");
 				}
 			}

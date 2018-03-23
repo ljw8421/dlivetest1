@@ -39,8 +39,9 @@ public class ActivityManagement {
 	private static QName serviceName = null;
 	
 	SqlSession session;
-	private String batchJobId;
 	CommonUtil commonUtil;
+	
+	private String batchJobId;
 	
 	private static Logger logger = Logger.getLogger(ActivityManagement.class);
 	
@@ -58,8 +59,8 @@ public class ActivityManagement {
 		
 		try {
 			wsdlLocation = new URL(url+":443/crmService/ActivityService?WSDL");	// 13 ver 뒤에 ?WSDL까지 써줘야 된다.
-			logger.info("WSDL : " + wsdlLocation);
-			logger.info("QName : " + serviceName);
+			logger.debug("WSDL : " + wsdlLocation);
+			logger.debug("QName : " + serviceName);
 
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
@@ -230,35 +231,35 @@ public class ActivityManagement {
 		            	 privateFlag = "N";
 		             }
 				}
-				logger.info("#["+i+"]");
-				logger.info("Activity activityId			: " + activityId);
-				logger.info("Activity activityNumber		: " + activityNumber);
-				logger.info("Activity accountId				: " + accountId);
-				logger.info("Activity accountName			: " + accountName);
-				logger.info("Activity activityFunctioncode	: " + activityFunctioncode);
-				logger.info("Activity activityTypeCode		: " + activityTypeCode);
-				logger.info("Activity activityStartDate		: " + activityStartDate);
-				logger.info("Activity activityEndDate		: " + activityEndDate);
-				logger.info("Activity ownerId				: " + ownerId);
-				logger.info("Activity ownerName				: " + ownerName);
-				logger.info("Activity ownerEmailAddress		: " + ownerEmailAddress);
-				logger.info("Activity subject				: " + subject);
-				logger.info("Activity activityDescription	: " + activityDescription);
-				logger.info("Activity leadId				: " + leadId);
-				logger.info("Activity leadName				: " + leadName);
-				logger.info("Activity opportunityId			: " + opportunityId);
-				logger.info("Activity opportunityName		: " + opportunityName);
-				logger.info("Activity primaryContactId		: " + primaryContactId);
-				logger.info("Activity primaryContactName	: " + primaryContactName);
-				logger.info("Activity visitResult_c			: " + visitResult_c);
-				logger.info("Activity visitDate_c			: " + visitDate_c);
-				logger.info("Activity initialDate_c			: " + initialDate_c);
-				logger.info("Activity createdBy				: " + createdBy);
-				logger.info("Activity creationDate			: " + creationDate);
-				logger.info("Activity lastUpdateDate		: " + lastUpdateDate);
-				logger.info("Activity lastUpdatedBy			: " + lastUpdatedBy);
-				logger.info("Activity actBranch_c			: " + actBranch_c);
-				logger.info("Activity privateFlag			: " + privateFlag);
+				logger.debug("#["+i+"]");
+				logger.debug("Activity activityId			: " + activityId);
+				logger.debug("Activity activityNumber		: " + activityNumber);
+				logger.debug("Activity accountId				: " + accountId);
+				logger.debug("Activity accountName			: " + accountName);
+				logger.debug("Activity activityFunctioncode	: " + activityFunctioncode);
+				logger.debug("Activity activityTypeCode		: " + activityTypeCode);
+				logger.debug("Activity activityStartDate		: " + activityStartDate);
+				logger.debug("Activity activityEndDate		: " + activityEndDate);
+				logger.debug("Activity ownerId				: " + ownerId);
+				logger.debug("Activity ownerName				: " + ownerName);
+				logger.debug("Activity ownerEmailAddress		: " + ownerEmailAddress);
+				logger.debug("Activity subject				: " + subject);
+				logger.debug("Activity activityDescription	: " + activityDescription);
+				logger.debug("Activity leadId				: " + leadId);
+				logger.debug("Activity leadName				: " + leadName);
+				logger.debug("Activity opportunityId			: " + opportunityId);
+				logger.debug("Activity opportunityName		: " + opportunityName);
+				logger.debug("Activity primaryContactId		: " + primaryContactId);
+				logger.debug("Activity primaryContactName	: " + primaryContactName);
+				logger.debug("Activity visitResult_c			: " + visitResult_c);
+				logger.debug("Activity visitDate_c			: " + visitDate_c);
+				logger.debug("Activity initialDate_c			: " + initialDate_c);
+				logger.debug("Activity createdBy				: " + createdBy);
+				logger.debug("Activity creationDate			: " + creationDate);
+				logger.debug("Activity lastUpdateDate		: " + lastUpdateDate);
+				logger.debug("Activity lastUpdatedBy			: " + lastUpdatedBy);
+				logger.debug("Activity actBranch_c			: " + actBranch_c);
+				logger.debug("Activity privateFlag			: " + privateFlag);
 				
 				
 				rvo.setActivityId(activityId);
@@ -330,8 +331,6 @@ public class ActivityManagement {
 		
 		if(activityList.size() > splitSize) {
 			subList = Lists.partition(activityList, splitSize);
-			
-			logger.info("subList size " + subList.size());
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));

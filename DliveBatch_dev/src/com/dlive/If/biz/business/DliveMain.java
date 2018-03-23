@@ -116,18 +116,18 @@ public class DliveMain {
 						lead_in(restId, restPw, restUrl, map, mssession);
 						break;
 					case "imp_oppty_in":
-						imp_oppty_in(map, mssession);		// stg -> if
+						imp_oppty_in(map, mssession);		// stg -> if oppty / oppty_account
 						break;
 					case "imp_account_in":
-						imp_account_in(map, mssession);		// stg -> if
+						imp_account_in(map, mssession);		// stg -> if account
 						break;
 					case "imp_oppty_account_import":		// file import
 						file_import(workJobArg, paramDt);
 						break;
-					case "import_oppty_import":				// file import
+					case "imp_oppty_import":				// file import
 						file_import(workJobArg, paramDt);
 						break;
-					case "import_account":					// file import
+					case "imp_account_import":				// file import
 						file_import(workJobArg, paramDt);
 						break;
     				}
@@ -137,16 +137,16 @@ public class DliveMain {
 			{
 				// All
 				logger.info("Start All BI & IMP Batch");
-				logger.info("map : " + map);
+				logger.debug("map : " + map);
 				
 				codeVo.setType("dlive_batch_job_in");
 				List<CodeVO> workJobList = mssession.selectList("interface.selectCode", codeVo);
-				logger.info("workJobList size : " + workJobList.size());
+				logger.debug("workJobList size : " + workJobList.size());
 				
 				for(CodeVO vo : workJobList) 
 				{
 					workJob = vo.getCd_name();
-					logger.info("workJob Name : " + workJob);
+					logger.debug("workJob Name : " + workJob);
 					
 					try {
 						
@@ -192,13 +192,15 @@ public class DliveMain {
 	/* CSV File Import */
 	private static void file_import(String workJob, String paramDt)
 	{
+		logger.info("File Import Start");
+		
 		CodeVO codeVo = new CodeVO();
 		
 		String headerDiv = "";
 		String fileName = "";
 		String importMethod = "";
 		
-		logger.info("workJob : " + workJob);
+		logger.debug("workJob : " + workJob);
 		
     	/* Code Table get cd_val */
     	codeVo.setType("dlive_batch_job_out");
@@ -216,7 +218,7 @@ public class DliveMain {
 	    	/* File Import */
 	    	List<Map<String, Object>> targetList = new ArrayList<Map<String,Object>>();		// targetList : import 할 쿼리 리스트
 	    	targetList = mssession.selectList(importMethod);
-	    	logger.info("Csv File List Size : " + targetList.size());
+	    	logger.debug("Csv File List Size : " + targetList.size());
 	    	
 	    	if(targetList.size() != 0)
 	    	{
@@ -226,7 +228,7 @@ public class DliveMain {
 				createCsvFile.csvFileTemplet(targetList, fileName, "Y", headerDiv);
 				
 				String response = importCsv.importJob(headerDiv, fileName);					// Import Sales Cloud CSV File
-		    	logger.info("response : " + response);
+		    	logger.debug("response : " + response);
 		    	
 		    	if("success".equals(response)) {
 		    		// imp table TrnsYn -> Y update
@@ -243,7 +245,6 @@ public class DliveMain {
 			logger.info("File Import Exception : " + e.toString());
 		}
     	
-    	
 	}
 	
 	/* BI */
@@ -254,7 +255,7 @@ public class DliveMain {
 		resources.initialize(restId, restPw, restUrl);					// webService 호출
 		
 		List<ResourcesVO> resourceList = resources.getAllResource();	// resources 조회
-		logger.info("list size : " + resourceList.size());
+		logger.debug("list size : " + resourceList.size());
 		
 		if(resourceList != null) {
 			resources.insertResource(resourceList);						// resources insert
@@ -269,6 +270,7 @@ public class DliveMain {
 		account.initialize(restId, restPw, restUrl);						// webService 호출
 
 		List<AccountVO> resultList = account.getAllAccount();				// 거래처 List
+		
 		if(resultList != null) {
 			account.insertAccount(resultList);
 		}
@@ -285,17 +287,18 @@ public class DliveMain {
 
 		Map<String,Object> resultMap = opportunity.getAllOpportunity();	// 거래처 List
 		
-		List<OpportunityVO> opptyList = new ArrayList<OpportunityVO>();
+		List<OpportunityVO> opptyList   = new ArrayList<OpportunityVO>();
 		List<OpptyLeadVO> opptyLeadlist = new ArrayList<OpptyLeadVO>();
+		
 		int result;
 		
-		opptyList = (List<OpportunityVO>) resultMap.get("opptyList");
+		opptyList     = (List<OpportunityVO>) resultMap.get("opptyList");
 		opptyLeadlist = (List<OpptyLeadVO>) resultMap.get("opptyLeadList");
 		
 		if(opptyList != null) {
-//			opportunity.updateDelFlag();
 			result = opportunity.insertOpportunity(opptyList);
-			if(result != 0){
+			
+			if(result != 0) {
 				opportunity.insertOpportunityLead(opptyLeadlist);
 			}
 		}
@@ -347,8 +350,8 @@ public class DliveMain {
 	/* imp oppty_account / oppty insert */
 	private static void imp_oppty_in(Map<String, String> map, SqlSession mssession) throws Exception
 	{
-		sio = new StgInImpOppty();
-    	sio.stgInImp(mssession, map);
+		sio = new StgInImpOppty(mssession, map);
+    	sio.stgInImp();
 	}
 	
 	/* CSV */

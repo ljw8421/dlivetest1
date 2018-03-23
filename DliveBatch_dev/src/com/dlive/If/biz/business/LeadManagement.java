@@ -56,8 +56,8 @@ public class LeadManagement {
 		
 		try {
 			wsdlLocation = new URL(""+url+":443/crmService/SalesLeadService?WSDL");	// 13 ver 뒤에 ?WSDL까지 써줘야 된다.
-			logger.info("WSDL : " + wsdlLocation);
-			logger.info("QName : " + serviceName);
+			logger.debug("WSDL : " + wsdlLocation);
+			logger.debug("QName : " + serviceName);
 
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
@@ -291,40 +291,40 @@ public class LeadManagement {
 					lastUpdateDate = lead.getLastUpdateDate().toString();
 				}
 				
-				logger.info("#["+i+"]");
-				logger.info("Lead leadId                   : " + leadId);          
-				logger.info("Lead name                     : " + leadName);
-				logger.info("Lead leadNumber               : " + leadNumber);
-				logger.info("Lead ownerPartyName           : " + ownerPartyName);
-				logger.info("Lead ownerId                  : " + ownerId);
-				logger.info("Lead statusCode               : " + statusCode);
-				logger.info("Lead statusCdMeaning          : " + statusCdMeaning);
-				logger.info("Lead customerPartyName        : " + customerPartyName);
-				logger.info("Lead customerRegistryId       : " + customerRegistryId);
-				logger.info("Lead customerId               : " + customerId);
-				logger.info("Lead description              : " + description);
-				logger.info("Lead channelType              : " + channelType);
-				logger.info("Lead channelTypeMeaning       : " + channelTypeMeaning);
-				logger.info("Lead salesChannelMeaning      : " + salesChannelMeaning);
-				logger.info("Lead primaryContactPartyName  : " + primaryContactPartyName);
-				logger.info("Lead primaryContactId         : " + primaryContactId);
-				logger.info("Lead primaryContactCountry    : " + primaryContactCountry);
-				logger.info("Lead primaryContactProvince   : " + primaryContactProvince);
-				logger.info("Lead primaryContactState      : " + primaryContactState);
-				logger.info("Lead primaryContactCity       : " + primaryContactCity);
-				logger.info("Lead primaryContactAddress1   : " + primaryContactAddress1);
-				logger.info("Lead primaryContactAddress2   : " + primaryContactAddress2);
-				logger.info("Lead primaryContactPostalCode : " + primaryContactPostalCode);
-				logger.info("Lead retiredDateTime          : " + retiredDateTime);
-				logger.info("Lead convertedTimestamp       : " + convertedTimestamp);
-				logger.info("Lead deleteFlag               : " + deleteFlag);
-				logger.info("Lead branchNameF_c            : " + branchNameF_c);
-				logger.info("Lead branchCodeF_c            : " + branchCodeF_c);
-				logger.info("Lead leadBranch_c             : " + leadBranch_c);
-				logger.info("Lead creationDate             : " + creationDate);
-				logger.info("Lead createdBy                : " + createdBy);
-				logger.info("Lead lastUpdateDate           : " + lastUpdateDate);
-				logger.info("Lead lastUpdatedBy            : " + lastUpdatedBy);
+				logger.debug("#["+i+"]");
+				logger.debug("Lead leadId                   : " + leadId);          
+				logger.debug("Lead name                     : " + leadName);
+				logger.debug("Lead leadNumber               : " + leadNumber);
+				logger.debug("Lead ownerPartyName           : " + ownerPartyName);
+				logger.debug("Lead ownerId                  : " + ownerId);
+				logger.debug("Lead statusCode               : " + statusCode);
+				logger.debug("Lead statusCdMeaning          : " + statusCdMeaning);
+				logger.debug("Lead customerPartyName        : " + customerPartyName);
+				logger.debug("Lead customerRegistryId       : " + customerRegistryId);
+				logger.debug("Lead customerId               : " + customerId);
+				logger.debug("Lead description              : " + description);
+				logger.debug("Lead channelType              : " + channelType);
+				logger.debug("Lead channelTypeMeaning       : " + channelTypeMeaning);
+				logger.debug("Lead salesChannelMeaning      : " + salesChannelMeaning);
+				logger.debug("Lead primaryContactPartyName  : " + primaryContactPartyName);
+				logger.debug("Lead primaryContactId         : " + primaryContactId);
+				logger.debug("Lead primaryContactCountry    : " + primaryContactCountry);
+				logger.debug("Lead primaryContactProvince   : " + primaryContactProvince);
+				logger.debug("Lead primaryContactState      : " + primaryContactState);
+				logger.debug("Lead primaryContactCity       : " + primaryContactCity);
+				logger.debug("Lead primaryContactAddress1   : " + primaryContactAddress1);
+				logger.debug("Lead primaryContactAddress2   : " + primaryContactAddress2);
+				logger.debug("Lead primaryContactPostalCode : " + primaryContactPostalCode);
+				logger.debug("Lead retiredDateTime          : " + retiredDateTime);
+				logger.debug("Lead convertedTimestamp       : " + convertedTimestamp);
+				logger.debug("Lead deleteFlag               : " + deleteFlag);
+				logger.debug("Lead branchNameF_c            : " + branchNameF_c);
+				logger.debug("Lead branchCodeF_c            : " + branchCodeF_c);
+				logger.debug("Lead leadBranch_c             : " + leadBranch_c);
+				logger.debug("Lead creationDate             : " + creationDate);
+				logger.debug("Lead createdBy                : " + createdBy);
+				logger.debug("Lead lastUpdateDate           : " + lastUpdateDate);
+				logger.debug("Lead lastUpdatedBy            : " + lastUpdatedBy);
 				
 				leadVo.setLeadId(leadId);
 				leadVo.setName(leadName);
@@ -389,8 +389,6 @@ public class LeadManagement {
 		
 		if(leadList.size() > splitSize) {
 			subList = Lists.partition(leadList, splitSize);
-			
-			logger.info("subList size " + subList.size());
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));

@@ -46,11 +46,6 @@ public class CommonUtil {
 					{
 						if (!itemValue[i].equals("") || !isEmpty(itemValue[i])) 
 						{
-							logger.info("itemAttribute values : " + itemAttribute[i]);
-							logger.info("itemValue[i] values : " + itemValue[i]);
-							logger.info("upperCaseCompare[i] values : " + upperCaseCompare[i]);
-							logger.info("operator[i] values : " + operator[i]);
-
 							filterMap = new HashMap<>();
 							filterMap.put("itemAttribute", itemAttribute[i]);
 							filterMap.put("itemValue", itemValue[i]);
@@ -61,9 +56,6 @@ public class CommonUtil {
 						} 
 						else if (itemAttribute[i].equals("ApprovalID_c")) 
 						{
-							logger.info("itemAttribute values : " + itemAttribute[i]);
-							logger.info("operator values : " + operator[i]);
-
 							filterMap = new HashMap<>();
 							filterMap.put("itemAttribute", itemAttribute[i]);
 							filterMap.put("upperCaseCompare", isEmpty(upperCaseCompare[i]));
@@ -84,7 +76,6 @@ public class CommonUtil {
 			logger.info(e.getMessage());
 			e.printStackTrace();
 		}
-		logger.info(filterList);
 
 		return filterList;
 	}
@@ -102,8 +93,6 @@ public class CommonUtil {
 		findCriteria.setFetchStart(start);
 		findCriteria.setFetchSize(size);
 
-		logger.info("filterList size : " + filterList.size());
-
 		if (filterList != null)
 		{
 			if (filterList.size() != 0) 
@@ -114,7 +103,6 @@ public class CommonUtil {
 				for (int i = 0; i < filterList.size(); i++) 
 				{
 					ViewCriteriaItem item1 = new ViewCriteriaItem();
-					logger.info("filterList " + filterList.get(i).get("itemAttribute"));
 
 					if (filterList.get(i).get("itemAttribute").equals("ApprovalID_c")) 
 					{
@@ -165,7 +153,6 @@ public class CommonUtil {
         
         today.add(Calendar.DATE, -1);        					// 어제 날짜(day)
         toDt = dateForm.format(today.getTime());				// Data -> String convert
-        logger.info("toDt : " + toDt);
         
 		int yesterday_month = today.get(Calendar.MONTH) + 1;	// 어제 날짜 month
 

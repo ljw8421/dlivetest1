@@ -48,6 +48,7 @@ import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceReq
 import util.CommonUtil;
 import vo.ApprovalVO;
 import vo.ImpSrVO;
+import vo.SrVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
 public class ServiceRequestServiceManagement {
@@ -58,8 +59,9 @@ public class ServiceRequestServiceManagement {
 	private static QName serviceName = null;
 	
 	SqlSession session;
-	private String batchJobId;
 	CommonUtil commonUtil;
+	
+	private String batchJobId;
 	
 	private static Logger logger = Logger.getLogger(ServiceRequestServiceManagement.class);
 	
@@ -98,31 +100,35 @@ public class ServiceRequestServiceManagement {
 	}
 	
 	// SalesCloud -> 값 내리기
-	public List<ApprovalVO> getAllServiceRequestService() throws Exception 
+	public List<SrVO> getAllServiceRequestService() throws Exception 
 	{
 		logger.info("Start SalesCloud GetServiceRequestService");
 		
 		String items[] = {
-								"SrId", "ServiceType_c", "AccountPartyName", "ApprPartyNumber_c", "ApprAccntAddress_c"
-							  , "ApprConaId_c", "ApprOTTCount_c", "ApprDTVCount_c", "ApprISPCount_c", "ApprVOIPCount_c"
-							  , "ApprContractTo_c", "ApprContractFrom_c", "Title", "AssigneePartyId", "ApprBranch_c"
-							  , "ApprovalYN_c", "ApprovalID_c"
+								  "SrId", "SrNumber", "Title", "ProblemDescription", "SeverityCd"
+								, "AssigneePartyId", "AssigneePersonName", "AssigneeEmailAddress", "CreatedBy", "CreationDate"
+								, "LastUpdateDate", "LastUpdatedBy", "LastUpdatedByDisplayName", "AccountPartyId", "AccountPartyName"
+								, "PrimaryContactPartyId", "PrimaryContactPartyName", "ClosedDate", "OpenDate", "LastResolvedDate"
+								, "SourceCd", "ChannelTypeCd", "StatusCd", "StatusF_c", "DeleteFlag"
+								, "ServiceType_c", "ApprovalID_c", "CompleteType_c", "Competitor_c", "CompetitorETC_c"
+								, "BranchNameF_c", "BranchCodeF_c", "DliveCloseDt_c", "ApprovalYN_c", "SRBranch_c"
+								, "ProblemResult_c"
 						 };
 		// key : ID
 		String itemAttribute[] = {
-									"ApprovalID_c", "ApprovalYN_c", "ServiceType_c"
+									"SrId"
 								 };
 
 		String itemValue[] = {
-								"", "true","해지방어"
+								""
 							 };
 		
 		boolean upperCaseCompare[] = {
-										true, true, true
+										true
 									 };
 		
 		String operator[] = {
-								"ISBLANK", "=", "="
+								"="
 							};
 		
 		Conjunction conjunction =  Conjunction.AND;
@@ -139,119 +145,125 @@ public class ServiceRequestServiceManagement {
 		FindControl findControl = new FindControl();
 		
 		List<ServiceRequest> serviceRequestList = serviceRequestService.findServiceRequest(findCriteria, findControl);
-		List<ApprovalVO> tgtList = new ArrayList<ApprovalVO>();
+		List<SrVO> tgtList = new ArrayList<SrVO>();
 		
 		
 		for (int i = 0; i < serviceRequestList.size(); i++) {
 			
-			ApprovalVO srvo = new ApprovalVO();
+			SrVO srvo = new SrVO();
 			ServiceRequest serviceRequest = serviceRequestList.get(i);
 			
-			Long id = null;
+			Long SrId = null;
 			if (serviceRequest.getSrId() != null) {
-				id = serviceRequest.getSrId();
-			}
-			String type = null;
-			if (serviceRequest.getServiceTypeC() != null) {
-				type = serviceRequest.getServiceTypeC();
-			}
-			String objType = "SR";
-			String accountName = null;
-			if (serviceRequest.getAccountPartyName() != null) {
-				accountName = serviceRequest.getAccountPartyName();
-			}
-			String partyNumber = null;
-			if (serviceRequest.getApprPartyNumberC() != null) {
-				partyNumber = serviceRequest.getApprPartyNumberC().getValue();
-			}
-			String address = null;
-			if (serviceRequest.getApprAccntAddressC() != null) {
-				address = serviceRequest.getApprAccntAddressC().getValue();
-			}
-			String conaId = null;
-			if (serviceRequest.getApprConaIdC() != null) {
-				conaId = serviceRequest.getApprConaIdC().getValue();
-			}
-			String ottCount_c = null;
-			if (serviceRequest.getApprOTTCountC() != null) {
-				ottCount_c = serviceRequest.getApprOTTCountC().getValue();
-			}
-			String dtvCount_c = null;
-			if (serviceRequest.getApprDTVCountC() != null) {
-				dtvCount_c = serviceRequest.getApprDTVCountC().getValue();
-			}
-			String ispCount_c = null;
-			if (serviceRequest.getApprISPCountC() != null) {
-				ispCount_c = serviceRequest.getApprISPCountC().getValue();
-			}
-			String voipCount_c = null;
-			if (serviceRequest.getApprVOIPCountC() != null) {
-				voipCount_c = serviceRequest.getApprVOIPCountC().getValue();
-			}
-			String contractTo_c = null;
-			if (serviceRequest.getApprContractToC() != null) {
-				contractTo_c = serviceRequest.getApprContractToC().getValue();
-			}
-			String contractFrom_c = null;
-			if (serviceRequest.getApprContractFromC() != null) {
-				contractFrom_c = serviceRequest.getApprContractFromC().getValue();
-			}
-			String opportunityNm = null;
-			if (serviceRequest.getTitle() != null) {
-				opportunityNm = serviceRequest.getTitle();
-			}
-			Long empNumber = null;
-			if (serviceRequest.getAssigneePartyId() != null) {
-				empNumber = serviceRequest.getAssigneePartyId();
-			}
-			String optyBranch = null;
-			if (serviceRequest.getApprBranchC() != null) {
-				optyBranch = serviceRequest.getApprBranchC().getValue();
-			}
-			
-			String good3 = null;
-			if (serviceRequest.getApprOTTCountC().getValue() != null) {
-				good3 = "OTT";
-			}else {
-				good3 = serviceRequest.getApprOTTCountC().getValue();
-			}
-			String good3Qty = null;
-			if (serviceRequest.getApprOTTCountC() != null) {
-				good3Qty = serviceRequest.getApprOTTCountC().getValue();
-			}
-			
-			String good1 = null;
-			if (serviceRequest.getApprDTVCountC().getValue() != null) {
-				good1 = "DTV";
-			}else {
-				good1 = serviceRequest.getApprDTVCountC().getValue();
-			}
-			String good1Qty = null;
-			if (serviceRequest.getApprOTTCountC() != null) {
-				good1Qty = serviceRequest.getApprDTVCountC().getValue();
-			}
-			
-			String good2 = null;
-			if (serviceRequest.getApprISPCountC().getValue() != null) {
-				good2 = "ISP";
-			}else {
-				good2 = serviceRequest.getApprISPCountC().getValue();
-			}
-			String good2Qty = null;
-			if (serviceRequest.getApprISPCountC() != null) {
-				good2Qty = serviceRequest.getApprISPCountC().getValue();
+				SrId = serviceRequest.getSrId();
 			}
 
-			String good4 = null;
-			if (serviceRequest.getApprISPCountC().getValue() != null) {
-				good4 = "VOIP";
-			}else {
-				good4 = serviceRequest.getApprISPCountC().getValue();
+			Long AssigneePartyId = null;
+			if(serviceRequest.getAssigneePartyId() != null) {
+				AssigneePartyId = serviceRequest.getAssigneePartyId();
 			}
-			String good4Qty = null;
-			if (serviceRequest.getApprVOIPCountC() != null) {
-				good4Qty = serviceRequest.getApprVOIPCountC().getValue();
+
+			Long AccountPartyId = null;
+			if(serviceRequest.getAccountPartyId() != null) {
+				AccountPartyId = serviceRequest.getAccountPartyId().getValue();
 			}
+
+			Long PrimaryContactPartyId = null;
+			if(serviceRequest.getPrimaryContactPartyId() != null) {
+				PrimaryContactPartyId = serviceRequest.getPrimaryContactPartyId().getValue();
+			}
+			
+			String SrNumber = "";
+			if(serviceRequest.getSrNumber() != null) {
+				SrNumber = serviceRequest.getSrNumber();
+			}
+			
+			String Title = "";
+			if(serviceRequest.getTitle() != null) {
+				Title = serviceRequest.getTitle();
+			}
+			
+			String ProblemDescription = "";
+			if(serviceRequest.getProblemDescription() != null) {
+				ProblemDescription = serviceRequest.getProblemDescription().getValue();
+			}
+			
+			String SeverityCd = "";
+			if(serviceRequest.getSeverityCd() != null) {
+				SeverityCd = serviceRequest.getSeverityCd().getValue();
+			}
+			
+			String AssigneePersonName = "";
+			if(serviceRequest.getAssigneePersonName() != null) {
+				AssigneePersonName = serviceRequest.getAssigneePersonName();
+			}
+			
+			String AssigneeEmailAddress = "";
+			if(serviceRequest.getAssigneeEmailAddress() != null) {
+				AssigneeEmailAddress = serviceRequest.getAssigneeEmailAddress().getValue();
+			}
+			
+			String CreatedBy = "";
+			if(serviceRequest.getCreatedBy() != null) {
+				CreatedBy = serviceRequest.getCreatedBy();
+			}
+			
+			String LastUpdatedBy = "";
+			if(serviceRequest.getLastUpdatedBy() != null) {
+				LastUpdatedBy = serviceRequest.getLastUpdatedBy();
+			}
+			
+			String LastUpdatedByDisplayName = "";
+			if(serviceRequest.getLastUpdatedByDisplayName() != null) {
+				LastUpdatedByDisplayName = serviceRequest.getLastUpdatedByDisplayName().getValue();
+			}
+			
+			String AccountPartyName = "";
+			if(serviceRequest.getAccountPartyName() != null) {
+				AccountPartyName = serviceRequest.getAccountPartyName();
+			}
+			
+			String PrimaryContactPartyName = "";
+			if(serviceRequest.getPrimaryContactPartyName() != null) {
+				PrimaryContactPartyName = serviceRequest.getPrimaryContactPartyName();
+			}
+			
+			String ClosedDate = "";
+			if(serviceRequest.getClosedDate().getValue() != null) {
+				ClosedDate = serviceRequest.getClosedDate().getValue().toString();
+			}
+			
+			String OpenDate = "";
+			if(serviceRequest.getOpenDate() != null) {
+				OpenDate = serviceRequest.getOpenDate().toString();
+			}
+			
+			String LastResolvedDate = "";
+			if(serviceRequest.getLastResolvedDate().getValue() != null) {
+				LastResolvedDate = serviceRequest.getLastResolvedDate().getValue().toString();
+			}
+			
+			String SourceCd = "";
+			if(serviceRequest.getSourceCd() != null) {
+				SourceCd = serviceRequest.getSourceCd().getValue();
+			}
+			
+			String ChannelTypeCd = "";
+			String StatusCd = "";
+			String StatusF_c = "";
+			String DeleteFlag = "";
+			String ServiceType_c = "";
+			String ApprovalID_c = "";
+			String CompleteType_c = "";
+			String Competitor_c = "";
+			String CompetitorETC_c = "";
+			String BranchNameF_c = "";
+			String BranchCodeF_c = "";
+			String DliveCloseDt_c = "";
+			String ApprovalYN_c = "";
+			String SRBranch_c = "";
+			String ProblemResult_c = "";
+			
 			
 			String approvalYn = "N";
 			if (serviceRequest.isApprovalYNC() != null) {
@@ -262,65 +274,20 @@ public class ServiceRequestServiceManagement {
 					approvalYn = "N";
 				}
 			}
-			String approvalID = null;
-			if (serviceRequest.getApprovalIDC() != null) {
-				approvalID = serviceRequest.getApprovalIDC().getValue();
+			
+			XMLGregorianCalendar CreationDate = null;
+			if(serviceRequest.getCreationDate() != null) {
+				CreationDate = serviceRequest.getCreationDate();
 			}
+			
+			XMLGregorianCalendar LastUpdateDate = null;
+			if(serviceRequest.getLastUpdateDate() != null) {
+				LastUpdateDate = serviceRequest.getLastUpdateDate();
+			}
+			
+			
 					
 			logger.info("#["+i+"]");
-			logger.info("serviceRequest id				: " + id);
-			logger.info("serviceRequest objType			: " + objType);
-			logger.info("serviceRequest type				: " + type);
-			logger.info("serviceRequest accountName			: " + accountName);
-			logger.info("serviceRequest partyNumber			: " + partyNumber);
-			logger.info("serviceRequest address			: " + address);
-			logger.info("serviceRequest conaId			: " + conaId);
-			logger.info("serviceRequest ottCount_c			: " + ottCount_c);
-			logger.info("serviceRequest dtvCount_c			: " + dtvCount_c);
-			logger.info("serviceRequest ispCount_c			: " + ispCount_c);
-			logger.info("serviceRequest voipCount_c			: " + voipCount_c);
-			logger.info("serviceRequest contractTo_c			: " + contractTo_c);
-			logger.info("serviceRequest contractFrom_c		: " + contractFrom_c);
-			logger.info("serviceRequest opportunityNm		: " + opportunityNm);
-			logger.info("serviceRequest empNumber			: " + empNumber);
-			logger.info("serviceRequest optyBranch			: " + optyBranch);
-			logger.info("serviceRequest good3			: " + good3);
-			logger.info("serviceRequest good3Qty			: " + good3Qty);
-			logger.info("serviceRequest good1			: " + good1);
-			logger.info("serviceRequest good1Qty			: " + good1Qty);
-			logger.info("serviceRequest good2			: " + good2);
-			logger.info("serviceRequest good3Qty			: " + good2Qty);
-			logger.info("serviceRequest good4			: " + good4);
-			logger.info("serviceRequest good4Qty			: " + good4Qty);
-			logger.info("serviceRequest approvalYn			: " + approvalYn);
-			logger.info("serviceRequest approvalID			: " + approvalID);
-			
-			
-			srvo.setId(""+id);
-			srvo.setObj_type(objType);
-			srvo.setType(type);
-			srvo.setAccountName(accountName);
-			srvo.setPartyNumber(""+partyNumber);
-			srvo.setAddress(address);
-			srvo.setConaId_c(conaId);
-			srvo.setOttCount_c(ottCount_c);
-			srvo.setDtvCount_c(dtvCount_c);
-			srvo.setIspCount_c(ispCount_c);
-			srvo.setVoipCount_c(voipCount_c);
-			srvo.setContractTo_c(contractTo_c);
-			srvo.setContractFrom_c(contractFrom_c);
-			srvo.setOpportunityNm(opportunityNm);
-			srvo.setEmpNumber(""+empNumber);
-			srvo.setOptyBranch_c(optyBranch);
-			srvo.setGood3_c(good3);
-			srvo.setGood3Qty_c(good3Qty);
-			srvo.setGood1_c(good1);
-			srvo.setGood1Qty_c(good1Qty);
-			srvo.setGood2_c(good2);
-			srvo.setGood2Qty_c(good2Qty);
-			srvo.setGood4_c(good4);
-			srvo.setGood4Qty_c(good4Qty);
-			srvo.setApprovalYn_c(approvalYn);
 			
 			tgtList.add(srvo);
 			
