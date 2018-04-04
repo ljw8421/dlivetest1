@@ -34,10 +34,6 @@ public class ImportCsv {
 	
 	public String importJob(String workJob, String fileName) throws Exception 
 	{
-		logger.info("ImportCsv Start");
-		logger.info("ImportCsv Start workJob : " + workJob);
-		logger.info("ImportCsv Start fileName : " + fileName);
-
 		String response = "fail";
 		
 		try {
@@ -52,33 +48,34 @@ public class ImportCsv {
 	    	Properties sp = new Properties();
 	    	sp.load(new FileInputStream("./conf/Saas.properties"));
 	    	
-	    	String username = sp.getProperty("SaasUser");
-	    	String password = sp.getProperty("SaasPassword");
-	    	String wsdlUrl = sp.getProperty("WSDLUrl");
-	    	String wsdlTarget = sp.getProperty("WsdlTargrt");
+	    	String username        = sp.getProperty("SaasUser");
+	    	String password        = sp.getProperty("SaasPassword");
+	    	String wsdlUrl         = sp.getProperty("WSDLUrl");
+	    	String wsdlTarget      = sp.getProperty("WsdlTargrt");
 	    	String wsdlServiceName = sp.getProperty("WsdlServiceName");
-	    	String SaasMappingNum = sp.getProperty("MappingNumber"+workJob);
-	    	String policy = sp.getProperty("Policy");
-	    	String url = sp.getProperty("Url");
-	    	String dDocAccount = sp.getProperty("DDocAccount");
-	    	String checkout = sp.getProperty("Checkout");
+	    	String SaasMappingNum  = sp.getProperty("MappingNumber"+workJob);
+	    	String policy          = sp.getProperty("Policy");
+	    	String url             = sp.getProperty("Url");
+	    	String dDocAccount     = sp.getProperty("DDocAccount");
+	    	String checkout        = sp.getProperty("Checkout");
+	    	String location        = sp.getProperty("csvLocation");
 	    	
-	    	logger.info("user = " + username);
-	    	logger.info("password = " + password);        	
-	    	logger.info("wsdlUrl = " + wsdlUrl);   
-	    	logger.info("wsdlTarget = " + wsdlTarget);
-	    	logger.info("wsdlServiceName = " + wsdlServiceName);        	
-	    	logger.info("SaasMappingNum = " + SaasMappingNum);
-	    	logger.info("policy = " + policy);
-	    	logger.info("url = " + url);
-	    	logger.info("dDocAccount = " + dDocAccount);
-	    	logger.info("checkout = " + checkout);
+	    	logger.debug("user = " + username);
+	    	logger.debug("password = " + password);        	
+	    	logger.debug("wsdlUrl = " + wsdlUrl);   
+	    	logger.debug("wsdlTarget = " + wsdlTarget);
+	    	logger.debug("wsdlServiceName = " + wsdlServiceName);        	
+	    	logger.debug("SaasMappingNum = " + SaasMappingNum);
+	    	logger.debug("policy = " + policy);
+	    	logger.debug("url = " + url);
+	    	logger.debug("dDocAccount = " + dDocAccount);
+	    	logger.debug("checkout = " + checkout);
 	    	
-	    	String filename="D:\\CSV\\"+fileName+".csv";
+	    	String filename=location+fileName+".csv";
 	    	
 	    	File file = new File(filename);
 	        if(!file.exists()){
-	        	logger.info("[ERROR]"+ filename+" : File not founded. You need to retry.");
+	        	logger.info("[ERROR] : "+ filename+" : File not founded. You need to retry.");
 	        	return response;
 	        }
 	    	
@@ -103,10 +100,10 @@ public class ImportCsv {
 				logger.info("Start Send to UCM CSV file");
 				
 				boolean terminateEarly = tool.setup(args1);
-				logger.info("terminateEarly : "+terminateEarly);
+				logger.debug("terminateEarly : "+terminateEarly);
 				
 				if (terminateEarly) {
-					logger.info("[ERROR] UCM tool setup failed. You need to retry.");
+					logger.info("[ERROR] : UCM tool setup failed. You need to retry.");
 					return response;
 				}
 
@@ -116,7 +113,7 @@ public class ImportCsv {
 				logger.info("End Send to UCM CSV file");
 
 			} catch (Exception e) {
-				logger.info("[ERROR] Send to UCM CSV file Failed. You need to retry.");
+				logger.info("[ERROR] : Send to UCM CSV file Failed. You need to retry.");
 				return response;
 
 			} finally {
@@ -124,13 +121,13 @@ public class ImportCsv {
 			}
 			
 			if(results_docname =="" ||results_docname==null){
-				logger.info("[ERROR] Getting ContentID Failed. You need to retry."); 
+				logger.info("[ERROR] : Getting ContentID Failed. You need to retry."); 
 				return response;
 				
 			} else {
 				
 				String contentId = results_docname;
-				logger.info("contentId : "+contentId);
+				logger.debug("contentId : "+contentId);
 				
 	            logger.info("Start Soap to Saas");
 	        	logger.info("Saas Authorize...");
@@ -152,8 +149,8 @@ public class ImportCsv {
 			        reqContext.put(BindingProvider.PASSWORD_PROPERTY, password ); 
 
 				} catch (Exception e) {
-					logger.info("Authorize Exeception :" + printStackTraceToString(e));
-		        	logger.info("[ERROR] Authorize Exeception. You need to retry.");
+					logger.info("Authorize Exeception : " + printStackTraceToString(e));
+		        	logger.info("[ERROR] : Authorize Exeception. You need to retry.");
 		        	return response;
 				}
 		        
@@ -166,7 +163,7 @@ public class ImportCsv {
 		            ImportJobReturnParams importJobReturnParams = new ImportJobReturnParams();
 		            ImportServiceReturnParams importServiceReturnParams = new ImportServiceReturnParams();
 		            
-		            logger.info("filename+jobCode : " + filename+jobCode);
+		            logger.debug("filename+jobCode : " + filename+jobCode);
 		            
 		            // 2017.12.12 (화) 수정
 		            importJobSubmitParams.setJobName(objectFactory.createImportJobSubmitParamsJobName(fileName+jobCode));			// Job 파일명
@@ -215,7 +212,7 @@ public class ImportCsv {
 			}
 			
 		} catch (Exception e) {
-	        logger.info("[ERROR] General Exeception. You need to retry.");
+	        logger.info("[ERROR] : General Exeception. You need to retry.");
 	        return response;
 		}
 		

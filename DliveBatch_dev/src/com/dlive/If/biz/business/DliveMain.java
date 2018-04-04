@@ -18,9 +18,11 @@ import util.MssqlDBUtil;
 import vo.AccountVO;
 import vo.ActivityVO;
 import vo.LeadVO;
+import vo.LogVO;
 import vo.OpportunityVO;
 import vo.OpptyLeadVO;
 import vo.ResourcesVO;
+import vo.SrVO;
 import vo.CodeVO;
 
 /**
@@ -29,7 +31,6 @@ import vo.CodeVO;
 public class DliveMain {
 	
 	private static SqlSession mssession;
-	
 	private static MssqlDBUtil 	msdb;
 
 	/* Sales Cloud */
@@ -38,6 +39,7 @@ public class DliveMain {
 	private static OpportunityManagement 			opportunity;
 	private static ActivityManagement    			activity;
 	private static LeadManagement		 			lead;
+	private static ServiceRequestManagement         sr;
 	
 	/* Staging / Import */
 	private static StgInImpOppty                    sio;
@@ -46,8 +48,12 @@ public class DliveMain {
 	private static CreateCsvFile					createCsvFile  = new CreateCsvFile();
 	private static ImportCsv						importCsv      = new ImportCsv();
 	
+	/* Common */
 	private static CommonUtil						common         = new CommonUtil();
 
+	/* String 전역 변수 */
+	private static String restId = "", restPw = "", restUrl = "";
+	
 	private static Logger logger = Logger.getLogger(DliveMain.class);
 
 	public static void main(String[] args) throws Exception
@@ -55,144 +61,241 @@ public class DliveMain {
 		logger.info("Dlive Main Function Start");
 		PropertyConfigurator.configure("./conf/log4j.properties");
 		
-		String batchJobId;		// batch log
+		Map<String, String> map = new HashMap<String, String>();
+		Properties sp = new Properties();
+		
+		CodeVO codeVo = new CodeVO();
+		LogVO  logVo  = new LogVO();
+		
+		String batchJobId;
+		String type = "", workJobArg = "", paramDtArg1 = "";
 		
 		try {
 			/* DB 접속 */
 			msdb = new MssqlDBUtil();			// Interface (MS-SQL)
 			mssession = msdb.getSqlSession();
 			
-			CodeVO codeVo = new CodeVO();
-			
-			String workJob = "";
-			
-			// 어제 날짜 
-            String paramDt = common.getYesterDay();
-			
-			Map<String, String> map = new HashMap<String, String>();
-    		map.put("paramDt", paramDt);
-    		
     		/* Sales Cloud Setting */
-    		Properties sp = new Properties();
 	    	sp.load(new FileInputStream("./conf/SalesCloud.properties"));
 	    	
-	    	String restUrl = sp.getProperty("RestURL");
-	    	String restId = sp.getProperty("RestID");
-	    	String restPw = sp.getProperty("RestPW");
+	    	restId  = sp.getProperty("RestID");
+	    	restPw  = sp.getProperty("RestPW");
+	    	restUrl = sp.getProperty("RestURL");
+	    	
+	    	/* default Date */
+            String paramDt = common.getYesterday();	// 어제 날짜 
+            String todayDt = common.getToday();		// 오늘 날짜
+	    	
+	    	/* batchJobId & Log Set */
+	    	batchJobId = mssession.selectOne("interface.getBatchJobId");
+	        logVo.setBatchJobId(batchJobId);
     		
-    		// parameter 입력 했응 때
-    		int size = args.length;
-    		
-    		if(size != 0) 
-    		{
-    			String workJobArg = "", paramDtArg = "";
-    			
-    			if(size == 2) {
-    				workJobArg = args[0];
-    				paramDtArg = args[1];
-    				
-    				map.put("paramDt", paramDtArg);
-    			}
-    			else if(size == 1) {
-    				workJobArg = args[0];
-    			}
-    			
-    			if(!"".equals(workJobArg))
-    			{
-    				switch(workJobArg) {
-					case "oppty_in":
-						opportunity_in(restId, restPw, restUrl, map, mssession);
-						break;
-					case "account_in":
-						account_in(restId, restPw, restUrl, map, mssession);
-						break;
-					case "resouces_in":
-						resources_in(restId, restPw, restUrl, map, mssession);
-						break;
-					case "activity_in":
-						activity_in(restId, restPw, restUrl, map, mssession);
-						break;
-					case "lead_in":
-						lead_in(restId, restPw, restUrl, map, mssession);
-						break;
-					case "imp_oppty_in":
-						imp_oppty_in(map, mssession);		// stg -> if oppty / oppty_account
-						break;
-					case "imp_account_in":
-						imp_account_in(map, mssession);		// stg -> if account
-						break;
-					case "imp_oppty_account_import":		// file import
-						file_import(workJobArg, paramDt);
-						break;
-					case "imp_oppty_import":				// file import
-						file_import(workJobArg, paramDt);
-						break;
-					case "imp_account_import":				// file import
-						file_import(workJobArg, paramDt);
-						break;
-    				}
-    			}
+    		/* Parameter Set & Log Set */
+    		type = args[0];
+    		logVo.setWorkType(type);
+
+    		if(!"".equals(args[1])) {
+    			workJobArg  = args[1];
+    			logVo.setWorkJob(workJobArg);
     		}
-    		else
-			{
-				// All
-				logger.info("Start All BI & IMP Batch");
-				logger.debug("map : " + map);
-				
-				codeVo.setType("dlive_batch_job_in");
-				List<CodeVO> workJobList = mssession.selectList("interface.selectCode", codeVo);
-				logger.debug("workJobList size : " + workJobList.size());
-				
-				for(CodeVO vo : workJobList) 
-				{
-					workJob = vo.getCd_name();
-					logger.debug("workJob Name : " + workJob);
-					
-					try {
-						
-						switch(workJob) {
-						case "oppty_in":
-							opportunity_in(restId, restPw, restUrl, map, mssession);
-							break;
-						case "account_in":
-							account_in(restId, restPw, restUrl, map, mssession);
-							break;
-						case "resouces_in":
-							resources_in(restId, restPw, restUrl, map, mssession);
-							break;
-						case "activity_in":
-							activity_in(restId, restPw, restUrl, map, mssession);
-							break;
-						case "lead_in":
-							lead_in(restId, restPw, restUrl, map, mssession);
-							break;
-						case "imp_oppty_in":
-							imp_oppty_in(map, mssession);
-							break;
-						case "imp_account_in":
-							imp_account_in(map, mssession);
-							break;
-						}
-						
-					} catch (Exception e) {
-						// TODO: handle exception
-						logger.info("All Batch Error");
-					}
-				}
-			}
+    		
+    		map.put("batchJobId", batchJobId);
+            map.put("paramDt", paramDt);
+            map.put("todayDt", todayDt);
+    		
+    		switch(type) 
+    		{
+    		case "1":
+    			sel_batch_job(map, workJobArg, logVo);
+    			break;
+    		case "2":
+    			if(!"".equals(args[2])) {
+        			paramDtArg1 = args[2];
+        			logVo.setParamDt(paramDtArg1);
+        			map.put("paramDt", paramDtArg1);
+        		}
+    			
+    			String paramDtArg2 = common.getTomorrow(paramDtArg1);
+    			map.put("todayDt", paramDtArg2);
+    			
+    			sel_batch_job(map, workJobArg, logVo);
+    			break;
+    		default:
+    			logger.info("파리미터를 제대로 입력해주세요.");
+    			break;
+    		}
     		
 		} catch (Exception e) {
-			logger.info("Main Exception - " + e.toString());
+			logVo.setStatus("fail");
+			logVo.setBatchDesc(e.toString());
+			batchLogInsert(logVo);
+			logger.info("Exception - " + e.toString());
 			
 		} finally {
-			mssession.close();
+			
+			if(mssession != null) {
+				mssession.close();
+			}
+			else {
+				logger.info("session is null");
+			}
+			
+			mssession = null;
+		}
+	}
+	
+	private static void sel_batch_job(Map<String, String> map, String workJob, LogVO logVo) throws Exception
+	{
+		String paramDt = map.get("todayDt");
+		
+		if(!"".equals(workJob))
+		{
+			switch(workJob) 
+			{
+			case "all":
+				all_batch_job(map, workJob, logVo);
+				logVo.setStatus("success");
+				break;
+			case "oppty_in":
+				batchLogInsert(logVo);
+				opportunity_in(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "account_in":
+				batchLogInsert(logVo);
+				account_in(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "resouces_in":
+				batchLogInsert(logVo);
+				resources_in(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "activity_in":
+				batchLogInsert(logVo);
+				activity_in(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "lead_in":
+				batchLogInsert(logVo);
+				lead_in(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "sr_in":
+				batchLogInsert(logVo);
+				sr_in(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "imp_oppty_in":
+				batchLogInsert(logVo);
+				imp_oppty_in(map);					// stg -> if oppty / oppty_account
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "imp_account_in":
+				batchLogInsert(logVo);
+				imp_account_in(map);				// stg -> if account
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "imp_oppty_account_import":		// file import
+				batchLogInsert(logVo);
+				file_import(workJob, paramDt);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "imp_oppty_import":				// file import
+				batchLogInsert(logVo);
+				file_import(workJob, paramDt);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "imp_account_import":				// file import
+				batchLogInsert(logVo);
+				file_import(workJob, paramDt);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			}
+		}
+	}
+	
+	private static void all_batch_job(Map<String, String> map, String workJob, LogVO logVo)
+	{
+		logger.info("Start All BI & IMP Batch");
+		
+		CodeVO codeVo = new CodeVO();
+		codeVo.setType("dlive_batch_job_in");
+		
+		List<CodeVO> workJobList = mssession.selectList("interface.selectCode", codeVo);
+		
+		for(CodeVO vo : workJobList)
+		{
+			workJob = vo.getCd_name();
+			logVo.setWorkJob(workJob);
+			
+			try {
+				switch(workJob) 
+				{
+				case "oppty_in":
+					batchLogInsert(logVo);
+					opportunity_in(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "account_in":
+					batchLogInsert(logVo);
+					account_in(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "resouces_in":
+					batchLogInsert(logVo);
+					resources_in(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "activity_in":
+					batchLogInsert(logVo);
+					activity_in(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "lead_in":
+					batchLogInsert(logVo);
+					lead_in(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "sr_in":
+					batchLogInsert(logVo);
+					sr_in(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				}
+				
+			} catch (Exception e) {
+				// TODO: handle exception
+				logVo.setStatus("fail");
+				logVo.setBatchDesc(e.toString());
+				batchLogInsert(logVo);
+				logVo.setBatchDesc(null);
+				logger.info("All BI & IMP Batch Error Msg : " + e.toString());
+			}
 		}
 	}
 	
 	/* CSV File Import */
 	private static void file_import(String workJob, String paramDt)
 	{
-		logger.info("File Import Start");
+		logger.info("Start File Impor");
 		
 		CodeVO codeVo = new CodeVO();
 		
@@ -228,7 +331,6 @@ public class DliveMain {
 				createCsvFile.csvFileTemplet(targetList, fileName, "Y", headerDiv);
 				
 				String response = importCsv.importJob(headerDiv, fileName);					// Import Sales Cloud CSV File
-		    	logger.debug("response : " + response);
 		    	
 		    	if("success".equals(response)) {
 		    		// imp table TrnsYn -> Y update
@@ -241,7 +343,6 @@ public class DliveMain {
 			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
 			logger.info("File Import Exception : " + e.toString());
 		}
     	
@@ -249,29 +350,28 @@ public class DliveMain {
 	
 	/* BI */
 	/* Resourcec */
-	private static void resources_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
+	private static void resources_in(Map<String, String> map) throws Exception 
 	{
 		resources = new ResourcesManagement(mssession, map);			// Resource
 		resources.initialize(restId, restPw, restUrl);					// webService 호출
 		
 		List<ResourcesVO> resourceList = resources.getAllResource();	// resources 조회
-		logger.debug("list size : " + resourceList.size());
 		
-		if(resourceList != null) {
+		if(resourceList.size() > 0) {
 			resources.insertResource(resourceList);						// resources insert
 		}
 		
 	}
 	
 	/* Account */
-	private static void account_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mysession) throws Exception
+	private static void account_in(Map<String, String> map) throws Exception
 	{
-		account = new AccountManagement(mysession, map);					// Account
+		account = new AccountManagement(mssession, map);					// Account
 		account.initialize(restId, restPw, restUrl);						// webService 호출
 
-		List<AccountVO> resultList = account.getAllAccount();				// 거래처 List
+		List<AccountVO> resultList = account.getAllAccount();				// Account List
 		
-		if(resultList != null) {
+		if(resultList.size() > 0) {
 			account.insertAccount(resultList);
 		}
 		else {
@@ -280,12 +380,12 @@ public class DliveMain {
 	}
 	
 	/* Opportunity */
-	private static void opportunity_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mysession) throws Exception
+	private static void opportunity_in(Map<String, String> map) throws Exception
 	{
-		opportunity = new OpportunityManagement(mysession, map);		// Account
+		opportunity = new OpportunityManagement(mssession, map);		// Opportunity
 		opportunity.initialize(restId, restPw, restUrl);				// webService 호출
 
-		Map<String,Object> resultMap = opportunity.getAllOpportunity();	// 거래처 List
+		Map<String,Object> resultMap = opportunity.getAllOpportunity();	// Opportunity List
 		
 		List<OpportunityVO> opptyList   = new ArrayList<OpportunityVO>();
 		List<OpptyLeadVO> opptyLeadlist = new ArrayList<OpptyLeadVO>();
@@ -295,7 +395,7 @@ public class DliveMain {
 		opptyList     = (List<OpportunityVO>) resultMap.get("opptyList");
 		opptyLeadlist = (List<OpptyLeadVO>) resultMap.get("opptyLeadList");
 		
-		if(opptyList != null) {
+		if(opptyList.size() > 0 ) {
 			result = opportunity.insertOpportunity(opptyList);
 			
 			if(result != 0) {
@@ -308,15 +408,15 @@ public class DliveMain {
 	}
 	
 	/* Activity */
-	private static void activity_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
+	private static void activity_in(Map<String, String> map) throws Exception 
 	{
-		activity = new ActivityManagement(mssession, map);			// Resource
+		activity = new ActivityManagement(mssession, map);			// Activity
 		activity.initialize(restId, restPw, restUrl);				// webService 호출
 		
-		List<ActivityVO> resultList = activity.getAllActivity();	// resources 조회
+		List<ActivityVO> resultList = activity.getAllActivity();	// Activity 조회
 		
-		if(resultList != null) {
-			activity.insertActivity(resultList);					// resources insert
+		if(resultList.size() > 0) {
+			activity.insertActivity(resultList);					// Activity insert
 		}
 		else {
 			logger.info("dosen't exist Oracle Sales Cloud Activity List");
@@ -324,35 +424,53 @@ public class DliveMain {
 	}
 	
 	/* Lead */
-	private static void lead_in(String restId, String restPw, String restUrl, Map<String, String> map, SqlSession mssession) throws Exception 
+	private static void lead_in(Map<String, String> map) throws Exception 
 	{
-		lead = new LeadManagement(mssession, map);			// Resource
+		lead = new LeadManagement(mssession, map);			// Lead
 		lead.initialize(restId, restPw, restUrl);			// webService 호출
 		
-		List<LeadVO> resultList = lead.getAllLead();		// resources 조회
+		List<LeadVO> resultList = lead.getAllLead();		// Lead 조회
 		
-		if(resultList != null) {
-			lead.insertLead(resultList);					// resources insert
+		if(resultList.size() > 0) {
+			lead.insertLead(resultList);					// Lead insert
 		}
 		else {
 			logger.info("dosen't exist Oracle Sales Cloud Activity List");
 		}
 	}
 	
+	/* SR */
+	private static void sr_in(Map<String, String> map) throws Exception
+	{
+		sr = new ServiceRequestManagement(mssession, map);			// SR
+		sr.initialize(restId, restPw, restUrl);						// webService 호출
+		
+		List<SrVO> srList = sr.getAllServiceRequestService();		// SR 조회
+		
+		if(srList.size() > 0) {
+			sr.insertServiceRequest(srList);						// SR insert
+		}
+		else {
+			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
+		}
+	}
+	
+	
 	/* Staging / Import */
 	/* imp Account */
-	private static void imp_account_in(Map<String, String> map, SqlSession mssession) throws Exception 
+	private static void imp_account_in(Map<String, String> map) throws Exception 
 	{
-		account = new AccountManagement(mssession, map);			// Resource
-		account.insertImpAccount();									// webService 호출
+		account = new AccountManagement(mssession, map);
+		account.insertImpAccount();
 	}
 	
 	/* imp oppty_account / oppty insert */
-	private static void imp_oppty_in(Map<String, String> map, SqlSession mssession) throws Exception
+	private static void imp_oppty_in(Map<String, String> map) throws Exception
 	{
 		sio = new StgInImpOppty(mssession, map);
     	sio.stgInImp();
 	}
+	
 	
 	/* CSV */
 	/* CSV 데이터 조회 시 temp table delete / insert */
@@ -383,11 +501,12 @@ public class DliveMain {
 	
 	private static void trnsYnUpdate(String importMethod)
 	{
-		logger.info("trnsYn Y importMethod : " + importMethod);
+		logger.debug("trnsYn Y importMethod : " + importMethod);
+		
 		switch(importMethod)
 		{
 		case "001":
-			mssession.update("updateOpptyAccoutnTrnsYN");		// update Imp Oppty Account TrnsYN Y
+			mssession.update("interface.updateOpptyAccountTrnsYN");		// update Imp Oppty Account TrnsYN Y
 			mssession.commit();
 			break;
 		case "002":
@@ -399,6 +518,14 @@ public class DliveMain {
 			mssession.commit();
 			break;
 		}
+	}
+	
+	/* Log */
+	/* Log Table Insert */
+	private static void batchLogInsert(LogVO logVo) 
+	{
+		mssession.insert("log.insertLog", logVo);
+		mssession.commit();
 	}
 }
 	

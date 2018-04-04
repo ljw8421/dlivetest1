@@ -25,6 +25,8 @@ import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.Resource
 import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.applicationmodule.ResourceService;
 import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.applicationmodule.ResourceService_Service;
 
+import util.CommonUtil;
+
 import org.apache.log4j.Logger;
 import vo.ResourcesVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
@@ -38,11 +40,15 @@ public class ResourcesManagement {
 	private static QName serviceName = null;
 	
 	SqlSession session;
+	CommonUtil commonUtil;
+	
 	private String batchJobId;
 	
 	private static Logger logger = Logger.getLogger(ResourcesManagement.class);
 	
 	public ResourcesManagement(SqlSession session, Map<String, String> map) {
+		this.commonUtil = new CommonUtil();
+		
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
 	}
@@ -76,85 +82,121 @@ public class ResourcesManagement {
 		logger.info("End ResourcesManagement initialize");
 	}
 	
-	//리소스 조회
+	// 리소스 조회
 	public List<ResourcesVO> getAllResource() throws Exception 
 	{
 		logger.info("Start SalesCloud GetAllResource");
+		
+		List<Map<String, Object>> filterList = null;
+		List<Resource> resourceList = null;
 		
 		String items[] = {
 								"ResourceProfileId", "PartyId", "PartyName", "PartyNumber", "Roles", "EmailAddress"
 						  	  , "Manager", "Username", "Organizations", "ResourceEO_ManagerPartyId_c", "ResourceEO_DliveBranchCode_c"
 						 };
-		// ResourceProfileId : key
+		String itemAttribute[] = { };
+		String itemValue[] = { };
+		String operator[] = { };
 		
-		FindCriteria findCriteria = getCriteria("PartyId", "", items);
-		FindControl findControl = new FindControl();
+		boolean upperCaseCompare[] = { };
 		
-		ResourceResult resourceResult = resourceService.findResource(findCriteria, findControl);
-		List resourceList = resourceResult.getValue();
+		/* Find Page Size  */
+		int pageNum = 1;		// Start Size
+		int pageSize = 500;		// Fatch Size
+		int resultSize = 0;		// Find List Size
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		/* Filter Set */
+		filterList = commonUtil.addFilterList(itemAttribute, itemValue, upperCaseCompare, operator);
+		
 		List<ResourcesVO> tgtList = new ArrayList<ResourcesVO>();
+		List<Long> checkList      = new ArrayList<Long>();
+		
+		ResourcesVO rvo = null;
 
-		for (int i = 0; i < resourceList.size(); i++) {
+		do 
+		{
+			FindCriteria findCriteria = null;
+			FindControl  findControl  = new FindControl();
 			
-			ResourcesVO rvo = new ResourcesVO();
-			Resource resource = (Resource)(resourceList).get(i);
+			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
+			resourceList = resourceService.findResource(findCriteria, findControl).getValue();
+			resultSize = resourceList.size();
 			
-			String resourceProfileId = resource.getResourceProfileId().toString();
-			String partyId           = resource.getPartyId().toString();
-			String partyName         = resource.getPartyName() ;
-			String partyNumber       = resource.getPartyNumber();
-			String emailAddress      = resource.getEmailAddress().getValue();
-			String userName          = resource.getUsername().getValue();
-			String managerId         = resource.getResourceEOManagerPartyIdC().getValue();
-			
-			String roles = "";
-			if(resource.getRoles().getValue() != null) {
-				roles = resource.getRoles().getValue();
-			}
-			
-			String manager = "";
-			if(resource.getEmailAddress().getValue() != null) {
-				manager = resource.getEmailAddress().getValue();
-			}
+			for (int i = 0; i < resourceList.size(); i++)
+			{
+				Resource resource = (Resource)(resourceList).get(i);
+				
+				if(!checkList.contains(resource.getResourceProfileId()))
+				{
+					rvo = new ResourcesVO();
+					
+					checkList.add(resource.getResourceProfileId());
+					
+					String resourceProfileId = resource.getResourceProfileId().toString();
+					String partyId           = resource.getPartyId().toString();
+					String partyName         = resource.getPartyName() ;
+					String partyNumber       = resource.getPartyNumber();
+					String emailAddress      = resource.getEmailAddress().getValue();
+					String userName          = resource.getUsername().getValue();
+					String managerId         = resource.getResourceEOManagerPartyIdC().getValue();
+					
+					String roles = "";
+					if(resource.getRoles().getValue() != null) {
+						roles = resource.getRoles().getValue();
+					}
+					
+					String manager = "";
+					if(resource.getEmailAddress().getValue() != null) {
+						manager = resource.getEmailAddress().getValue();
+					}
 
-			String organizations = "";
-			if(resource.getEmailAddress().getValue() != null) {
-				organizations = resource.getOrganizations().getValue();
+					String organizations = "";
+					if(resource.getEmailAddress().getValue() != null) {
+						organizations = resource.getOrganizations().getValue();
+					}
+					
+					String dliveBranchCode = "";
+					if(resource.getResourceEODliveBranchCodeC().getValue() != null) {
+						dliveBranchCode = resource.getResourceEODliveBranchCodeC().getValue();
+					}
+					
+					logger.debug("#["+i+"]");
+					logger.debug("Resource ResourceProfileId   : " + resourceProfileId);
+					logger.debug("Resource PartyId             : " + partyId);
+					logger.debug("Resource PartyName           : " + partyName);
+					logger.debug("Resource PartyNumber         : " + partyNumber);
+					logger.debug("Resource Roles               : " + roles);
+					logger.debug("Resource EmailAddress        : " + emailAddress);
+					logger.debug("Resource UserName            : " + userName);
+					logger.debug("Resource Manager             : " + manager);
+					logger.debug("Resource ManagerId           : " + managerId);
+					logger.debug("Resource Organizations       : " + organizations);
+					logger.debug("Resource DliveBranchCode     : " + dliveBranchCode);
+					
+					rvo.setResourceProfileId(resourceProfileId);
+					rvo.setPartyId(partyId);
+					rvo.setPartyName(partyName);
+					rvo.setPartyNumber(partyNumber);
+					rvo.setRoles(roles);
+					rvo.setEmailAddress(emailAddress);
+					rvo.setUserName(userName);
+					rvo.setManager(manager);
+					rvo.setManagerId(managerId);
+					rvo.setOrganizations(organizations);
+					rvo.setDliveBranchCode(dliveBranchCode);
+					rvo.setBatchJobId(batchJobId);
+					
+					tgtList.add(rvo);
+				}
+				else {
+					logger.info("ResourceProfileId : " + resource.getResourceProfileId());
+				}
 			}
-			
-			String dliveBranchCode = "";
-			if(resource.getResourceEODliveBranchCodeC().getValue() != null) {
-				dliveBranchCode = resource.getResourceEODliveBranchCodeC().getValue();
-			}
-			
-			logger.debug("#["+i+"]");
-			logger.debug("Resource ResourceProfileId   : " + resourceProfileId);
-			logger.debug("Resource PartyId             : " + partyId);
-			logger.debug("Resource PartyName           : " + partyName);
-			logger.debug("Resource PartyNumber         : " + partyNumber);
-			logger.debug("Resource Roles               : " + roles);
-			logger.debug("Resource EmailAddress        : " + emailAddress);
-			logger.debug("Resource UserName            : " + userName);
-			logger.debug("Resource Manager             : " + manager);
-			logger.debug("Resource ManagerId           : " + managerId);
-			logger.debug("Resource Organizations       : " + organizations);
-			logger.debug("Resource DliveBranchCode     : " + dliveBranchCode);
-			
-			rvo.setResourceProfileId(resourceProfileId);
-			rvo.setPartyId(partyId);
-			rvo.setPartyName(partyName);
-			rvo.setPartyNumber(partyNumber);
-			rvo.setRoles(roles);
-			rvo.setEmailAddress(emailAddress);
-			rvo.setUserName(userName);
-			rvo.setManager(manager);
-			rvo.setManagerId(managerId);
-			rvo.setOrganizations(organizations);
-			rvo.setDliveBranchCode(dliveBranchCode);
-			
-			tgtList.add(rvo);
-			
-		}
+		} 
+		while(resultSize == pageSize);
+		
 		
 		logger.info("End SalesCloud GetAllResource");
 		
@@ -168,30 +210,33 @@ public class ResourcesManagement {
 		Map<String, Object> batchMap = new HashMap<String, Object>();
 		List<List<ResourcesVO>> subList = new ArrayList<List<ResourcesVO>>();		// list를 나누기 위한 temp
 		
-		int result1        = 0;
-		int result2        = 0;
-		int splitSize     = 1000;	// partition 나누기
+		int tmp_insert_result  = 0;
+		int sc_insert_result   = 0;
+		int delete_result      = 0;
+		int splitSize          = 1000;	// partition 나누기
 		
-		session.delete("interface.deleteResourcesTemp");
+		delete_result = session.delete("interface.deleteResourcesTemp");
+		if(delete_result != 0) {
+			session.commit();
+		}
 		
 		if(resourcesList.size() > splitSize) {
 			subList = Lists.partition(resourcesList, splitSize);
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
-				result1 = session.update("interface.insertResoucesTemp", batchMap);		// addbatch
+				tmp_insert_result = session.update("interface.insertResoucesTemp", batchMap);		// addbatch
 			}
 		}
 		else {
 			batchMap.put("list", resourcesList);
-			result1 = session.update("interface.insertResoucesTemp", batchMap);
-			
+			tmp_insert_result = session.update("interface.insertResoucesTemp", batchMap);
 		}
 		
-		if(result1 != 0) {
-			result2 = session.update("interface.insertResources");
+		if(tmp_insert_result != 0) {
+			sc_insert_result = session.update("interface.insertResources");
 
-			if(result2 != 0) {
+			if(sc_insert_result != 0) {
 				session.commit();
 				logger.info("InterFace Resources Table Insert End");
 			}
@@ -200,70 +245,7 @@ public class ResourcesManagement {
 			logger.info("Temp Table Insert ERROR");
 		}
 
-		return result2;
-	}
-	
-	//레벨 나누기
-	public void selectLevel() throws Exception
-	{
-		logger.info("InterFace Resources Table Level Start");
-		
-		//부서 동기화를 위한 레벨 값 비우기
-		ResourcesLevel lv = new ResourcesLevel(session);
-		
-		int lvReset = 0;
-		int resultLv1 = 0;
-		int resultLv2 = 0;
-		int resultLv3 = 0;
-		int resultLv4 = 0;
-		int resultLv5 = 0;
-		
-		lvReset = lv.lvReset();
-		
-		if(lvReset != 0) 
-		{
-			ResourcesVO rvo = lv.getResourcesLv1();		// Lv1
-			
-			String resourceProFileId = rvo.getResourceProfileId();
-			String managerIdLv1 = rvo.getPartyId();
-			String lv1 = rvo.getOrganizations();
-			
-			resultLv1 = lv.updateLv1(resourceProFileId, lv1);
-			resultLv2 = lv.updateLv2(managerIdLv1, lv1);
-			
-			List<ResourcesVO> rvoListLv2 = lv.getResourcesLvMore(managerIdLv1);
-			for(int i=0; i < rvoListLv2.size(); i++)
-			{
-				ResourcesVO rvoLv2 = rvoListLv2.get(i);
-				
-				String managerIdLv2 = rvoLv2.getPartyId();
-				String lv2 = rvoLv2.getOrganizations();
-				resultLv3 = lv.updateLv3(managerIdLv2, lv1, lv2); 
-				
-				List<ResourcesVO> rvoListLv3 = lv.getResourcesLvMore(managerIdLv2);
-				for(int j=0; j < rvoListLv3.size(); j++)
-				{
-					ResourcesVO rvoLv3 = rvoListLv3.get(j);
-					
-					String managerIdLv3 = rvoLv3.getPartyId();
-					String lv3 = rvoLv3.getOrganizations();
-					resultLv4 = lv.updateLv4(managerIdLv3, lv1, lv2, lv3);
-					
-					List<ResourcesVO> rvoListLv4 = lv.getResourcesLvMore(managerIdLv3);
-					for(int k=0; k < rvoListLv4.size(); k++)
-					{
-						ResourcesVO rvoLv4 = rvoListLv4.get(k);
-						
-						String managerIdLv4 = rvoLv4.getPartyId();
-						String lv4 = rvoLv4.getOrganizations();
-						
-						resultLv5 = lv.updateLv5(managerIdLv4, lv1, lv2, lv3, lv4);
-					}
-				}
-			}
-		}
-		
-    	logger.info("InterFace Resources Table Level End");
+		return sc_insert_result;
 	}
 	
 	public FindCriteria getCriteria(String itemAttribute, String itemValue, String[] items) throws Exception

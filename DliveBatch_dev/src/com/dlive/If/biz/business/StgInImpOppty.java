@@ -21,7 +21,7 @@ public class StgInImpOppty {
 
 	public void stgInImp()
 	{
-		logger.info("From Stg oppty To imp oppty/oppty_account insert");
+		logger.info("Start Stg oppty To imp oppty/oppty_account insert");
 		
 		try {
 			int tmp_insert_result    = 0;
@@ -43,8 +43,8 @@ public class StgInImpOppty {
 				if(tmp_insert_result != 0) 
 				{
 					// oppty_account & oppty imp table insert
-					oppty_account_result = mssession.update("interface.mergeImpOpptyAccount", dateMap);
-					oppty_result         = mssession.update("interface.mergeImpOppty", dateMap);
+					oppty_account_result = mssession.update("interface.mergeImpOpptyAccount", batchJobId);
+					oppty_result         = mssession.update("interface.mergeImpOppty", batchJobId);
 					
 					logger.debug("oppty account result : " + oppty_account_result);
 					logger.debug("oppty result         : " + oppty_result);
@@ -69,7 +69,7 @@ public class StgInImpOppty {
 			// TODO: handle exception
 			logger.info("error : " + e.toString());
 		}
-		
+		logger.info("End Stg oppty To imp oppty/oppty_account insert");
 	}
 }
 

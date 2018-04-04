@@ -2,12 +2,15 @@ package vo;
 
 public class SrVO {
 	
-	private String SrId;
+	private Long SrId;
+	private Long AssigneePartyId;
+	private Long AccountPartyId;
+	private Long PrimaryContactPartyId;
+	
 	private String SrNumber;
 	private String Title;
 	private String ProblemDescription;
 	private String SeverityCd;
-	private String AssigneePartyId;
 	private String AssigneePersonName;
 	private String AssigneeEmailAddress;
 	private String CreatedBy;
@@ -15,9 +18,7 @@ public class SrVO {
 	private String LastUpdateDate;
 	private String LastUpdatedBy;
 	private String LastUpdatedByDisplayName;
-	private String AccountPartyId;
 	private String AccountPartyName;
-	private String PrimaryContactPartyId;
 	private String PrimaryContactPartyName;
 	private String ClosedDate;
 	private String OpenDate;
@@ -38,12 +39,31 @@ public class SrVO {
 	private String ApprovalYN_c;
 	private String SRBranch_c;
 	private String ProblemResult_c;
+	private String batchJobId;
 	
-	public String getSrId() {
+	public Long getSrId() {
 		return SrId;
 	}
-	public void setSrId(String srId) {
+	public void setSrId(Long srId) {
 		SrId = srId;
+	}
+	public Long getAssigneePartyId() {
+		return AssigneePartyId;
+	}
+	public void setAssigneePartyId(Long assigneePartyId) {
+		AssigneePartyId = assigneePartyId;
+	}
+	public Long getAccountPartyId() {
+		return AccountPartyId;
+	}
+	public void setAccountPartyId(Long accountPartyId) {
+		AccountPartyId = accountPartyId;
+	}
+	public Long getPrimaryContactPartyId() {
+		return PrimaryContactPartyId;
+	}
+	public void setPrimaryContactPartyId(Long primaryContactPartyId) {
+		PrimaryContactPartyId = primaryContactPartyId;
 	}
 	public String getSrNumber() {
 		return SrNumber;
@@ -68,12 +88,6 @@ public class SrVO {
 	}
 	public void setSeverityCd(String severityCd) {
 		SeverityCd = severityCd;
-	}
-	public String getAssigneePartyId() {
-		return AssigneePartyId;
-	}
-	public void setAssigneePartyId(String assigneePartyId) {
-		AssigneePartyId = assigneePartyId;
 	}
 	public String getAssigneePersonName() {
 		return AssigneePersonName;
@@ -117,23 +131,11 @@ public class SrVO {
 	public void setLastUpdatedByDisplayName(String lastUpdatedByDisplayName) {
 		LastUpdatedByDisplayName = lastUpdatedByDisplayName;
 	}
-	public String getAccountPartyId() {
-		return AccountPartyId;
-	}
-	public void setAccountPartyId(String accountPartyId) {
-		AccountPartyId = accountPartyId;
-	}
 	public String getAccountPartyName() {
 		return AccountPartyName;
 	}
 	public void setAccountPartyName(String accountPartyName) {
 		AccountPartyName = accountPartyName;
-	}
-	public String getPrimaryContactPartyId() {
-		return PrimaryContactPartyId;
-	}
-	public void setPrimaryContactPartyId(String primaryContactPartyId) {
-		PrimaryContactPartyId = primaryContactPartyId;
 	}
 	public String getPrimaryContactPartyName() {
 		return PrimaryContactPartyName;
@@ -255,24 +257,28 @@ public class SrVO {
 	public void setProblemResult_c(String problemResult_c) {
 		ProblemResult_c = problemResult_c;
 	}
+	public String getBatchJobId() {
+		return batchJobId;
+	}
+	public void setBatchJobId(String batchJobId) {
+		this.batchJobId = batchJobId;
+	}
 	
 	@Override
 	public String toString() {
-		return "SrVO [SrId=" + SrId + ", SrNumber=" + SrNumber + ", Title=" + Title + ", ProblemDescription="
-				+ ProblemDescription + ", SeverityCd=" + SeverityCd + ", AssigneePartyId=" + AssigneePartyId
-				+ ", AssigneePersonName=" + AssigneePersonName + ", AssigneeEmailAddress=" + AssigneeEmailAddress
-				+ ", CreatedBy=" + CreatedBy + ", CreationDate=" + CreationDate + ", LastUpdateDate=" + LastUpdateDate
-				+ ", LastUpdatedBy=" + LastUpdatedBy + ", LastUpdatedByDisplayName=" + LastUpdatedByDisplayName
-				+ ", AccountPartyId=" + AccountPartyId + ", AccountPartyName=" + AccountPartyName
-				+ ", PrimaryContactPartyId=" + PrimaryContactPartyId + ", PrimaryContactPartyName="
-				+ PrimaryContactPartyName + ", ClosedDate=" + ClosedDate + ", OpenDate=" + OpenDate
-				+ ", LastResolvedDate=" + LastResolvedDate + ", SourceCd=" + SourceCd + ", ChannelTypeCd="
-				+ ChannelTypeCd + ", StatusCd=" + StatusCd + ", StatusF_c=" + StatusF_c + ", DeleteFlag=" + DeleteFlag
-				+ ", ServiceType_c=" + ServiceType_c + ", ApprovalID_c=" + ApprovalID_c + ", CompleteType_c="
-				+ CompleteType_c + ", Competitor_c=" + Competitor_c + ", CompetitorETC_c=" + CompetitorETC_c
-				+ ", BranchNameF_c=" + BranchNameF_c + ", BranchCodeF_c=" + BranchCodeF_c + ", DliveCloseDt_c="
-				+ DliveCloseDt_c + ", ApprovalYN_c=" + ApprovalYN_c + ", SRBranch_c=" + SRBranch_c
-				+ ", ProblemResult_c=" + ProblemResult_c + "]";
+		return "SrVO [SrId=" + SrId + ", AssigneePartyId=" + AssigneePartyId + ", AccountPartyId=" + AccountPartyId
+				+ ", PrimaryContactPartyId=" + PrimaryContactPartyId + ", SrNumber=" + SrNumber + ", Title=" + Title
+				+ ", ProblemDescription=" + ProblemDescription + ", SeverityCd=" + SeverityCd + ", AssigneePersonName="
+				+ AssigneePersonName + ", AssigneeEmailAddress=" + AssigneeEmailAddress + ", CreatedBy=" + CreatedBy
+				+ ", CreationDate=" + CreationDate + ", LastUpdateDate=" + LastUpdateDate + ", LastUpdatedBy="
+				+ LastUpdatedBy + ", LastUpdatedByDisplayName=" + LastUpdatedByDisplayName + ", AccountPartyName="
+				+ AccountPartyName + ", PrimaryContactPartyName=" + PrimaryContactPartyName + ", ClosedDate="
+				+ ClosedDate + ", OpenDate=" + OpenDate + ", LastResolvedDate=" + LastResolvedDate + ", SourceCd="
+				+ SourceCd + ", ChannelTypeCd=" + ChannelTypeCd + ", StatusCd=" + StatusCd + ", StatusF_c=" + StatusF_c
+				+ ", DeleteFlag=" + DeleteFlag + ", ServiceType_c=" + ServiceType_c + ", ApprovalID_c=" + ApprovalID_c
+				+ ", CompleteType_c=" + CompleteType_c + ", Competitor_c=" + Competitor_c + ", CompetitorETC_c="
+				+ CompetitorETC_c + ", BranchNameF_c=" + BranchNameF_c + ", BranchCodeF_c=" + BranchCodeF_c
+				+ ", DliveCloseDt_c=" + DliveCloseDt_c + ", ApprovalYN_c=" + ApprovalYN_c + ", SRBranch_c=" + SRBranch_c
+				+ ", ProblemResult_c=" + ProblemResult_c + ", batchJobId=" + batchJobId + "]";
 	}
-
 }

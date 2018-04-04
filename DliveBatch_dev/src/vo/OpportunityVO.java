@@ -48,6 +48,7 @@ public class OpportunityVO {
 	private String creationDate;
 	private String lastUpdateDate;
 	private String lastUpdatedBy;
+	private String batchJobId;
 	
 	public String getOptyId() {
 		return optyId;
@@ -325,6 +326,12 @@ public class OpportunityVO {
 	public void setLastUpdatedBy(String lastUpdatedBy) {
 		this.lastUpdatedBy = lastUpdatedBy;
 	}
+	public String getBatchJobId() {
+		return batchJobId;
+	}
+	public void setBatchJobId(String batchJobId) {
+		this.batchJobId = batchJobId;
+	}
 	
 	@Override
 	public String toString() {
@@ -344,7 +351,7 @@ public class OpportunityVO {
 				+ ", good2CalcF_c=" + good2CalcF_c + ", good3CalcF_c=" + good3CalcF_c + ", good4CalcF_c=" + good4CalcF_c
 				+ ", goodTotalCalcF_c=" + goodTotalCalcF_c + ", optyBranch_c=" + optyBranch_c + ", createdBy="
 				+ createdBy + ", creationDate=" + creationDate + ", lastUpdateDate=" + lastUpdateDate
-				+ ", lastUpdatedBy=" + lastUpdatedBy + "]";
+				+ ", lastUpdatedBy=" + lastUpdatedBy + ", batchJobId=" + batchJobId + "]";
 	}
 	
 }

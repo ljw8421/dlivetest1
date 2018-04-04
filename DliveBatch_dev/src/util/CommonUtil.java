@@ -29,7 +29,6 @@ public class CommonUtil {
 	public List<Map<String, Object>> addFilterList(String[] itemAttribute, String[] itemValue,
 			boolean[] upperCaseCompare, String[] operator) 
 	{
-
 		List<Map<String, Object>> filterList = null;
 		Map<String, Object> filterMap;
 
@@ -44,24 +43,41 @@ public class CommonUtil {
 				{
 					for (int i = 0; i < itemAttribute.length; i++) 
 					{
-						if (!itemValue[i].equals("") || !isEmpty(itemValue[i])) 
+						if (!"".equals(itemValue[i]) || !isEmpty(itemValue[i]))
 						{
-							filterMap = new HashMap<>();
-							filterMap.put("itemAttribute", itemAttribute[i]);
-							filterMap.put("itemValue", itemValue[i]);
-							filterMap.put("upperCaseCompare", isEmpty(upperCaseCompare[i]));
-							filterMap.put("itemOperator", operator[i]);
+							if("ISBLANK".equals(operator[i])) 
+							{
+								filterMap = new HashMap<>();
+								filterMap.put("itemAttribute", itemAttribute[i]);
+								filterMap.put("upperCaseCompare", isEmpty(upperCaseCompare[i]));
+								filterMap.put("itemOperator", operator[i]);
 
-							filterList.add(filterMap);
-						} 
-						else if (itemAttribute[i].equals("ApprovalID_c")) 
-						{
-							filterMap = new HashMap<>();
-							filterMap.put("itemAttribute", itemAttribute[i]);
-							filterMap.put("upperCaseCompare", isEmpty(upperCaseCompare[i]));
-							filterMap.put("itemOperator", operator[i]);
+								filterList.add(filterMap);
+							}
+							else if("BETWEEN".equals(operator[i]))
+							{
+								filterMap = new HashMap<>();
+								filterMap.put("itemAttribute", itemAttribute[i]);
+								filterMap.put("upperCaseCompare", isEmpty(upperCaseCompare[i]));
+								filterMap.put("itemOperator", operator[i]);
 
-							filterList.add(filterMap);
+								String values[] = itemValue[i].split(",");
+								filterMap.put("itemValue", values);
+								
+								logger.info("values : " + values[1]);
+								
+								filterList.add(filterMap);
+							}
+							else 
+							{
+								filterMap = new HashMap<>();
+								filterMap.put("itemAttribute", itemAttribute[i]);
+								filterMap.put("itemValue", itemValue[i]);
+								filterMap.put("upperCaseCompare", isEmpty(upperCaseCompare[i]));
+								filterMap.put("itemOperator", operator[i]);
+
+								filterList.add(filterMap);
+							}
 						}
 					}
 				}
@@ -87,6 +103,7 @@ public class CommonUtil {
 			int pageNum, int size) throws Exception 
 	{
 		int start = (pageNum - 1) * size;
+		logger.debug("start : " + start);
 
 		FindCriteria findCriteria = new FindCriteria();
 
@@ -104,13 +121,21 @@ public class CommonUtil {
 				{
 					ViewCriteriaItem item1 = new ViewCriteriaItem();
 
-					if (filterList.get(i).get("itemAttribute").equals("ApprovalID_c")) 
+					if ("ISBLANK".equals(filterList.get(i).get("itemOperator"))) 
 					{
 						item1.setAttribute((String) filterList.get(i).get("itemAttribute"));
 						item1.setUpperCaseCompare((boolean) filterList.get(i).get("upperCaseCompare"));
 						item1.setOperator((String) filterList.get(i).get("itemOperator"));
-
-						group1.getItem().add(item1);
+					}
+					else if("BETWEEN".equals(filterList.get(i).get("itemOperator")))
+					{
+						item1.setAttribute((String) filterList.get(i).get("itemAttribute"));
+						item1.setUpperCaseCompare((boolean) filterList.get(i).get("upperCaseCompare"));
+						item1.setOperator((String) filterList.get(i).get("itemOperator"));
+						
+						for(String tmp : (String[]) filterList.get(i).get("itemValue")) {
+							item1.getValue().add(tmp);
+						}
 					}
 					else 
 					{
@@ -118,9 +143,9 @@ public class CommonUtil {
 						item1.getValue().add((String) filterList.get(i).get("itemValue"));
 						item1.setUpperCaseCompare((boolean) filterList.get(i).get("upperCaseCompare"));
 						item1.setOperator((String) filterList.get(i).get("itemOperator"));
-
-						group1.getItem().add(item1);
 					}
+					
+					group1.getItem().add(item1);
 				}
 				
 				group1.setConjunction(conjunction);
@@ -140,36 +165,50 @@ public class CommonUtil {
 	/**
 	 * 입력한 날짜가 없을 때 오늘 기준 전일 자 구하는 함수
 	 * */
-	public String getYesterDay() 
+	public String getYesterday() 
 	{
 		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
         Calendar today = Calendar.getInstance();
         
-        String nowYear  = ""+today.get(Calendar.YEAR);
         String yesterday = "";
-        String fromDt, toDt;
-        
-        int today_month = today.get(Calendar.MONTH) + 1;        // 오늘날짜의 월(month) 
         
         today.add(Calendar.DATE, -1);        					// 어제 날짜(day)
-        toDt = dateForm.format(today.getTime());				// Data -> String convert
+        yesterday = dateForm.format(today.getTime());			// Data -> String convert
         
-		int yesterday_month = today.get(Calendar.MONTH) + 1;	// 어제 날짜 month
-
-        if(yesterday_month == today_month)		// 어제와 오늘 달을 같을 때 
-        {
-                today.set(Calendar.DATE, 1);
-                today.add(Calendar.DATE, -1);
-                today.set(Calendar.DATE, 1);
-                fromDt = dateForm.format(today.getTime());
-        } 
-        else									// 어제와 오늘 달을 다를 때 
-        {
-                today.set(Calendar.DATE, 1);
-                fromDt = dateForm.format(today.getTime());
-        }
-		
 		return yesterday;
+	}
+	
+	/**
+	 * 입력한 날짜가 없을 때 오늘 기준 내일 자 구하는 함수
+	 * */
+	public String getTomorrow(String paramDt) throws Exception
+	{
+		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+        Date tmp = dateForm.parse(paramDt);
+		
+		Calendar today = Calendar.getInstance();
+		today.setTime(tmp);
+        
+        String tomorrowday = "";
+        
+        today.add(Calendar.DATE, 1);        					// 내일 날짜(day)
+        tomorrowday = dateForm.format(today.getTime());			// Data -> String convert
+        
+		return tomorrowday;
+	}
+	
+	/**
+	 * 입력한 날짜가 없을 때 오늘 기준 전일 자 구하는 함수
+	 * */
+	public String getToday() 
+	{
+		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar today = Calendar.getInstance();
+        
+        String todayDt;
+        todayDt = dateForm.format(today.getTime());				// Data -> String convert
+        
+		return todayDt;
 	}
 	
 	/**

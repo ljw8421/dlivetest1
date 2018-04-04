@@ -37,14 +37,19 @@ public class LeadManagement {
 	private static QName serviceName = null;
 	
 	SqlSession session;
-	private String batchJobId;
 	CommonUtil commonUtil;
+	
+	private String batchJobId;
+	private String paramDt, todayDt, betweenDt;
 	
 	private static Logger logger = Logger.getLogger(LeadManagement.class);
 	
 	public LeadManagement(SqlSession session, Map<String, String> map) {
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
+		this.paramDt    = map.get("paramDt");
+		this.todayDt    = map.get("todayDt");
+		this.betweenDt  = paramDt+","+todayDt;
 	}
 	
 	public void initialize(String username, String password, String url)
@@ -93,20 +98,20 @@ public class LeadManagement {
 						 };
 
 		String itemAttribute[] = {
-									"PartyId"
-								 };
-		
+				"LastUpdateDate"
+			 };
+
 		String itemValue[] = {
-								""
-							 };
+						betweenDt
+				 };
 		
 		boolean upperCaseCompare[] = {
-										true
-									 };
+							true
+						 };
 		
 		String operator[] = {
-								"="
-							};
+					"BETWEEN"
+				};
 		
 		Conjunction conjunction =  Conjunction.AND;
 		
@@ -123,8 +128,8 @@ public class LeadManagement {
 		FindControl findControl = new FindControl();
 		
 		List<MklLead> salesLeadResult = null;
-		List leadList = null;
 		List<LeadVO> tgtList = new ArrayList<LeadVO>();
+		List<Long> checkList = new ArrayList<Long>();
 		
 		do
 		{
@@ -132,235 +137,244 @@ public class LeadManagement {
 			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
 			
 			salesLeadResult = salesLeadService.findSalesLead(findCriteria, findControl);
-			leadList = salesLeadResult;
-			resultSize= leadList.size();
+			resultSize= salesLeadResult.size();
 			
-			for (int i = 0; i < leadList.size(); i++) {
-				
+			for (int i = 0; i < salesLeadResult.size(); i++) 
+			{
 				LeadVO leadVo = new LeadVO();
-				MklLead lead = (MklLead) leadList.get(i);
+				MklLead lead = (MklLead) salesLeadResult.get(i);
 				
-				String leadId  = lead.getLeadId().toString();
-				
-				String leadName           = lead.getName();
-				String createdBy          = lead.getCreatedBy();
-				String lastUpdatedBy      = lead.getLastUpdatedBy();
-				
-				String ownerId = null;
-				if(lead.getOwnerId().getValue() != null) {
-					ownerId = lead.getOwnerId().getValue().toString();
-				}
+				if(!checkList.contains(lead.getLeadId()))
+				{
+					checkList.add(lead.getLeadId());
 					
-				String customerId = null;
-				if(lead.getCustomerId().getValue() != null) {
-					customerId = lead.getCustomerId().getValue().toString();
+					String leadId  = lead.getLeadId().toString();
+					
+					String leadName           = lead.getName();
+					String createdBy          = lead.getCreatedBy();
+					String lastUpdatedBy      = lead.getLastUpdatedBy();
+					
+					String ownerId = null;
+					if(lead.getOwnerId().getValue() != null) {
+						ownerId = lead.getOwnerId().getValue().toString();
+					}
+					
+					String customerId = null;
+					if(lead.getCustomerId().getValue() != null) {
+						customerId = lead.getCustomerId().getValue().toString();
+					}
+					
+					String primaryContactId = null;
+					if(lead.getPrimaryContactId().getValue() != null) {
+						primaryContactId = lead.getPrimaryContactId().getValue().toString(); 
+					}
+					
+					String leadNumber = null;
+					if(lead.getLeadNumber() != null) {
+						leadNumber = lead.getLeadNumber().getValue();
+					}
+					
+					String ownerPartyName = null;
+					if(lead.getOwnerPartyName() != null) {
+						ownerPartyName = lead.getOwnerPartyName();
+					}
+					
+					String customerRegistryId = null;
+					if(lead.getCustomerRegistryId() != null) {
+						customerRegistryId = lead.getCustomerRegistryId();
+					}
+					
+					String statusCode = null;
+					if(lead.getStatusCode() != null) {
+						statusCode = lead.getStatusCode().getValue();
+					}
+					
+					String customerPartyName = null;
+					if(lead.getCustomerPartyName() != null) {
+						customerPartyName = lead.getCustomerPartyName().getValue();
+					}
+					
+					String description = "";
+					if(lead.getDescription().getValue() != null) {
+						description = lead.getDescription().getValue().toString();
+					}
+					
+					String channelType = null;
+					if(lead.getChannelType() != null) {
+						channelType = lead.getChannelType().getValue();
+					}
+					
+					String channelTypeMeaning = null;
+					if(lead.getChannelTypeMeaning() != null) {
+						channelTypeMeaning = lead.getChannelTypeMeaning().getValue();
+					}
+					
+					String statusCdMeaning = null;
+					if(lead.getStatusCdMeaning() != null) {
+						statusCdMeaning = lead.getStatusCdMeaning().getValue();
+					}
+					
+					String salesChannelMeaning = null;
+					if(lead.getSalesChannelMeaning() != null) {
+						salesChannelMeaning = lead.getSalesChannelMeaning().getValue();
+					}
+					
+					String primaryContactPartyName = null;
+					if(lead.getPrimaryContactPartyName() != null) {
+						primaryContactPartyName = lead.getPrimaryContactPartyName().getValue();
+					}
+					
+					String primaryContactCountry = null;
+					if(lead.getPrimaryContactCountry() != null) {
+						primaryContactCountry = lead.getPrimaryContactCountry().getValue();
+					}
+					
+					String primaryContactProvince = null;
+					if(lead.getPrimaryContactProvince() != null) {
+						primaryContactProvince = lead.getPrimaryContactProvince().getValue();
+					}
+					
+					String primaryContactState = null;
+					if(lead.getPrimaryContactState() != null) {
+						primaryContactState = lead.getPrimaryContactState().getValue();
+					}
+					
+					String primaryContactCity = null;
+					if(lead.getPrimaryContactCity() != null) {
+						primaryContactCity = lead.getPrimaryContactCity().getValue();
+					}
+					
+					String primaryContactAddress1 = null;
+					if(lead.getPrimaryContactAddress1() != null) {
+						primaryContactAddress1 = lead.getPrimaryContactAddress1().getValue();
+					}
+					
+					String primaryContactAddress2 = null;
+					if(lead.getPrimaryContactAddress2() != null) {
+						primaryContactAddress2 = lead.getPrimaryContactAddress2().getValue();
+					}
+					
+					String primaryContactPostalCode = null;
+					if(lead.getPrimaryContactPostalCode() != null) {
+						primaryContactPostalCode = lead.getPrimaryContactPostalCode().getValue();
+					}
+					
+					String retiredDateTime = null;
+					if(lead.getRetiredDateTime().getValue() != null) {
+						retiredDateTime = lead.getRetiredDateTime().getValue().toString();
+					}
+					
+					String convertedTimestamp = null;
+					if(lead.getConvertedTimestamp().getValue() != null) {
+						convertedTimestamp = lead.getConvertedTimestamp().getValue().toString();
+					}
+					
+					boolean deleteFlag = false;
+					if(lead.getDeleteFlag() != null) {
+						deleteFlag = lead.getDeleteFlag().getValue();
+					}
+					
+					String branchNameF_c = null;
+					if(lead.getBranchNameFC() != null) {
+						branchNameF_c = lead.getBranchNameFC().getValue();
+					}
+					
+					String branchCodeF_c = null;
+					if(lead.getBranchCode() != null) {
+						branchCodeF_c = lead.getBranchCode().getValue();
+					}
+					
+					String leadBranch_c = null;
+					if(lead.getLeadBranchC() != null) {
+						leadBranch_c = lead.getLeadBranchC().getValue();
+					}
+					
+					String creationDate = null;
+					if(lead.getCreationDate() != null) {
+						creationDate = lead.getCreationDate().toString();
+					}
+					
+					String lastUpdateDate = null;
+					if(lead.getLastUpdateDate() != null) {
+						lastUpdateDate = lead.getLastUpdateDate().toString();
+					}
+					
+					logger.debug("#["+i+"]");
+					logger.debug("Lead leadId                   : " + leadId);          
+					logger.debug("Lead name                     : " + leadName);
+					logger.debug("Lead leadNumber               : " + leadNumber);
+					logger.debug("Lead ownerPartyName           : " + ownerPartyName);
+					logger.debug("Lead ownerId                  : " + ownerId);
+					logger.debug("Lead statusCode               : " + statusCode);
+					logger.debug("Lead statusCdMeaning          : " + statusCdMeaning);
+					logger.debug("Lead customerPartyName        : " + customerPartyName);
+					logger.debug("Lead customerRegistryId       : " + customerRegistryId);
+					logger.debug("Lead customerId               : " + customerId);
+					logger.debug("Lead description              : " + description);
+					logger.debug("Lead channelType              : " + channelType);
+					logger.debug("Lead channelTypeMeaning       : " + channelTypeMeaning);
+					logger.debug("Lead salesChannelMeaning      : " + salesChannelMeaning);
+					logger.debug("Lead primaryContactPartyName  : " + primaryContactPartyName);
+					logger.debug("Lead primaryContactId         : " + primaryContactId);
+					logger.debug("Lead primaryContactCountry    : " + primaryContactCountry);
+					logger.debug("Lead primaryContactProvince   : " + primaryContactProvince);
+					logger.debug("Lead primaryContactState      : " + primaryContactState);
+					logger.debug("Lead primaryContactCity       : " + primaryContactCity);
+					logger.debug("Lead primaryContactAddress1   : " + primaryContactAddress1);
+					logger.debug("Lead primaryContactAddress2   : " + primaryContactAddress2);
+					logger.debug("Lead primaryContactPostalCode : " + primaryContactPostalCode);
+					logger.debug("Lead retiredDateTime          : " + retiredDateTime);
+					logger.debug("Lead convertedTimestamp       : " + convertedTimestamp);
+					logger.debug("Lead deleteFlag               : " + deleteFlag);
+					logger.debug("Lead branchNameF_c            : " + branchNameF_c);
+					logger.debug("Lead branchCodeF_c            : " + branchCodeF_c);
+					logger.debug("Lead leadBranch_c             : " + leadBranch_c);
+					logger.debug("Lead creationDate             : " + creationDate);
+					logger.debug("Lead createdBy                : " + createdBy);
+					logger.debug("Lead lastUpdateDate           : " + lastUpdateDate);
+					logger.debug("Lead lastUpdatedBy            : " + lastUpdatedBy);
+					
+					leadVo.setLeadId(leadId);
+					leadVo.setName(leadName);
+					leadVo.setLeadNumber(leadNumber);
+					leadVo.setOwnerPartyName(ownerPartyName);
+					leadVo.setOwnerId(ownerId);
+					leadVo.setStatusCode(statusCode);
+					leadVo.setStatusCdMeaning(statusCdMeaning);
+					leadVo.setCustomerPartyName(customerPartyName);
+					leadVo.setCustomerRegistryId(customerRegistryId);
+					leadVo.setCustomerId(customerId);
+					leadVo.setDescription(description);
+					leadVo.setChannelType(channelType);
+					leadVo.setChannelTypeMeaning(channelTypeMeaning);
+					leadVo.setSalesChannelMeaning(salesChannelMeaning);
+					leadVo.setPrimaryContactPartyName(primaryContactPartyName);
+					leadVo.setPrimaryContactId(primaryContactId);
+					leadVo.setPrimaryContactCountry(primaryContactCountry);
+					leadVo.setPrimaryContactProvince(primaryContactProvince);
+					leadVo.setPrimaryContactState(primaryContactState);
+					leadVo.setPrimaryContactCity(primaryContactCity);
+					leadVo.setPrimaryContactAddress1(primaryContactAddress1);
+					leadVo.setPrimaryContactAddress2(primaryContactAddress2);
+					leadVo.setPrimaryContactPostalCode(primaryContactPostalCode);
+					leadVo.setRetiredDateTime(retiredDateTime);
+					leadVo.setConvertedTimestamp(convertedTimestamp);
+					leadVo.setDeleteFlag(""+deleteFlag);
+					leadVo.setBranchNameF_c(branchNameF_c);
+					leadVo.setBranchCodeF_c(branchCodeF_c);
+					leadVo.setLeadBranch_c(leadBranch_c);
+					leadVo.setCreationDate(creationDate);
+					leadVo.setCreatedBy(createdBy);
+					leadVo.setLastUpdateDate(lastUpdateDate);
+					leadVo.setLastUpdatedBy(lastUpdatedBy);
+					leadVo.setBatchJobId(batchJobId);
+					
+					tgtList.add(leadVo);
+				}
+				else {
+					logger.info("LeadId Exist : " + lead.getLeadId());
 				}
 				
-				String primaryContactId = null;
-				if(lead.getPrimaryContactId().getValue() != null) {
-					primaryContactId = lead.getPrimaryContactId().getValue().toString(); 
-				}
-	
-				String leadNumber = null;
-				if(lead.getLeadNumber() != null) {
-					leadNumber = lead.getLeadNumber().getValue();
-				}
-				
-				String ownerPartyName = null;
-				if(lead.getOwnerPartyName() != null) {
-					ownerPartyName = lead.getOwnerPartyName();
-				}
-				
-				String customerRegistryId = null;
-				if(lead.getCustomerRegistryId() != null) {
-					customerRegistryId = lead.getCustomerRegistryId();
-				}
-				
-				String statusCode = null;
-				if(lead.getStatusCode() != null) {
-					statusCode = lead.getStatusCode().getValue();
-				}
-				
-				String customerPartyName = null;
-				if(lead.getCustomerPartyName() != null) {
-					customerPartyName = lead.getCustomerPartyName().getValue();
-				}
-				
-				String description = "";
-				if(lead.getDescription().getValue() != null) {
-					description = lead.getDescription().getValue().toString();
-				}
-				
-				String channelType = null;
-				if(lead.getChannelType() != null) {
-					channelType = lead.getChannelType().getValue();
-				}
-				
-				String channelTypeMeaning = null;
-				if(lead.getChannelTypeMeaning() != null) {
-					channelTypeMeaning = lead.getChannelTypeMeaning().getValue();
-				}
-				
-				String statusCdMeaning = null;
-				if(lead.getStatusCdMeaning() != null) {
-					statusCdMeaning = lead.getStatusCdMeaning().getValue();
-				}
-				
-				String salesChannelMeaning = null;
-				if(lead.getSalesChannelMeaning() != null) {
-					salesChannelMeaning = lead.getSalesChannelMeaning().getValue();
-				}
-				
-				String primaryContactPartyName = null;
-				if(lead.getPrimaryContactPartyName() != null) {
-					primaryContactPartyName = lead.getPrimaryContactPartyName().getValue();
-				}
-				
-				String primaryContactCountry = null;
-				if(lead.getPrimaryContactCountry() != null) {
-					primaryContactCountry = lead.getPrimaryContactCountry().getValue();
-				}
-				
-				String primaryContactProvince = null;
-				if(lead.getPrimaryContactProvince() != null) {
-					primaryContactProvince = lead.getPrimaryContactProvince().getValue();
-				}
-				
-				String primaryContactState = null;
-				if(lead.getPrimaryContactState() != null) {
-					primaryContactState = lead.getPrimaryContactState().getValue();
-				}
-				
-				String primaryContactCity = null;
-				if(lead.getPrimaryContactCity() != null) {
-					primaryContactCity = lead.getPrimaryContactCity().getValue();
-				}
-				
-				String primaryContactAddress1 = null;
-				if(lead.getPrimaryContactAddress1() != null) {
-					primaryContactAddress1 = lead.getPrimaryContactAddress1().getValue();
-				}
-				
-				String primaryContactAddress2 = null;
-				if(lead.getPrimaryContactAddress2() != null) {
-					primaryContactAddress2 = lead.getPrimaryContactAddress2().getValue();
-				}
-				
-				String primaryContactPostalCode = null;
-				if(lead.getPrimaryContactPostalCode() != null) {
-					primaryContactPostalCode = lead.getPrimaryContactPostalCode().getValue();
-				}
-				
-				String retiredDateTime = null;
-				if(lead.getRetiredDateTime().getValue() != null) {
-					retiredDateTime = lead.getRetiredDateTime().getValue().toString();
-				}
-				
-				String convertedTimestamp = null;
-				if(lead.getConvertedTimestamp().getValue() != null) {
-					convertedTimestamp = lead.getConvertedTimestamp().getValue().toString();
-				}
-				
-				boolean deleteFlag = false;
-				if(lead.getDeleteFlag() != null) {
-					deleteFlag = lead.getDeleteFlag().getValue();
-				}
-						
-				String branchNameF_c = null;
-				if(lead.getBranchNameFC() != null) {
-					branchNameF_c = lead.getBranchNameFC().getValue();
-				}
-				
-				String branchCodeF_c = null;
-				if(lead.getBranchCode() != null) {
-					branchCodeF_c = lead.getBranchCode().getValue();
-				}
-				
-				String leadBranch_c = null;
-				if(lead.getLeadBranchC() != null) {
-					leadBranch_c = lead.getLeadBranchC().getValue();
-				}
-				
-				String creationDate = null;
-				if(lead.getCreationDate() != null) {
-					creationDate = lead.getCreationDate().toString();
-				}
-				
-				String lastUpdateDate = null;
-				if(lead.getLastUpdateDate() != null) {
-					lastUpdateDate = lead.getLastUpdateDate().toString();
-				}
-				
-				logger.debug("#["+i+"]");
-				logger.debug("Lead leadId                   : " + leadId);          
-				logger.debug("Lead name                     : " + leadName);
-				logger.debug("Lead leadNumber               : " + leadNumber);
-				logger.debug("Lead ownerPartyName           : " + ownerPartyName);
-				logger.debug("Lead ownerId                  : " + ownerId);
-				logger.debug("Lead statusCode               : " + statusCode);
-				logger.debug("Lead statusCdMeaning          : " + statusCdMeaning);
-				logger.debug("Lead customerPartyName        : " + customerPartyName);
-				logger.debug("Lead customerRegistryId       : " + customerRegistryId);
-				logger.debug("Lead customerId               : " + customerId);
-				logger.debug("Lead description              : " + description);
-				logger.debug("Lead channelType              : " + channelType);
-				logger.debug("Lead channelTypeMeaning       : " + channelTypeMeaning);
-				logger.debug("Lead salesChannelMeaning      : " + salesChannelMeaning);
-				logger.debug("Lead primaryContactPartyName  : " + primaryContactPartyName);
-				logger.debug("Lead primaryContactId         : " + primaryContactId);
-				logger.debug("Lead primaryContactCountry    : " + primaryContactCountry);
-				logger.debug("Lead primaryContactProvince   : " + primaryContactProvince);
-				logger.debug("Lead primaryContactState      : " + primaryContactState);
-				logger.debug("Lead primaryContactCity       : " + primaryContactCity);
-				logger.debug("Lead primaryContactAddress1   : " + primaryContactAddress1);
-				logger.debug("Lead primaryContactAddress2   : " + primaryContactAddress2);
-				logger.debug("Lead primaryContactPostalCode : " + primaryContactPostalCode);
-				logger.debug("Lead retiredDateTime          : " + retiredDateTime);
-				logger.debug("Lead convertedTimestamp       : " + convertedTimestamp);
-				logger.debug("Lead deleteFlag               : " + deleteFlag);
-				logger.debug("Lead branchNameF_c            : " + branchNameF_c);
-				logger.debug("Lead branchCodeF_c            : " + branchCodeF_c);
-				logger.debug("Lead leadBranch_c             : " + leadBranch_c);
-				logger.debug("Lead creationDate             : " + creationDate);
-				logger.debug("Lead createdBy                : " + createdBy);
-				logger.debug("Lead lastUpdateDate           : " + lastUpdateDate);
-				logger.debug("Lead lastUpdatedBy            : " + lastUpdatedBy);
-				
-				leadVo.setLeadId(leadId);
-				leadVo.setName(leadName);
-				leadVo.setLeadNumber(leadNumber);
-				leadVo.setOwnerPartyName(ownerPartyName);
-				leadVo.setOwnerId(ownerId);
-				leadVo.setStatusCode(statusCode);
-				leadVo.setStatusCdMeaning(statusCdMeaning);
-				leadVo.setCustomerPartyName(customerPartyName);
-				leadVo.setCustomerRegistryId(customerRegistryId);
-				leadVo.setCustomerId(customerId);
-				leadVo.setDescription(description);
-				leadVo.setChannelType(channelType);
-				leadVo.setChannelTypeMeaning(channelTypeMeaning);
-				leadVo.setSalesChannelMeaning(salesChannelMeaning);
-				leadVo.setPrimaryContactPartyName(primaryContactPartyName);
-				leadVo.setPrimaryContactId(primaryContactId);
-				leadVo.setPrimaryContactCountry(primaryContactCountry);
-				leadVo.setPrimaryContactProvince(primaryContactProvince);
-				leadVo.setPrimaryContactState(primaryContactState);
-				leadVo.setPrimaryContactCity(primaryContactCity);
-				leadVo.setPrimaryContactAddress1(primaryContactAddress1);
-				leadVo.setPrimaryContactAddress2(primaryContactAddress2);
-				leadVo.setPrimaryContactPostalCode(primaryContactPostalCode);
-				leadVo.setRetiredDateTime(retiredDateTime);
-				leadVo.setConvertedTimestamp(convertedTimestamp);
-				leadVo.setDeleteFlag(""+deleteFlag);
-				leadVo.setBranchNameF_c(branchNameF_c);
-				leadVo.setBranchCodeF_c(branchCodeF_c);
-				leadVo.setLeadBranch_c(leadBranch_c);
-				leadVo.setCreationDate(creationDate);
-				leadVo.setCreatedBy(createdBy);
-				leadVo.setLastUpdateDate(lastUpdateDate);
-				leadVo.setLastUpdatedBy(lastUpdatedBy);
-				
-				tgtList.add(leadVo);
 				
 			}
 
@@ -381,30 +395,33 @@ public class LeadManagement {
 		Map<String, Object> batchMap = new HashMap<String, Object>();
 		List<List<LeadVO>> subList = new ArrayList<List<LeadVO>>();		// list를 나누기 위한 temp
 		
-		int result1        = 0;
-		int result2        = 0;
-		int splitSize      = 10;	// partition 나누기
+		int tmp_insert_result  = 0;
+		int sc_insert_result   = 0;
+		int delete_result      = 0;
+		int splitSize          = 10;	// partition 나누기
 		
-		session.delete("interface.deleteLeadTemp");
+		delete_result = session.delete("interface.deleteLeadTemp");
+		if(delete_result != 0) {
+			session.commit();
+		}
 		
 		if(leadList.size() > splitSize) {
 			subList = Lists.partition(leadList, splitSize);
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
-				result1 = session.update("interface.insertLeadTemp", batchMap);		// addbatch
+				tmp_insert_result = session.update("interface.insertLeadTemp", batchMap);		// addbatch
 			}
 		}
 		else {
 			batchMap.put("list", leadList);
-			result1 = session.update("interface.insertLeadTemp", batchMap);
+			tmp_insert_result = session.update("interface.insertLeadTemp", batchMap);
 		}
 		
-		
-		if(result1 != 0) {
-			result2 = session.update("interface.insertLead");
+		if(tmp_insert_result != 0) {
+			sc_insert_result = session.update("interface.insertLead");
 
-			if(result2 != 0) {
+			if(sc_insert_result != 0) {
 				session.commit();
 				logger.info("InterFace Resources Table Insert End");
 			}
@@ -413,7 +430,7 @@ public class LeadManagement {
 			logger.info("Temp Table Insert ERROR");
 		}
 
-		return result2;
+		return sc_insert_result;
 	}
 	
 }

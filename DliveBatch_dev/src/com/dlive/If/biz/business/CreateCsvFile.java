@@ -82,6 +82,18 @@ public class CreateCsvFile {
 			header.add("OpptyType_c");
 			header.add("OptyBranch_c");
 			break;
+		case "003":
+			header.add("PartyNumber");
+			header.add("ConaId_c");
+			header.add("OTTCount_c");
+			header.add("DTVCount_c");
+			header.add("ISPCount_c");
+			header.add("VoIPCount_c");
+			header.add("StandardFee_c");
+			header.add("SurFee_c");
+			header.add("ContractFrom_c");
+			header.add("ContractTo_c");
+	         break;
 		}
 		
 		data = new String[header.size()];

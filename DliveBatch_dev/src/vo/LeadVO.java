@@ -35,6 +35,7 @@ public class LeadVO {
 	private String CreatedBy;
 	private String LastUpdateDate;
 	private String LastUpdatedBy;
+	private String batchJobId;
 	
 	public String getSalesChannelMeaning() {
 		return SalesChannelMeaning;
@@ -234,23 +235,30 @@ public class LeadVO {
 	public void setLastUpdatedBy(String lastUpdatedBy) {
 		LastUpdatedBy = lastUpdatedBy;
 	}
+	public String getBatchJobId() {
+		return batchJobId;
+	}
+	public void setBatchJobId(String batchJobId) {
+		this.batchJobId = batchJobId;
+	}
 	
 	@Override
 	public String toString() {
 		return "LeadVO [LeadId=" + LeadId + ", Name=" + Name + ", LeadNumber=" + LeadNumber + ", OwnerPartyName="
 				+ OwnerPartyName + ", OwnerId=" + OwnerId + ", StatusCode=" + StatusCode + ", StatusCdMeaning="
-				+ StatusCdMeaning + ", CustomerPartyName=" + CustomerPartyName + ", CustomerRegistryId="
-				+ CustomerRegistryId + ", CustomerId=" + CustomerId + ", Description=" + Description + ", ChannelType="
-				+ ChannelType + ", ChannelTypeMeaning=" + ChannelTypeMeaning + ", PrimaryContactPartyName="
-				+ PrimaryContactPartyName + ", PrimaryContactId=" + PrimaryContactId + ", PrimaryContactCountry="
-				+ PrimaryContactCountry + ", PrimaryContactProvince=" + PrimaryContactProvince
-				+ ", PrimaryContactState=" + PrimaryContactState + ", PrimaryContactCity=" + PrimaryContactCity
-				+ ", PrimaryContactAddress1=" + PrimaryContactAddress1 + ", PrimaryContactAddress2="
-				+ PrimaryContactAddress2 + ", PrimaryContactPostalCode=" + PrimaryContactPostalCode
-				+ ", RetiredDateTime=" + RetiredDateTime + ", ConvertedTimestamp=" + ConvertedTimestamp
-				+ ", DeleteFlag=" + DeleteFlag + ", BranchNameF_c=" + BranchNameF_c + ", BranchCodeF_c=" + BranchCodeF_c
-				+ ", LeadBranch_c=" + LeadBranch_c + ", CreationDate=" + CreationDate + ", CreatedBy=" + CreatedBy
-				+ ", LastUpdateDate=" + LastUpdateDate + ", LastUpdatedBy=" + LastUpdatedBy + "]";
+				+ StatusCdMeaning + ", SalesChannelMeaning=" + SalesChannelMeaning + ", CustomerPartyName="
+				+ CustomerPartyName + ", CustomerRegistryId=" + CustomerRegistryId + ", CustomerId=" + CustomerId
+				+ ", Description=" + Description + ", ChannelType=" + ChannelType + ", ChannelTypeMeaning="
+				+ ChannelTypeMeaning + ", PrimaryContactPartyName=" + PrimaryContactPartyName + ", PrimaryContactId="
+				+ PrimaryContactId + ", PrimaryContactCountry=" + PrimaryContactCountry + ", PrimaryContactProvince="
+				+ PrimaryContactProvince + ", PrimaryContactState=" + PrimaryContactState + ", PrimaryContactCity="
+				+ PrimaryContactCity + ", PrimaryContactAddress1=" + PrimaryContactAddress1
+				+ ", PrimaryContactAddress2=" + PrimaryContactAddress2 + ", PrimaryContactPostalCode="
+				+ PrimaryContactPostalCode + ", RetiredDateTime=" + RetiredDateTime + ", ConvertedTimestamp="
+				+ ConvertedTimestamp + ", DeleteFlag=" + DeleteFlag + ", BranchNameF_c=" + BranchNameF_c
+				+ ", BranchCodeF_c=" + BranchCodeF_c + ", LeadBranch_c=" + LeadBranch_c + ", CreationDate="
+				+ CreationDate + ", CreatedBy=" + CreatedBy + ", LastUpdateDate=" + LastUpdateDate + ", LastUpdatedBy="
+				+ LastUpdatedBy + ", batchJobId=" + batchJobId + "]";
 	}
 	
 }

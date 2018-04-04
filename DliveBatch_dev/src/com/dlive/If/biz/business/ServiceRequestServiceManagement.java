@@ -249,45 +249,134 @@ public class ServiceRequestServiceManagement {
 			}
 			
 			String ChannelTypeCd = "";
+			if(serviceRequest.getChannelTypeCd() != null) {
+				ChannelTypeCd = serviceRequest.getChannelTypeCd().getValue();
+			}
+			
 			String StatusCd = "";
+			if(serviceRequest.getStatusCd() != null) {
+				StatusCd = serviceRequest.getStatusCd().getValue();
+			}
+			
 			String StatusF_c = "";
+			if(serviceRequest.getStatusFC() != null) {
+				StatusF_c = serviceRequest.getStatusFC().getValue();
+			}
+			
 			String DeleteFlag = "";
+			if(serviceRequest.getDeleteFlag() != null) {
+				if(serviceRequest.getDeleteFlag().equals(true))
+					DeleteFlag = "Y";
+				else
+					DeleteFlag = "N";
+			}
+			
 			String ServiceType_c = "";
+			if(serviceRequest.getServiceTypeC() != null) {
+				ServiceType_c = serviceRequest.getServiceTypeC();
+			}
+			
 			String ApprovalID_c = "";
+			if(serviceRequest.getApprovalIDC() != null) {
+				ApprovalID_c = serviceRequest.getApprovalIDC().getValue();
+			}
+			
 			String CompleteType_c = "";
+			if(serviceRequest.getCompleteTypeC() != null) {
+				CompleteType_c = serviceRequest.getCompleteTypeC().getValue();
+			}
+			
 			String Competitor_c = "";
+			if(serviceRequest.getCompetitorC() != null) {
+				Competitor_c = serviceRequest.getCompetitorC().getValue(); 
+			}
+			
 			String CompetitorETC_c = "";
+			if(serviceRequest.getCompetitorETCC() != null) {
+				CompetitorETC_c = serviceRequest.getCompetitorETCC().getValue();
+			}
+			
 			String BranchNameF_c = "";
+			if(serviceRequest.getBranchNameFC() != null) {
+				BranchNameF_c = serviceRequest.getBranchNameFC().getValue();
+			}
+			
 			String BranchCodeF_c = "";
+			if(serviceRequest.getBranchCodeFC() != null) {
+				BranchCodeF_c = serviceRequest.getBranchCodeFC().getValue();
+			}
+			
 			String DliveCloseDt_c = "";
-			String ApprovalYN_c = "";
-			String SRBranch_c = "";
-			String ProblemResult_c = "";
+			if(serviceRequest.getDliveCloseDtC().getValue() != null) {
+				DliveCloseDt_c = serviceRequest.getDliveCloseDtC().getValue().toString();
+			}
 			
-			
-			String approvalYn = "N";
+			String ApprovalYN_c = "N";
 			if (serviceRequest.isApprovalYNC() != null) {
-				if(serviceRequest.isApprovalYNC().equals(true)) {
-					approvalYn = "Y";
-				}
-				else {
-					approvalYn = "N";
-				}
+				if(serviceRequest.isApprovalYNC().equals(true)) 
+					ApprovalYN_c = "Y";
+				else
+					ApprovalYN_c = "N";
 			}
 			
-			XMLGregorianCalendar CreationDate = null;
+			String SRBranch_c = "";
+			if(serviceRequest.getSRBranchC() != null) {
+				SRBranch_c = serviceRequest.getSRBranchC().getValue();
+			}
+			
+			String ProblemResult_c = "";
+			if(serviceRequest.getProblemResultC() != null) {
+				ProblemResult_c = serviceRequest.getProblemResultC().getValue();
+			}
+			
+			String CreationDate = null;
 			if(serviceRequest.getCreationDate() != null) {
-				CreationDate = serviceRequest.getCreationDate();
+				CreationDate = serviceRequest.getCreationDate().toString();
 			}
 			
-			XMLGregorianCalendar LastUpdateDate = null;
+			String LastUpdateDate = null;
 			if(serviceRequest.getLastUpdateDate() != null) {
-				LastUpdateDate = serviceRequest.getLastUpdateDate();
+				LastUpdateDate = serviceRequest.getLastUpdateDate().toString();
 			}
 			
-			
-					
 			logger.info("#["+i+"]");
+			
+			srvo.setSrId(SrId);
+			srvo.setSrNumber(SrNumber);
+			srvo.setTitle(Title);
+			srvo.setProblemDescription(ProblemDescription);
+			srvo.setSeverityCd(SeverityCd);
+			srvo.setAssigneePartyId(AssigneePartyId);
+			srvo.setAssigneePersonName(AssigneePersonName);
+			srvo.setAssigneeEmailAddress(AssigneeEmailAddress);
+			srvo.setCreatedBy(CreatedBy);
+			srvo.setCreationDate(CreationDate);
+			srvo.setLastUpdateDate(LastUpdateDate);
+			srvo.setLastUpdatedBy(LastUpdatedBy);
+			srvo.setLastUpdatedByDisplayName(LastUpdatedByDisplayName);
+			srvo.setAccountPartyId(AccountPartyId);
+			srvo.setAccountPartyName(AccountPartyName);
+			srvo.setPrimaryContactPartyId(PrimaryContactPartyId);
+			srvo.setPrimaryContactPartyName(PrimaryContactPartyName);
+			srvo.setClosedDate(ClosedDate);
+			srvo.setOpenDate(OpenDate);
+			srvo.setLastResolvedDate(LastResolvedDate);
+			srvo.setSourceCd(SourceCd);
+			srvo.setChannelTypeCd(ChannelTypeCd);
+			srvo.setStatusCd(StatusCd);
+			srvo.setStatusF_c(StatusF_c);
+			srvo.setDeleteFlag(DeleteFlag);
+			srvo.setServiceType_c(ServiceType_c);
+			srvo.setApprovalID_c(ApprovalID_c);
+			srvo.setCompleteType_c(CompleteType_c);
+			srvo.setCompetitor_c(Competitor_c);
+			srvo.setCompetitorETC_c(CompetitorETC_c);
+			srvo.setBranchNameF_c(BranchNameF_c);
+			srvo.setBranchCodeF_c(BranchCodeF_c);
+			srvo.setDliveCloseDt_c(DliveCloseDt_c);
+			srvo.setApprovalYN_c(ApprovalYN_c);
+			srvo.setSRBranch_c(SRBranch_c);
+			srvo.setProblemResult_c(ProblemResult_c);
 			
 			tgtList.add(srvo);
 			
@@ -297,314 +386,54 @@ public class ServiceRequestServiceManagement {
 		return tgtList;
 	}
 
-	// Imp_sr Table -> wedService SalesCloud 
-	public List<ServiceRequest> getImpSrList(SqlSession mssession, List<ImpSrVO> impSrList) throws Exception 
-	{
-		List<ServiceRequest> serviceRequestList = new ArrayList<ServiceRequest>(); 
-		
-		for (ImpSrVO srvo : impSrList) {
-			
-			ServiceRequest serviceRequest = new ServiceRequest();
-			ObjectFactory objF = new ObjectFactory();
-			
-			String srtitle    	   = srvo.getTitle();
-			String partyId	  	   = srvo.getPartyId();
-			String statusCd		   = srvo.getStatus();
-			String assigneePerson  = srvo.getAssigneePerson();
-			String srserviceType   = srvo.getServiceType_c();
-			String dliveCloseDt    = srvo.getDliveCloseDt_c();
-			String pdesc		   = srvo.getProblemDescription();
-			
-            DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-            Date date = format.parse(dliveCloseDt);
-            GregorianCalendar cal = new GregorianCalendar();
-            cal.setTime(date);
-
-            XMLGregorianCalendar dliveCloseDt01 =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-
-            serviceRequest.setTitle(srtitle);
-            serviceRequest.setServiceTypeC(srserviceType);
-            serviceRequest.setAccountPartyId(objF.createServiceRequestAccountPartyId(new Long(partyId)));
-            serviceRequest.setStatusCd(objF.createServiceRequestStatusCd(statusCd));
-            serviceRequest.setAssigneeResourceId(objF.createServiceRequestAssigneeResourceId(new Long(assigneePerson)));
-            serviceRequest.setDliveCloseDtC(objF.createServiceRequestDliveCloseDtC(dliveCloseDt01));
-            serviceRequest.setProblemDescription(objF.createServiceRequestProblemDescription(pdesc));
-            serviceRequest.setServiceStageC(objF.createServiceRequestServiceStageC("접수"));
-            serviceRequest.setSeverityCd(objF.createServiceRequestSeverityCd("ORA_SVC_SEV3"));
-            serviceRequest.setOwnerTypeCd(objF.createServiceRequestOwnerTypeCd("ORA_SVC_CUSTOMER"));
-
-			serviceRequestList.add(serviceRequest);
-		}
-
-		return serviceRequestList;
-	}	
-	
-	// SalesCloud Create
-	public void createSR(List<ServiceRequest> serviceRequestList, SqlSession mssession, List<ImpSrVO> impSrList) throws Exception 
-	{
-		logger.info("Start SalesCloud createSrManagement");
-		logger.info("createSR serviceRequestList : " + serviceRequestList.size());
-		
-		ServiceRequest result = new ServiceRequest();
-		
-		Map<String, Object> batchMap = new HashMap<String, Object>();
-	    List<List<ImpSrVO>> subList  = new ArrayList<List<ImpSrVO>>();      // list를 나누기 위한 temp
-	     
-	    int result1        = 0;
-	    int result2        = 0;
-	    int splitSize     = 2000;   // partition 나누기
-		
-		for (ServiceRequest serviceRequest: serviceRequestList) 
-		{
-			
-			logger.info("ServiceRequest getTitle() 		: " + serviceRequest.getTitle() );
-			logger.info("ServiceRequest getServiceTypeC()	: " + serviceRequest.getServiceTypeC());
-			logger.info("ServiceRequest getAccountPartyId()	: " + serviceRequest.getAccountPartyId().getValue());
-			logger.info("ServiceRequest getStatusCd()	: " + serviceRequest.getStatusCd().getValue());
-			logger.info("ServiceRequest getAssigneeResourceId(): " + serviceRequest.getAssigneeResourceId().getValue());
-			logger.info("ServiceRequest getDliveCloseDtC()	: " + serviceRequest.getDliveCloseDtC().getValue());
-			logger.info("ServiceRequest getProblemDescription()	: " + serviceRequest.getProblemDescription().getValue());
-			logger.info("ServiceRequest getSeverityCd() 	: " + serviceRequest.getSeverityCd().getValue());
-			logger.info("ServiceRequest getOwnerTypeCd()	: " + serviceRequest.getOwnerTypeCd().getValue());
-			logger.info("ServiceRequest getServiceStageC()	: " + serviceRequest.getServiceStageC().getValue());
-			
-			result = serviceRequestService.createServiceRequest(serviceRequest);
-			logger.info("createServiceRequest result : " + result.getSrNumber());
-			
-		}
-		
-		if(result.getSrNumber() != null)
-	    {
-	         session.delete("interface.deleteTrnsSRTemp");
-	         
-	         if(impSrList.size() > splitSize) {
-	            subList = Lists.partition(impSrList, splitSize);
-	            
-	            logger.info("subList size " + subList.size());
-	            
-	            for(int i=0; i<subList.size(); i++) {
-	               batchMap.put("list", subList.get(i));
-	               result1 = session.update("interface.insertTrnsSRTemp", batchMap);      // addbatch
-	            }
-	         }
-	         else {
-	            batchMap.put("list", impSrList);
-	            result1 = session.update("interface.insertTrnsSRTemp", batchMap);
-	         }
-	         
-	         if(result1 != 0 ) {
-				int result3 = mssession.update("interface.updateImpSrTrnsYN");
-				
-				if (result3 > 0) {
-					session.commit();
-					logger.info("commit success!!");
-				}
-	         }
-	    }
-		logger.info("End SalesCloud createSrManagement");
-	}	
-	
-	//Service Request my-sql DB 저장
-	public int insertServiceRequest(List<ApprovalVO> ServiceRequestList) throws Exception 
+	//Service Request ms-sql DB 저장
+	public int insertServiceRequest(List<SrVO> ServiceRequestList) throws Exception 
 	{
 		logger.info("InterFace ServiceRequest Table Insert Start");
 		Map<String, Object> batchMap = new HashMap<String, Object>();
-		List<List<ApprovalVO>> subList = new ArrayList<List<ApprovalVO>>();		// list를 나누기 위한 temp
+		List<List<SrVO>> subList = new ArrayList<List<SrVO>>();		// list를 나누기 위한 temp
 		
 		int result1        = 0;
 		int result2        = 0;
-		int result3        = 0;
-		int result4        = 0;
-		int result5        = 0;
-		int splitSize      = 1000;	// partition 나누기
+		int splitSize      = 50;	// partition 나누기
 		
-		session.delete("interface.deleteServiceRequestTmp");
 		logger.info("Interface ServiceRequest Delete");
+		session.delete("interface.deleteServiceRequestTmp");
 		
 		if(ServiceRequestList.size() > splitSize) 
 		{
 			subList = Lists.partition(ServiceRequestList, splitSize);
-			logger.info("subList size " + subList.size());
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
 				result1 = session.update("interface.insertServiceRequestTmp", batchMap);		// addbatch
-				logger.info("Interface insert tmp_approval_sr");
 			}
 		}
 		else 
 		{
+			logger.info("Interface insert tmp_sr");
 			batchMap.put("list", ServiceRequestList);
 			result1 = session.update("interface.insertServiceRequestTmp", batchMap);
-			logger.info("Interface insert tmp_approval_sr");
 		}
 		
 		if(result1 != 0) 
 		{
-			result2 = session.update("interface.insertServiceRequest");
-			logger.info("Interface merge stg_Approval");
+			logger.info("Interface merge sc_sr");
+			result2 = session.update("interface.insertServiceRequest");		// sc table insert
 			
 			if(result2 != 0) {
-				// TRUNCATE -> INSERT
-				result3 = session.update("interface.insertImpApprovalSr");
-				
-				session.delete("interface.deletetImpApprovalSrTmp");
-				result4 = session.update("interface.insertImpApprovalSrTmp");
-				
-				//imp_table로 이관 끝나면stg_approval TargetYN을 N 으로 변경
-				result5 = session.update("interface.updateStgApproTargetYNTmp");
-				
-				if(result5 != 0) {
-					session.commit();
-					logger.info("commit success!!");
-					logger.info("InterFace ServiceRequest Table Insert End");
-				}
+				session.commit();
+				logger.info("commit success!!");
 			}
 		}
 		else 
 		{
-			logger.info("Temp Table Insert ERROR");
+			logger.info("Tmp Table Data not exist");
 		}
+		
+		logger.info("InterFace ServiceRequest Table Insert End");
+		
 		return result2;
 	}
 	
-	// stg_sr -> Imp_sr table my-sql DB 저장
-	public int insertImpSrManagement(SqlSession mssession) throws Exception
-	{
-		logger.info("InterFace ImpSrManagement Table Insert Start");
-		
-		int result         = 0;
-		int result1        = 0;
-		int result2        = 0;
-		int result3        = 0;
-		
-		List<Map<String, String>> dateList = new ArrayList<>();
-        dateList = mssession.selectList("interface.selectDateCount");   // 날짜 쿼리.
-        
-        for (Map<String, String> dateMap: dateList )
-        {
-    		// TRUNCATE -> INSERT
-    		mssession.delete("interface.deletetImpSrTmp");		
-    		result1 = mssession.update("interface.insertImpSrTmp", dateMap);		
-    		
-    		result2 = mssession.update("interface.insertImpSr", dateMap);		
-    		logger.info("result2 : " + result2);
-    		if(result2 != 0) {
-    			//imp_table로 이관 끝나면stg_approval TargetYN을 N 으로 변경
-    			result3 = mssession.update("interface.updateStgTargetYNTmp");	
-    			logger.info("result3 : " + result3);
-    			
-    			if(result3 != 0) {
-    				mssession.commit();
-    				logger.info("commit success!!");
-    				logger.info("InterFace ImpSrManagement Table Insert End");
-    			}
-    		}
-    		else 
-    		{
-    			logger.info("Temp Table Insert ERROR");
-    		}
-    	}
-		return result3;
-	}
-	
-	// SalesClod  update > imp_approval_sr
-	public String updateApprovalIdCSR() throws Exception
-	{
-	      logger.info("InterFace ApprovalIdC_Oppty SC Update Start");
-	      
-	      List<ApprovalVO> approvalList = new ArrayList<ApprovalVO>();
-	      Map<String, Object> batchMap = new HashMap<String, Object>();
-	      List<List<ApprovalVO>> subList = new ArrayList<List<ApprovalVO>>();      // list를 나누기 위한 temp
-	      
-	      int result1        = 0;
-	      int result2        = 0;
-	      int splitSize     = 2000;   // partition 나누기
-	      
-	      approvalList = session.selectList("interface.selectApprovalIdCSR");
-	      ServiceRequest returnMessage = new ServiceRequest();
-	      
-	      for(ApprovalVO avo:approvalList)
-	      {
-	    	  ServiceRequest serviceRequest = new ServiceRequest();
-	    	  ObjectFactory objF = new ObjectFactory();
-	         
-	    	  Long   srId      = Long.parseLong(avo.getId());
-	    	  String approvalIdC = avo.getApprovalId_c();
-	         
-	    	  serviceRequest.setSrId(srId);
-	    	  serviceRequest.setApprovalIDC(objF.createServiceRequestApprovalIDC(approvalIdC));
-	         
-	    	  logger.info("serviceRequest srId       : " + serviceRequest.getSrId());
-	    	  logger.info("serviceRequest ApprovalIDC  : " + serviceRequest.getApprovalIDC().getValue());
-	         
-	    	  returnMessage = serviceRequestService.updateServiceRequest(serviceRequest);
-	      }
-
-	      if(returnMessage.getApprovalIDC().getValue() != null)
-	      {
-	         session.delete("interface.deleteTrnsApprovalBySRTemp");
-	         
-	         if(approvalList.size() > splitSize) {
-	            subList = Lists.partition(approvalList, splitSize);
-	            
-	            logger.info("subList size " + subList.size());
-	            
-	            for(int i=0; i<subList.size(); i++) {
-	               batchMap.put("list", subList.get(i));
-	               result1 = session.update("interface.insertTrnsApprovalBySRTemp", batchMap);      // addbatch
-	            }
-	         }
-	         else {
-	            batchMap.put("list", approvalList);
-	            result1 = session.update("interface.insertTrnsApprovalBySRTemp", batchMap);
-	            
-	         }
-	         if(result1 != 0){
-	            result2 = session.update("interface.updateImpApprovalBySR");
-	            if(result2 != 0){
-	               session.commit();
-	               logger.info("InterFace ApprovalIdC_SR SC update End");
-	            }else {
-	               logger.info("ApprovalIdC_SR SC update ERROR");
-	            }
-	         }
-	      }
-	      
-	      
-	      return null;
-	   }
-	
-	
-	public FindCriteria getCriteria(String itemAttribute, String itemValue, String[] items) throws Exception
-	{
-		FindCriteria findCriteria = new FindCriteria();
-		findCriteria.setFetchStart(0);
-		findCriteria.setFetchSize(-1);
-
-		if (itemValue != null && itemValue != "") 
-		{
-			ViewCriteria filter = new ViewCriteria();
-			ViewCriteriaRow group1 = new ViewCriteriaRow();
-			ViewCriteriaItem item1 = new ViewCriteriaItem();
-
-			item1.setUpperCaseCompare(true);
-			item1.setAttribute(itemAttribute);
-			item1.setOperator("=");
-			item1.getValue().add(itemValue);
-
-			group1.getItem().add(item1);
-			group1.setConjunction(Conjunction.AND);
-
-			filter.getGroup().add(group1);
-			findCriteria.setFilter(filter);
-		}
-
-		for (int i = 0; i < items.length; i++) {
-			findCriteria.getFindAttribute().add(items[i]);
-		}
-
-		return findCriteria;
-	}
-
 }

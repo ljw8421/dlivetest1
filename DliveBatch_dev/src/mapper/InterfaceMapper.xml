@@ -25,6 +25,12 @@
 			</if>
 		ORDER BY seq
 	</select>
+	
+	<!-- BatchJobId Seq -->
+	<select id="getBatchJobId" resultType="String">
+		SELECT (CONVERT(VARCHAR(4), getDate(), 23) + CONVERT(VARCHAR(8), (NEXT VALUE FOR [dbo].[SEQ_SC_BATCHJOBID])) ) as BATCHJOBID
+	</select>
+	
 
 	<!-- Resources -->
 	<!-- Temp Table TRUNCATE -->
@@ -47,6 +53,7 @@
 			, MANAGERID
 			, ORGANIZATIONS
 			, DLIVEBRANCHCODE
+			, BatchJobId
 		)
 		VALUES
 		<foreach item="resources" index="index" collection="list" open="" separator="," close="">
@@ -62,12 +69,13 @@
 				, #{resources.managerId}
 				, #{resources.organizations}
 				, #{resources.dliveBranchCode}
+				, #{resources.batchJobId}
 			)
 		</foreach>
 	</update>
 	
 	<!-- Temp Table -> Resources Table Update -->
-	<update id="insertResources" parameterType="java.util.Map">
+	<update id="insertResources">
 		MERGE INTO SC_RESOURCES A
 		USING TMP_RESOURCES B
 		ON (A.RESOURCEPROFILEID = B.RESOURCEPROFILEID)
@@ -83,6 +91,8 @@
 			    , A.MANAGERID         = B.MANAGERID      
 			    , A.ORGANIZATIONS     = B.ORGANIZATIONS  
 			    , A.DLIVEBRANCHCODE   = B.DLIVEBRANCHCODE
+			    , A.WORKDATE          = getDate()
+			    , A.BATCHJOBID        = B.BATCHJOBID
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -97,6 +107,8 @@
 				, MANAGERID
 				, ORGANIZATIONS
 				, DLIVEBRANCHCODE
+				, WORKDATE
+				, BATCHJOBID
 			)
 			VALUES
 			(
@@ -111,6 +123,8 @@
 				, B.MANAGERID
 				, B.ORGANIZATIONS
 				, B.DLIVEBRANCHCODE
+				, getDate()
+				, B.BatchJobId
 			);
 	</update>
 	
@@ -193,7 +207,8 @@
 			, CONTRACTFROM_C 
 			, CONTRACTTO_C 
 			, INVASIONRATEF_C
-			, BRANCHNM_C 
+			, BRANCHNM_C
+			, BATCHJOBID 
 		)
 		VALUES
 		<foreach item="account" index="index" collection="list" open="" separator="," close="">
@@ -246,6 +261,7 @@
 				,  #{account.ContractTo_c}
 				,  #{account.InvasionRateF_c}
 				,  #{account.BranchNm_c}
+				,  #{account.batchJobId}
 			)
 		</foreach>
 	</update>
@@ -305,7 +321,8 @@
 				, A.INVASIONRATEF_C       			= B.INVASIONRATEF_C  
 				, A.BRANCHNM_C            			= B.BRANCHNM_C       
 				, A.WORKDATE            			= GETDATE()
-				, A.TRNSYN            			    = 'N'      
+				, A.TRNSYN            			    = 'N'  
+				, A.BATCHJOBID                      = B.BATCHJOBID
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -358,7 +375,8 @@
 				, INVASIONRATEF_C  
 				, BRANCHNM_C       
 				, WORKDATE
-				, TRNSYN 
+				, TRNSYN
+				, BATCHJOBID 
 			)
 			VALUES
 			(
@@ -411,11 +429,12 @@
 				, B.INVASIONRATEF_C  
 				, B.BRANCHNM_C   
 				, GETDATE()
-				, 'N'  
+				, 'N'
+				, B.BatchJobId
 			);
 	</update>
 	
-	<update id="insertImpAccount">
+	<update id="insertImpAccount" parameterType="java.util.Map">
 		MERGE INTO IMP_ACCOUNT A
 		USING (SELECT C.SEQ
 					, C.CONAID_C
@@ -428,11 +447,11 @@
 					, LTRIM(RTRIM(ISNULL(C.SURFEE_C,'0'))) AS SURFEE_C
 					, C.CONTRACTTO_C
 					, C.CONTRACTFROM_C
-				           FROM   STG_ACCOUNT C, TMP_IMP_ACCOUNT D
-				          WHERE   1=1
-				            AND   C.SEQ = D.SEQ
-				            AND   C.TARGETYN = 'Y'
-				            AND   C.CREATIONDATE BETWEEN #{DATE} AND #{DATE} + ' 23:59:59.999') B
+	           FROM   STG_ACCOUNT C, TMP_IMP_ACCOUNT D
+	          WHERE   1=1
+	            AND   C.SEQ = D.SEQ
+	            AND   C.TARGETYN = 'Y'
+	            AND   C.CREATIONDATE BETWEEN #{DATE} AND #{DATE} + ' 23:59:59.999') B
 		ON (A.PARTYNUMBER = B.PARTYNUMBER)
 		WHEN MATCHED THEN
 			UPDATE SET
@@ -448,6 +467,7 @@
 					, A.CONTRACTFROM_C = B.CONTRACTFROM_C
 					, A.TRNSYN         = 'N'
 					, A.IMPORTDATE     = GETDATE()
+					, A.BATCHJOBID	   = #{batchJobId}
 		WHEN NOT MATCHED THEN
 			INSERT(
 					  CONAID_C
@@ -462,6 +482,7 @@
 					, CONTRACTFROM_C
 					, TRNSYN
 					, IMPORTDATE
+					, BathJobId
 			)
 			VALUES(
 					  B.CONAID_C
@@ -476,6 +497,7 @@
 					, B.CONTRACTFROM_C
 					, 'N'
 					, GETDATE()
+					, #{batchJobId}
 			);
 	</update>
 	
@@ -506,9 +528,9 @@
 	<update id="insertTransAccountTemp">
 		INSERT INTO TMP_TRNS_ACCOUNT
 		(
-			SEQ
+			PartyNumber
 		)
-		SELECT   SEQ
+		SELECT   PartyNumber
 		FROM     IMP_ACCOUNT
 		WHERE    TRNSYN = 'N'
 	</update>
@@ -518,11 +540,11 @@
 	   	MERGE INTO IMP_ACCOUNT A
 	   	USING (
 	   		SELECT 
-				SEQ
+				PartyNumber
 			FROM 
 				TMP_TRNS_ACCOUNT
 		) B
-	   	ON (A.SEQ = B.SEQ)
+	   	ON (A.PartyNumber = B.PartyNumber)
 	   	WHEN MATCHED THEN
 			UPDATE SET
 		           A.TRNSYN   = 'Y'
@@ -592,7 +614,8 @@
 			, CREATEDBY                    
 			, CREATIONDATE                 
 			, LASTUPDATEDATE               
-			, LASTUPDATEDBY          
+			, LASTUPDATEDBY
+			, BATCHJOBID          
 		)
 		VALUES
 		<foreach item="opportunity" index="index" collection="list" open="" separator="," close="">
@@ -642,6 +665,7 @@
 				, #{opportunity.creationDate}
 				, #{opportunity.lastUpdateDate}
 				, #{opportunity.lastUpdatedBy}
+				, #{opportunity.batchJobId}
 			)
 		</foreach>
 	</update>
@@ -699,6 +723,7 @@
 				, A.LASTUPDATEDBY           = B.LASTUPDATEDBY               
 				, A.WORKDATE            	= GETDATE()
 				, A.TRNSYN            		= 'N'
+				, A.BATCHJOBID              = B.BATCHJOBID
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -748,7 +773,8 @@
 				, LASTUPDATEDATE               
 				, LASTUPDATEDBY
 				, WORKDATE
-				, TRNSYN  
+				, TRNSYN
+				, BATCHJOBID
 			)
 			VALUES
 			(
@@ -798,7 +824,8 @@
 				, B.LASTUPDATEDATE               
 				, B.LASTUPDATEDBY  
 				, GETDATE()
-				, 'N'            
+				, 'N'    
+				, B.BATCHJOBID        
 			);
 	</update>
 	
@@ -807,13 +834,15 @@
 		INSERT INTO TMP_OPPORTUNITYLEAD
 		(
 			  OPTYID                       
-			, OPTYLEADID                         
+			, OPTYLEADID
+			, BATCHJOBID
 		)
 		VALUES
 		<foreach item="opportunityLead" index="index" collection="list" open="" separator="," close="">
 			(
 				  #{opportunityLead.optyId}
 				, #{opportunityLead.optyLeadId}
+				, #{opportunityLead.batchJobId}
 			)
 		</foreach>
 	</update>
@@ -822,26 +851,29 @@
 	<update id="insertOpportunityLead" parameterType="java.util.Map">
 		MERGE INTO SC_OPPORTUNITYLEAD A
 		USING TMP_OPPORTUNITYLEAD B
-		ON (A.OPTYID = B.OPTYID)
+		ON (A.OPTYID = B.OPTYID AND A.OPTYLEADID = B.OPTYLEADID)
 		WHEN MATCHED THEN
 			UPDATE SET
 				  A.OPTYLEADID              = B.OPTYLEADID                  
 				, A.WORKDATE            	= GETDATE()
 				, A.TRNSYN            		= 'N'
+				, A.BATCHJOBID              = B.BATCHJOBID
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
 				  OPTYID                       
 				, OPTYLEADID                   
 				, WORKDATE
-				, TRNSYN  
+				, TRNSYN
+				, BATCHJOBID
 			)
 			VALUES
 			(
 				  B.OPTYID                       
 				, B.OPTYLEADID                   
 				, GETDATE()
-				, 'N'            
+				, 'N'  
+				, B.BATCHJOBID         
 			);
 	</update>
 	
@@ -883,6 +915,7 @@
 			, LASTUPDATEDBY
 			, ACTBRANCH_C
 			, privateFlag
+			, BatchJobId
 		)
 		VALUES
 		<foreach item="activity" index="index" collection="list" open="" separator="," close="">
@@ -915,6 +948,7 @@
 			, #{activity.lastUpdatedBy}
 			, #{activity.actBranch_c}
 			, #{activity.privateFlag}
+			, #{activity.batchJobId}
 		)
 		</foreach>
 	</update>
@@ -955,6 +989,7 @@
 				, A.ACTBRANCH_C             = B.ACTBRANCH_C  
 				, A.DELYN                   = 'N'
 				, A.privateFlag             = B.privateFlag
+				, A.BATCHJOBID              = B.BATCHJOBID
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -988,6 +1023,7 @@
 				, ACTBRANCH_C
 				, DELYN
 				, privateFlag
+				, BatchJobId
 			)
 			VALUES
 			(
@@ -1021,6 +1057,7 @@
 				, B.ACTBRANCH_C
 				, 'N'
 				, B.privateFlag
+				, B.BatchJobId
 			);
 	</update>
 	
@@ -1043,7 +1080,7 @@
 	      , PrimaryContactProvince, PrimaryContactState, PrimaryContactCity, PrimaryContactAddress1
 	      , PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
 	      , DeleteFlag, BranchNameF_c, BranchCodeF_c, LeadBranch_c
-	      , CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy
+	      , CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, BatchJobId
 	   	)
 	   	VALUES
 	   	<foreach item="lead" index="index" collection="list" open="" separator="," close="">
@@ -1054,7 +1091,7 @@
 			, #{lead.channelTypeMeaning}, #{lead.primaryContactPartyName}, #{lead.primaryContactId}, #{lead.primaryContactCountry}
 			, #{lead.primaryContactProvince}, #{lead.primaryContactState}, #{lead.primaryContactCity}, #{lead.primaryContactAddress1}, #{lead.primaryContactAddress2}, #{lead.primaryContactPostalCode}
 			, #{lead.retiredDateTime}, #{lead.convertedTimestamp}, #{lead.deleteFlag}, #{lead.branchNameF_c}, #{lead.branchCodeF_c}
-			, #{lead.leadBranch_c}, #{lead.creationDate}, #{lead.createdBy}, #{lead.lastUpdateDate}, #{lead.lastUpdatedBy}
+			, #{lead.leadBranch_c}, #{lead.creationDate}, #{lead.createdBy}, #{lead.lastUpdateDate}, #{lead.lastUpdatedBy}, #{lead.batchJobId}
 		)
 		</foreach>
 	</update>
@@ -1099,7 +1136,8 @@
 				, A.CreatedBy                = B.CreatedBy               
 				, A.LastUpdateDate           = B.LastUpdateDate          
 				, A.LastUpdatedBy            = B.LastUpdatedBy  
-				, A.WORKDATE                 = CONVERT(DATETIME,GETDATE(),120)        
+				, A.WORKDATE                 = CONVERT(DATETIME,GETDATE(),120)    
+				, A.BATCHJOBID               = B.BATCHJOBID    
 	   	WHEN NOT MATCHED THEN
 	      	INSERT
 	      	(
@@ -1111,6 +1149,7 @@
 				, PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
 				, DeleteFlag, BranchNameF_c, BranchCodeF_c, LeadBranch_c
 				, CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, WORKDATE
+				, BatchJobId
 	      	)
 	      	VALUES
 	      	(
@@ -1121,8 +1160,231 @@
 				, B.PrimaryContactProvince, B.PrimaryContactState, B.PrimaryContactCity, B.PrimaryContactAddress1
 				, B.PrimaryContactAddress2, B.PrimaryContactPostalCode, B.RetiredDateTime, B.ConvertedTimestamp
 				, B.DeleteFlag, B.BranchNameF_c, B.BranchCodeF_c, B.LeadBranch_c
-				, B.CreationDate, B.CreatedBy, B.LastUpdateDate, B.LastUpdatedBy, CONVERT(DATETIME,GETDATE(),120) 
+				, B.CreationDate, B.CreatedBy, B.LastUpdateDate, B.LastUpdatedBy, CONVERT(DATETIME,GETDATE(),120)
+				, B.BatchJobId 
 	     	);
+	</update>
+
+
+	<!-- SR -->
+	<!-- SR tmp table delete -->
+	<delete id="deleteServiceRequestTmp">
+		TRUNCATE TABLE TMP_SR
+	</delete>
+	
+	<!-- SR Insert -->
+	<update id="insertServiceRequestTmp" parameterType="java.util.Map">
+		INSERT INTO TMP_SR
+		(
+			  SrId
+			, AssigneePartyId
+			, AccountPartyId
+			, PrimaryContactPartyId
+			, SrNumber
+			, Title
+			, ProblemDescription
+			, SeverityCd
+			, AssigneePersonName
+			, AssigneeEmailAddress
+			, CreatedBy
+			, CreationDate
+			, LastUpdateDate
+			, LastUpdatedBy
+			, LastUpdatedByDisplayName
+			, AccountPartyName
+			, PrimaryContactPartyName
+			, ClosedDate
+			, OpenDate
+			, LastResolvedDate
+			, SourceCd
+			, ChannelTypeCd
+			, StatusCd
+			, StatusF_c
+			, DeleteFlag
+			, ServiceType_c
+			, ApprovalID_c
+			, CompleteType_c
+			, Competitor_c
+			, CompetitorETC_c
+			, BranchNameF_c
+			, BranchCodeF_c
+			, DliveCloseDt_c
+			, ApprovalYN_c
+			, SRBranch_c
+			, ProblemResult_c
+			, BatchJobId
+		)
+		VALUES
+		<foreach item="serviceRequest" index="index" collection="list" open="" separator="," close="">
+			(
+				  #{serviceRequest.SrId}
+				, #{serviceRequest.AssigneePartyId}
+				, #{serviceRequest.AccountPartyId}
+				, #{serviceRequest.PrimaryContactPartyId}
+				, #{serviceRequest.SrNumber}
+				, #{serviceRequest.Title}
+				, #{serviceRequest.ProblemDescription}
+				, #{serviceRequest.SeverityCd}
+				, #{serviceRequest.AssigneePersonName}
+				, #{serviceRequest.AssigneeEmailAddress}
+				, #{serviceRequest.CreatedBy}
+				, #{serviceRequest.CreationDate}
+				, #{serviceRequest.LastUpdateDate}
+				, #{serviceRequest.LastUpdatedBy}
+				, #{serviceRequest.LastUpdatedByDisplayName}
+				, #{serviceRequest.AccountPartyName}
+				, #{serviceRequest.PrimaryContactPartyName}
+				, #{serviceRequest.ClosedDate}
+				, #{serviceRequest.OpenDate}
+				, #{serviceRequest.LastResolvedDate}
+				, #{serviceRequest.SourceCd}
+				, #{serviceRequest.ChannelTypeCd}
+				, #{serviceRequest.StatusCd}
+				, #{serviceRequest.StatusF_c}
+				, #{serviceRequest.DeleteFlag}
+				, #{serviceRequest.ServiceType_c}
+				, #{serviceRequest.ApprovalID_c}
+				, #{serviceRequest.CompleteType_c}
+				, #{serviceRequest.Competitor_c}
+				, #{serviceRequest.CompetitorETC_c}
+				, #{serviceRequest.BranchNameF_c}
+				, #{serviceRequest.BranchCodeF_c}
+				, #{serviceRequest.DliveCloseDt_c}
+				, #{serviceRequest.ApprovalYN_c}
+				, #{serviceRequest.SRBranch_c}
+				, #{serviceRequest.ProblemResult_c}
+				, #{serviceRequest.batchJobId}
+			)
+		</foreach>
+	</update>
+
+	<!-- Temp Table -> ServiceRequest Table Update -->
+	<update id="insertServiceRequest" parameterType="java.util.Map">
+		MERGE INTO SC_SR A
+		USING TMP_SR B
+		ON (A.SrId = B.SrId)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.AssigneePartyId          = B.AssigneePartyId
+				, A.AccountPartyId           = B.AccountPartyId
+				, A.PrimaryContactPartyId    = B.PrimaryContactPartyId
+				, A.SrNumber                 = B.SrNumber
+				, A.Title                    = B.Title
+				, A.ProblemDescription       = B.ProblemDescription
+				, A.SeverityCd               = B.SeverityCd
+				, A.AssigneePersonName       = B.AssigneePersonName
+				, A.AssigneeEmailAddress     = B.AssigneeEmailAddress
+				, A.CreatedBy                = B.CreatedBy
+				, A.CreationDate             = B.CreationDate
+				, A.LastUpdateDate           = B.LastUpdateDate
+				, A.LastUpdatedBy            = B.LastUpdatedBy
+				, A.LastUpdatedByDisplayName = B.LastUpdatedByDisplayName 
+				, A.AccountPartyName         = B.AccountPartyName
+				, A.PrimaryContactPartyName  = B.PrimaryContactPartyName
+				, A.ClosedDate               = B.ClosedDate
+				, A.OpenDate                 = B.OpenDate
+				, A.LastResolvedDate         = B.LastResolvedDate
+				, A.SourceCd                 = B.SourceCd
+				, A.ChannelTypeCd            = B.ChannelTypeCd
+				, A.StatusCd                 = B.StatusCd
+				, A.StatusF_c                = B.StatusF_c
+				, A.DeleteFlag               = B.DeleteFlag
+				, A.ServiceType_c            = B.ServiceType_c
+				, A.ApprovalID_c             = B.ApprovalID_c
+				, A.CompleteType_c           = B.CompleteType_c
+				, A.Competitor_c             = B.Competitor_c
+				, A.CompetitorETC_c          = B.CompetitorETC_c
+				, A.BranchNameF_c            = B.BranchNameF_c
+				, A.BranchCodeF_c            = B.BranchCodeF_c
+				, A.DliveCloseDt_c           = B.DliveCloseDt_c
+				, A.ApprovalYN_c             = B.ApprovalYN_c
+				, A.SRBranch_c               = B.SRBranch_c
+				, A.ProblemResult_c          = B.ProblemResult_c
+				, A.workdate				 = getDate()
+				, A.BATCHJOBID               = B.BATCHJOBID
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  SrId
+				, AssigneePartyId
+				, AccountPartyId
+				, PrimaryContactPartyId
+				, SrNumber
+				, Title
+				, ProblemDescription
+				, SeverityCd
+				, AssigneePersonName
+				, AssigneeEmailAddress
+				, CreatedBy
+				, CreationDate
+				, LastUpdateDate
+				, LastUpdatedBy
+				, LastUpdatedByDisplayName 
+				, AccountPartyName
+				, PrimaryContactPartyName
+				, ClosedDate
+				, OpenDate
+				, LastResolvedDate
+				, SourceCd
+				, ChannelTypeCd
+				, StatusCd
+				, StatusF_c
+				, DeleteFlag
+				, ServiceType_c
+				, ApprovalID_c
+				, CompleteType_c
+				, Competitor_c
+				, CompetitorETC_c
+				, BranchNameF_c
+				, BranchCodeF_c
+				, DliveCloseDt_c
+				, ApprovalYN_c
+				, SRBranch_c
+				, ProblemResult_c
+				, workdate
+				, BatchJobId
+			)
+			VALUES
+			(
+				  B.SrId                    
+				, B.AssigneePartyId         
+				, B.AccountPartyId          
+				, B.PrimaryContactPartyId   
+				, B.SrNumber                
+				, B.Title                   
+				, B.ProblemDescription      
+				, B.SeverityCd              
+				, B.AssigneePersonName      
+				, B.AssigneeEmailAddress    
+				, B.CreatedBy               
+				, B.CreationDate            
+				, B.LastUpdateDate          
+				, B.LastUpdatedBy           
+				, B.LastUpdatedByDisplayName
+				, B.AccountPartyName        
+				, B.PrimaryContactPartyName 
+				, B.ClosedDate              
+				, B.OpenDate                
+				, B.LastResolvedDate        
+				, B.SourceCd                
+				, B.ChannelTypeCd           
+				, B.StatusCd                
+				, B.StatusF_c               
+				, B.DeleteFlag              
+				, B.ServiceType_c           
+				, B.ApprovalID_c            
+				, B.CompleteType_c          
+				, B.Competitor_c            
+				, B.CompetitorETC_c         
+				, B.BranchNameF_c           
+				, B.BranchCodeF_c           
+				, B.DliveCloseDt_c          
+				, B.ApprovalYN_c            
+				, B.SRBranch_c              
+				, B.ProblemResult_c         
+				, getDate()
+				, B.BatchJobId
+		);
 	</update>
 	
 	
@@ -1194,6 +1456,7 @@
 					 stg_opportunity A , tmp_stg_opportunity toppty
 				WHERE 
 				     A.seq = toppty.seq
+				 AND 
 			) C
 	   	) B
 		ON (T.seq = B.seq)
@@ -1208,24 +1471,25 @@
 			, T.OptyBranch_c  = B.OptyBranch_c
 			, T.TrnsYN        = 'N'
 			, T.ImportDate    = getDate()
+			, T.BatchJobId    = #{batchJobId}
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
 				  Seq, Name, EffectiveDate, SalesStage
 				, EmpNumber, PartyNumber, OpptyType_c, OptyBranch_c
-				, TrnsYN, ImportDate
+				, TrnsYN, ImportDate, BatchJobId
 			)
 			VALUES
 			(
 				  B.Seq, B.Name, B.EffectiveDate, B.SalesStage
 				, B.EmpNumber, B.PartyNumber, B.OpptyType_c, B.OptyBranch_c
-				, 'N', getDate()
+				, 'N', getDate(). #{batchJobId}
 				
 			);
 	</update>
 	
 	<!-- stg oppty account merge imp oppty account -->
-	<update id="mergeImpOpptyAccount" parameterType="java.util.Map">
+	<update id="mergeImpOpptyAccount" parameterType="String">
 		MERGE INTO imp_oppty_account T
 	   	USING (
 			SELECT
@@ -1280,18 +1544,19 @@
 				, T.ConaId_c         = C.ConaId_c
 				, T.TrnsYN           = 'N'
 				, T.ImportDate       = getDate()
+				, T.BatchJobId       = #{batchJobId}
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
 				  PartyNumber, OrganizationName, Country, Province, State
 				, City, AddressLine1, AddressLine2, BranchNm_c, ConaId_c
-				, TrnsYN, ImportDate, EmpNumber
+				, TrnsYN, ImportDate, EmpNumber, BatchJobId
 			)
 			VALUES
 			(
 				  C.PartyNumber, C.OrganizationName, C.Country, C.Province, C.State       
 				, C.City, C.AddressLine1, C.AddressLine2, C.BranchNm_c, C.ConaId_c
-				, 'N', getDate(), C.EmpNumber
+				, 'N', getDate(), C.EmpNumber, #{batchJobId}
 			);
 	</update>
 	
@@ -1367,7 +1632,7 @@
 		   UPDATE SET
 		          A.TrnsYN   = 'Y'
 		        , A.TrnsDate = getDate(); 
-	</update>	
+	</update>
 	
 	
 	<!-- Create CSV Query -->
@@ -1380,9 +1645,9 @@
 				, ISPCount_c    
 				, VoIPCount_c   
 				, StandardFee_c 
-				, SurFee_c       
-				, (SUBSTRING(ContractTo_c,1,4)+'-'+SUBSTRING(ContractTo_c,5,2)+'-'+SUBSTRING(ContractTo_c,7,2)) as ContractFrom_c 
-				, (SUBSTRING(ContractFrom_c,1,4)+'-'+SUBSTRING(ContractFrom_c,5,2)+'-'+SUBSTRING(ContractFrom_c,7,2)) as ContractTo_c
+				, SurFee_c
+				, (SUBSTRING(ContractFrom_c,1,4)+'-'+SUBSTRING(ContractFrom_c,5,2)+'-'+SUBSTRING(ContractFrom_c,7,2)) as ContractFrom_c       
+				, (SUBSTRING(ContractTo_c,1,4)+'-'+SUBSTRING(ContractTo_c,5,2)+'-'+SUBSTRING(ContractTo_c,7,2)) as ContractTo_c 
 		FROM    IMP_ACCOUNT
 		WHERE   TRNSYN = 'N'
 	</select>

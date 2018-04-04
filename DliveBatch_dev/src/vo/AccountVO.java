@@ -50,6 +50,7 @@ public class AccountVO {
 	private String ContractTo_c ;
 	private String InvasionRateF_c;
 	private String BranchNm_c ;
+	private String batchJobId;
 	
 	public String getPartyId() {
 		return partyId;
@@ -341,6 +342,13 @@ public class AccountVO {
 	public void setContractTo_c(String contractTo_c) {
 		ContractTo_c = contractTo_c;
 	}
+	public String getBatchJobId() {
+		return batchJobId;
+	}
+	public void setBatchJobId(String batchJobId) {
+		this.batchJobId = batchJobId;
+	}
+	
 	@Override
 	public String toString() {
 		return "AccountVO [partyId=" + partyId + ", partyNumber=" + partyNumber + ", sourceSystem=" + sourceSystem
@@ -360,8 +368,7 @@ public class AccountVO {
 				+ ", ISPCount_c=" + ISPCount_c + ", VoIPCount_c=" + VoIPCount_c + ", ShareRate_c=" + ShareRate_c
 				+ ", RemarkF_c=" + RemarkF_c + ", TypeOfBusiness_c=" + TypeOfBusiness_c + ", OTTCount_c=" + OTTCount_c
 				+ ", ContractFrom_c=" + ContractFrom_c + ", ContractTo_c=" + ContractTo_c + ", InvasionRateF_c="
-				+ InvasionRateF_c + ", BranchNm_c=" + BranchNm_c + "]";
+				+ InvasionRateF_c + ", BranchNm_c=" + BranchNm_c + ", batchJobId=" + batchJobId + "]";
 	}
-	
 
 }

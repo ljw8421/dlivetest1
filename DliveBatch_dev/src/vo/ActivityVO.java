@@ -33,6 +33,7 @@ public class ActivityVO {
 	private String lastUpdatedBy;
 	private String actBranch_c;
 	private String privateFlag;
+	private String batchJobId;
 	
 	
 	public String getPrivateFlag() {
@@ -221,6 +222,13 @@ public class ActivityVO {
 	public void setLastUpdatedBy(String lastUpdatedBy) {
 		this.lastUpdatedBy = lastUpdatedBy;
 	}
+	public String getBatchJobId() {
+		return batchJobId;
+	}
+	public void setBatchJobId(String batchJobId) {
+		this.batchJobId = batchJobId;
+	}
+	
 	@Override
 	public String toString() {
 		return "ActivityVO [activityId=" + activityId + ", activityNumber=" + activityNumber + ", accountId="
@@ -234,8 +242,8 @@ public class ActivityVO {
 				+ visitResult_c + ", visitDate_c=" + visitDate_c + ", initialDate_c=" + initialDate_c
 				+ ", initialDateF_c=" + initialDateF_c + ", initialDateTextF_c=" + initialDateTextF_c + ", createdBy="
 				+ createdBy + ", creationDate=" + creationDate + ", lastUpdateDate=" + lastUpdateDate
-				+ ", lastUpdatedBy=" + lastUpdatedBy + ", actBranch_c=" + actBranch_c + "]";
+				+ ", lastUpdatedBy=" + lastUpdatedBy + ", actBranch_c=" + actBranch_c + ", privateFlag=" + privateFlag
+				+ ", batchJobId=" + batchJobId + "]";
 	}
-	
 	
 }
