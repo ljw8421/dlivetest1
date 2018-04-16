@@ -94,7 +94,7 @@ public class ActivityManagement {
 							  , "OwnerEmailAddress", "Subject", "ActivityDescription", "LeadId", "LeadName"
 							  , "OpportunityId", "OpportunityName", "PrimaryContactId", "PrimaryContactName", "VisitResult_c"
 							  , "VisitDate_c", "InitialDate_c",  "CreatedBy", "CreationDate", "LastUpdateDate"
-							  , "LastUpdatedBy","ActBranch_c","PrivateFlag"
+							  , "LastUpdatedBy","ActBranch_c","PrivateFlag","DliveActType"
 							  
 						 };
 		// key : ActivityId
@@ -241,6 +241,7 @@ public class ActivityManagement {
 			            	 privateFlag = "N";
 			             }
 					}
+			        String dliveActType     = activity.getDliveActTypeC();
 			        
 					logger.debug("#["+i+"]");
 					logger.debug("Activity activityId			: " + activityId);
@@ -271,6 +272,7 @@ public class ActivityManagement {
 					logger.debug("Activity lastUpdatedBy			: " + lastUpdatedBy);
 					logger.debug("Activity actBranch_c			: " + actBranch_c);
 					logger.debug("Activity privateFlag			: " + privateFlag);
+					logger.debug("Activity dliveActType			: " + dliveActType);
 					
 					
 					rvo.setActivityId(activityId);
@@ -301,6 +303,7 @@ public class ActivityManagement {
 					rvo.setLastUpdatedBy(lastUpdatedBy);
 					rvo.setActBranch_c(actBranch_c);
 					rvo.setPrivateFlag(privateFlag);
+					rvo.setDliveActType(dliveActType);
 					rvo.setBatchJobId(batchJobId);
 					
 					tgtList.add(rvo);

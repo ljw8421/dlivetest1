@@ -52,7 +52,6 @@
 			, MANAGER
 			, MANAGERID
 			, ORGANIZATIONS
-			, DLIVEBRANCHCODE
 			, BatchJobId
 		)
 		VALUES
@@ -68,7 +67,6 @@
 				, #{resources.manager}
 				, #{resources.managerId}
 				, #{resources.organizations}
-				, #{resources.dliveBranchCode}
 				, #{resources.batchJobId}
 			)
 		</foreach>
@@ -90,7 +88,6 @@
 			    , A.MANAGER           = B.MANAGER        
 			    , A.MANAGERID         = B.MANAGERID      
 			    , A.ORGANIZATIONS     = B.ORGANIZATIONS  
-			    , A.DLIVEBRANCHCODE   = B.DLIVEBRANCHCODE
 			    , A.WORKDATE          = getDate()
 			    , A.BATCHJOBID        = B.BATCHJOBID
 		WHEN NOT MATCHED THEN
@@ -106,7 +103,6 @@
 				, MANAGER
 				, MANAGERID
 				, ORGANIZATIONS
-				, DLIVEBRANCHCODE
 				, WORKDATE
 				, BATCHJOBID
 			)
@@ -122,7 +118,6 @@
 				, B.MANAGER
 				, B.MANAGERID
 				, B.ORGANIZATIONS
-				, B.DLIVEBRANCHCODE
 				, getDate()
 				, B.BatchJobId
 			);
@@ -447,6 +442,12 @@
 					, LTRIM(RTRIM(ISNULL(C.SURFEE_C,'0'))) AS SURFEE_C
 					, C.CONTRACTTO_C
 					, C.CONTRACTFROM_C
+					, LTRIM(RTRIM(ISNULL(C.OTTFEE_C,'0'))) AS OTTFEE_C
+					, LTRIM(RTRIM(ISNULL(C.DTVFEE_C,'0'))) AS DTVFEE_C
+					, LTRIM(RTRIM(ISNULL(C.ISPFEE_C,'0'))) AS ISPFEE_C
+					, LTRIM(RTRIM(ISNULL(C.VOIPFEE_C,'0'))) AS VOIPFEE_C
+					, LTRIM(RTRIM(ISNULL(C.NOPAYFEE_C,'0'))) AS NOPAYFEE_C
+					, LTRIM(RTRIM(C.DLIVECUSTOMERTYPE_C)) AS DLIVECUSTOMERTYPE_C
 	           FROM   STG_ACCOUNT C, TMP_IMP_ACCOUNT D
 	          WHERE   1=1
 	            AND   C.SEQ = D.SEQ
@@ -455,19 +456,25 @@
 		ON (A.PARTYNUMBER = B.PARTYNUMBER)
 		WHEN MATCHED THEN
 			UPDATE SET
-					  A.CONAID_C       = B.CONAID_C
-					, A.PARTYNUMBER    = B.PARTYNUMBER
-					, A.OTTCOUNT_C     = B.OTTCOUNT_C
-					, A.DTVCOUNT_C     = B.DTVCOUNT_C
-					, A.ISPCOUNT_C     = B.ISPCOUNT_C
-					, A.VOIPCOUNT_C    = B.VOIPCOUNT_C
-					, A.STANDARDFEE_C  = B.STANDARDFEE_C
-					, A.SURFEE_C       = B.SURFEE_C
-					, A.CONTRACTTO_C   = B.CONTRACTTO_C
-					, A.CONTRACTFROM_C = B.CONTRACTFROM_C
-					, A.TRNSYN         = 'N'
-					, A.IMPORTDATE     = GETDATE()
-					, A.BATCHJOBID	   = #{batchJobId}
+					  A.CONAID_C             = B.CONAID_C
+					, A.PARTYNUMBER          = B.PARTYNUMBER
+					, A.OTTCOUNT_C           = B.OTTCOUNT_C
+					, A.DTVCOUNT_C           = B.DTVCOUNT_C
+					, A.ISPCOUNT_C           = B.ISPCOUNT_C
+					, A.VOIPCOUNT_C          = B.VOIPCOUNT_C
+					, A.STANDARDFEE_C        = B.STANDARDFEE_C
+					, A.SURFEE_C             = B.SURFEE_C
+					, A.CONTRACTTO_C         = B.CONTRACTTO_C
+					, A.CONTRACTFROM_C       = B.CONTRACTFROM_C
+					, A.TRNSYN               = 'N'
+					, A.IMPORTDATE           = GETDATE()
+					, A.BATCHJOBID	         = #{batchJobId}
+					, A.OTTFEE_C             = B.OTTFEE_C
+					, A.DTVFEE_C             = B.DTVFEE_C
+					, A.ISPFEE_C             = B.ISPFEE_C
+					, A.VOIPFEE_C            = B.VOIPFEE_C
+					, A.NOPAYFEE_C           = B.NOPAYFEE_C
+					, A.DLIVECUSTOMERTYPE_C  = B.DLIVECUSTOMERTYPE_C
 		WHEN NOT MATCHED THEN
 			INSERT(
 					  CONAID_C
@@ -482,7 +489,13 @@
 					, CONTRACTFROM_C
 					, TRNSYN
 					, IMPORTDATE
-					, BathJobId
+					, BATCHJOBID
+					, OTTFEE_C
+					, DTVFEE_C
+					, ISPFEE_C
+					, VOIPFEE_C
+					, NOPAYFEE_C
+					, DLIVECUSTOMERTYPE_C
 			)
 			VALUES(
 					  B.CONAID_C
@@ -498,6 +511,12 @@
 					, 'N'
 					, GETDATE()
 					, #{batchJobId}
+					, B.OTTFEE_C
+					, B.DTVFEE_C
+					, B.ISPFEE_C
+					, B.VOIPFEE_C
+					, B.NOPAYFEE_C
+					, B.DLIVECUSTOMERTYPE_C
 			);
 	</update>
 	
@@ -914,8 +933,9 @@
 			, LASTUPDATEDATE
 			, LASTUPDATEDBY
 			, ACTBRANCH_C
-			, privateFlag
-			, BatchJobId
+			, PRIVATEFLAG
+			, DLIVEACTTYPE
+			, BATCHJOBID
 		)
 		VALUES
 		<foreach item="activity" index="index" collection="list" open="" separator="," close="">
@@ -948,6 +968,7 @@
 			, #{activity.lastUpdatedBy}
 			, #{activity.actBranch_c}
 			, #{activity.privateFlag}
+			, #{activity.dliveActType}
 			, #{activity.batchJobId}
 		)
 		</foreach>
@@ -988,7 +1009,8 @@
 				, A.WORKDATE                = CONVERT(DATETIME,GETDATE(),120)
 				, A.ACTBRANCH_C             = B.ACTBRANCH_C  
 				, A.DELYN                   = 'N'
-				, A.privateFlag             = B.privateFlag
+				, A.PRIVATEFLAG             = B.PRIVATEFLAG
+				, A.DLIVEACTTYPE            = B.DLIVEACTTYPE
 				, A.BATCHJOBID              = B.BATCHJOBID
 		WHEN NOT MATCHED THEN
 			INSERT
@@ -1022,8 +1044,9 @@
 				, WORKDATE
 				, ACTBRANCH_C
 				, DELYN
-				, privateFlag
-				, BatchJobId
+				, PRIVATEFLAG
+				, DLIVEACTTYPE
+				, BATCHJOBID
 			)
 			VALUES
 			(
@@ -1056,8 +1079,9 @@
 				, CONVERT(DATETIME,GETDATE(),120)
 				, B.ACTBRANCH_C
 				, 'N'
-				, B.privateFlag
-				, B.BatchJobId
+				, B.PRIVATEFLAG
+				, B.DLIVEACTTYPE
+				, B.BATCHJOBID
 			);
 	</update>
 	
@@ -1080,7 +1104,7 @@
 	      , PrimaryContactProvince, PrimaryContactState, PrimaryContactCity, PrimaryContactAddress1
 	      , PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
 	      , DeleteFlag, BranchNameF_c, BranchCodeF_c, LeadBranch_c
-	      , CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, BatchJobId
+	      , CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, leadSourceType_c, BatchJobId
 	   	)
 	   	VALUES
 	   	<foreach item="lead" index="index" collection="list" open="" separator="," close="">
@@ -1091,7 +1115,7 @@
 			, #{lead.channelTypeMeaning}, #{lead.primaryContactPartyName}, #{lead.primaryContactId}, #{lead.primaryContactCountry}
 			, #{lead.primaryContactProvince}, #{lead.primaryContactState}, #{lead.primaryContactCity}, #{lead.primaryContactAddress1}, #{lead.primaryContactAddress2}, #{lead.primaryContactPostalCode}
 			, #{lead.retiredDateTime}, #{lead.convertedTimestamp}, #{lead.deleteFlag}, #{lead.branchNameF_c}, #{lead.branchCodeF_c}
-			, #{lead.leadBranch_c}, #{lead.creationDate}, #{lead.createdBy}, #{lead.lastUpdateDate}, #{lead.lastUpdatedBy}, #{lead.batchJobId}
+			, #{lead.leadBranch_c}, #{lead.creationDate}, #{lead.createdBy}, #{lead.lastUpdateDate}, #{lead.lastUpdatedBy}, #{lead.leadSourceType_c}, #{lead.batchJobId}
 		)
 		</foreach>
 	</update>
@@ -1136,6 +1160,7 @@
 				, A.CreatedBy                = B.CreatedBy               
 				, A.LastUpdateDate           = B.LastUpdateDate          
 				, A.LastUpdatedBy            = B.LastUpdatedBy  
+				, A.leadSourceType_c         = B.leadSourceType_c  
 				, A.WORKDATE                 = CONVERT(DATETIME,GETDATE(),120)    
 				, A.BATCHJOBID               = B.BATCHJOBID    
 	   	WHEN NOT MATCHED THEN
@@ -1148,8 +1173,8 @@
 				, PrimaryContactProvince, PrimaryContactState, PrimaryContactCity, PrimaryContactAddress1
 				, PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
 				, DeleteFlag, BranchNameF_c, BranchCodeF_c, LeadBranch_c
-				, CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, WORKDATE
-				, BatchJobId
+				, CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, leadSourceType_c
+				, WORKDATE, BatchJobId
 	      	)
 	      	VALUES
 	      	(
@@ -1160,8 +1185,8 @@
 				, B.PrimaryContactProvince, B.PrimaryContactState, B.PrimaryContactCity, B.PrimaryContactAddress1
 				, B.PrimaryContactAddress2, B.PrimaryContactPostalCode, B.RetiredDateTime, B.ConvertedTimestamp
 				, B.DeleteFlag, B.BranchNameF_c, B.BranchCodeF_c, B.LeadBranch_c
-				, B.CreationDate, B.CreatedBy, B.LastUpdateDate, B.LastUpdatedBy, CONVERT(DATETIME,GETDATE(),120)
-				, B.BatchJobId 
+				, B.CreationDate, B.CreatedBy, B.LastUpdateDate, B.LastUpdatedBy, B.leadSourceType_c
+				, CONVERT(DATETIME,GETDATE(),120), B.BatchJobId 
 	     	);
 	</update>
 
@@ -1212,6 +1237,7 @@
 			, ApprovalYN_c
 			, SRBranch_c
 			, ProblemResult_c
+			, SrConaId_c
 			, BatchJobId
 		)
 		VALUES
@@ -1253,6 +1279,7 @@
 				, #{serviceRequest.ApprovalYN_c}
 				, #{serviceRequest.SRBranch_c}
 				, #{serviceRequest.ProblemResult_c}
+				, #{serviceRequest.srConaId_c}
 				, #{serviceRequest.batchJobId}
 			)
 		</foreach>
@@ -1300,6 +1327,7 @@
 				, A.ApprovalYN_c             = B.ApprovalYN_c
 				, A.SRBranch_c               = B.SRBranch_c
 				, A.ProblemResult_c          = B.ProblemResult_c
+				, A.srConaId_c          	 = B.srConaId_c
 				, A.workdate				 = getDate()
 				, A.BATCHJOBID               = B.BATCHJOBID
 		WHEN NOT MATCHED THEN
@@ -1341,6 +1369,7 @@
 				, ApprovalYN_c
 				, SRBranch_c
 				, ProblemResult_c
+				, srConaId_c
 				, workdate
 				, BatchJobId
 			)
@@ -1381,7 +1410,8 @@
 				, B.DliveCloseDt_c          
 				, B.ApprovalYN_c            
 				, B.SRBranch_c              
-				, B.ProblemResult_c         
+				, B.ProblemResult_c   
+				, B.srConaId_c      
 				, getDate()
 				, B.BatchJobId
 		);
@@ -1424,7 +1454,7 @@
 	</select>
 	
 	<!-- stg oppty merge imp oppty-->
-	<update id="mergeImpOppty" parameterType="java.util.Map">
+	<update id="mergeImpOppty" parameterType="String">
 		MERGE INTO imp_oppty T
 	   	USING (
 	   		SELECT
@@ -1456,7 +1486,6 @@
 					 stg_opportunity A , tmp_stg_opportunity toppty
 				WHERE 
 				     A.seq = toppty.seq
-				 AND 
 			) C
 	   	) B
 		ON (T.seq = B.seq)
@@ -1483,7 +1512,7 @@
 			(
 				  B.Seq, B.Name, B.EffectiveDate, B.SalesStage
 				, B.EmpNumber, B.PartyNumber, B.OpptyType_c, B.OptyBranch_c
-				, 'N', getDate(). #{batchJobId}
+				, 'N', getDate(), #{batchJobId}
 				
 			);
 	</update>
@@ -1648,6 +1677,12 @@
 				, SurFee_c
 				, (SUBSTRING(ContractFrom_c,1,4)+'-'+SUBSTRING(ContractFrom_c,5,2)+'-'+SUBSTRING(ContractFrom_c,7,2)) as ContractFrom_c       
 				, (SUBSTRING(ContractTo_c,1,4)+'-'+SUBSTRING(ContractTo_c,5,2)+'-'+SUBSTRING(ContractTo_c,7,2)) as ContractTo_c 
+				, OTTFee_c
+				, DTVFee_c
+				, ISPFee_c
+				, VOIPFee_c
+				, NoPayFee_c
+				, DliveCustomerType_c
 		FROM    IMP_ACCOUNT
 		WHERE   TRNSYN = 'N'
 	</select>

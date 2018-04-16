@@ -39,8 +39,15 @@ public class SrVO {
 	private String ApprovalYN_c;
 	private String SRBranch_c;
 	private String ProblemResult_c;
+	private String srConaId_c;
 	private String batchJobId;
 	
+	public String getSrConaId_c() {
+		return srConaId_c;
+	}
+	public void setSrConaId_c(String srConaId_c) {
+		this.srConaId_c = srConaId_c;
+	}
 	public Long getSrId() {
 		return SrId;
 	}
@@ -279,6 +286,8 @@ public class SrVO {
 				+ ", CompleteType_c=" + CompleteType_c + ", Competitor_c=" + Competitor_c + ", CompetitorETC_c="
 				+ CompetitorETC_c + ", BranchNameF_c=" + BranchNameF_c + ", BranchCodeF_c=" + BranchCodeF_c
 				+ ", DliveCloseDt_c=" + DliveCloseDt_c + ", ApprovalYN_c=" + ApprovalYN_c + ", SRBranch_c=" + SRBranch_c
-				+ ", ProblemResult_c=" + ProblemResult_c + ", batchJobId=" + batchJobId + "]";
+				+ ", ProblemResult_c=" + ProblemResult_c + ", srConaId_c=" + srConaId_c + ", batchJobId=" + batchJobId
+				+ "]";
 	}
+	
 }

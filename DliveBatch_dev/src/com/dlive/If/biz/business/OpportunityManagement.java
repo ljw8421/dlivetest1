@@ -11,8 +11,21 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceRef;
 
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import com.google.common.collect.Lists;
 import com.oracle.xmlns.adf.svc.types.Conjunction;
@@ -53,6 +66,446 @@ public class OpportunityManagement {
 		this.betweenDt  = paramDt+","+todayDt;
 	}
 
+	//거래처 List
+	public Map<String,Object> getAllOpportunity_rest(String username, String password, String url) throws Exception 
+	{
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+        
+		CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+		credentialsProvider.setCredentials(AuthScope.ANY, 
+                       new UsernamePasswordCredentials(username, password));
+		httpClient = 
+				HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build();
+                
+		long offset = 0;
+		boolean hasMore = false;
+		StringBuffer fields = new StringBuffer();
+		fields.append("OptyId,OptyNumber,Name,TargetPartyId,TargetPartyName,OwnerResourcePartyId");
+		fields.append(",StatusCode,SalesStage,Comments,EffectiveDate,WinProb,PrimaryContactPartyName");
+		fields.append(",SalesChannelCd,OpptyType_c,Competitor_c,CompetitorETC_c,OpenType_c,CompleteType_c");
+		fields.append(",SuccessCause_c,FailCause_c,BranchNameF_c,BranchCodeF_c,ApprovalID_c,Good1_c,Good1Qty_c");
+		fields.append(",Good1Price_c,Good2_c,Good2Price_c,Good2Qty_c,Good3_c,Good4_c,Good3Price_c,Good4Price_c");
+		fields.append(",Good3Qty_c,Good4Qty_c,Good1CalcF_c,Good2CalcF_c,Good3CalcF_c,Good4CalcF_c");
+		fields.append(",GoodTotalCalcF_c,OptyBranch_c,CreatedBy,CreationDate,LastUpdateDate,LastUpdatedBy");
+		fields.append(";OpportunityLead:OptyLeadId,OptyId,LeadId"); //Child Node
+		
+		Map<String,Object> tgtMap      = new HashMap<>();
+		List<OpportunityVO> tgtList    = new ArrayList<OpportunityVO>();
+		List<OpptyLeadVO> tgtChlidList = new ArrayList<OpptyLeadVO>();
+		
+		OpportunityVO ovo;
+		OpptyLeadVO olvo;
+		
+		do{
+				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D"+paramDt+"%20and%20%3C"+todayDt+""
+						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
+				
+//				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D2018-02-01%20and%20%3C2018-04-09"
+//						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
+				
+				HttpGet httpget = new HttpGet(resultUrl);               
+ 
+				CloseableHttpResponse res = httpClient.execute(httpget);
+				logger.info("Get Opportunities StatusLine:" + res.getStatusLine());
+				int resultCd = res.getStatusLine().getStatusCode();
+				if (resultCd == 200){
+                       String json_string = EntityUtils.toString(res.getEntity(),"UTF-8");
+                       logger.info("offset : "+ offset);
+//                     logger.info("json_string : "+json_string);
+ 
+                       JSONParser parser = new JSONParser();
+                       Object object = parser.parse(json_string);
+                       JSONObject jsonObj = (JSONObject) object;
+                
+                       JSONArray arr = (JSONArray)jsonObj.get("items");
+                       for(int i=0;i<arr.size();i++){
+                    	       ovo = new OpportunityVO();
+                               JSONObject tmp = (JSONObject)arr.get(i);//인덱스 번호로 접근해서 가져온다.
+                               
+                               Long Loptyid                   = (Long)tmp.get("OptyId");
+                               String OptyId                  = Loptyid.toString();
+                               String OptyNumber              = (String)tmp.get("OptyNumber");
+                               String Name                    = (String)tmp.get("Name");
+                               Long LtargetPartyId            = null;
+                               String TargetPartyId           = null;
+                               if(!commonUtil.isEmpty(tmp.get("TargetPartyId"))){
+                            	   LtargetPartyId = (Long)tmp.get("TargetPartyId");
+                            	   TargetPartyId  = LtargetPartyId.toString();
+                               }
+                               String TargetPartyName         = (String)tmp.get("TargetPartyName");
+                               Long LownerResourcePartyId     = (Long)tmp.get("OwnerResourcePartyId");
+                               String OwnerResourcePartyId    = LownerResourcePartyId.toString();
+                               String StatusCode              = null;
+                               if(!commonUtil.isEmpty(tmp.get("StatusCode"))) StatusCode = (String)tmp.get("StatusCode");
+                               String SalesStage              = (String)tmp.get("SalesStage");
+                               String Comments                = "";
+                               if(!commonUtil.isEmpty(tmp.get("Comments"))) Comments = (String)tmp.get("Comments");
+                               String EffectiveDate           = null;
+                               if(!commonUtil.isEmpty(tmp.get("EffectiveDate"))) EffectiveDate = (String)tmp.get("EffectiveDate");
+                               Long LwinProb                  = null;
+                               String WinProb                 = null;
+                               if(!commonUtil.isEmpty(tmp.get("WinProb"))){
+                            	   LwinProb = (Long)tmp.get("WinProb");
+                            	   WinProb  = LwinProb.toString();
+                               }
+                               String PrimaryContactPartyName = (String)tmp.get("PrimaryContactPartyName");
+                               String SalesChannelCd          = null;
+                               if(!commonUtil.isEmpty(tmp.get("SalesChannelCd"))) SalesChannelCd = (String)tmp.get("SalesChannelCd");
+                               String OpptyType_c             = null;
+                               if(!commonUtil.isEmpty(tmp.get("OpptyType_c"))) OpptyType_c = (String)tmp.get("OpptyType_c");
+                               String Competitor_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Competitor_c"))) Competitor_c = (String)tmp.get("Competitor_c");
+                               String CompetitorETC_c         = null;
+                               if(!commonUtil.isEmpty(tmp.get("CompetitorETC_c"))) CompetitorETC_c = (String)tmp.get("CompetitorETC_c");
+                               String OpenType_c              = null;
+                               if(!commonUtil.isEmpty(tmp.get("OpenType_c"))) OpenType_c = (String)tmp.get("OpenType_c");
+                               String CompleteType_c          = null;
+                               if(!commonUtil.isEmpty(tmp.get("CompleteType_c"))) CompleteType_c = (String)tmp.get("CompleteType_c");
+                               String SuccessCause_c          = null;
+                               if(!commonUtil.isEmpty(tmp.get("SuccessCause_c"))) SuccessCause_c = (String)tmp.get("SuccessCause_c");
+                               String FailCause_c             = null;
+                               if(!commonUtil.isEmpty(tmp.get("FailCause_c"))) FailCause_c = (String)tmp.get("FailCause_c");
+                               String BranchNameF_c           = null;
+                               if(!commonUtil.isEmpty(tmp.get("BranchNameF_c"))) BranchNameF_c = (String)tmp.get("BranchNameF_c");
+                               String BranchCodeF_c           = null;
+                               if(!commonUtil.isEmpty(tmp.get("BranchCodeF_c"))) BranchCodeF_c = (String)tmp.get("BranchCodeF_c");
+                               String ApprovalID_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("ApprovalID_c"))) ApprovalID_c = (String)tmp.get("ApprovalID_c");
+                               String Good1_c                 = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good1_c"))) Good1_c = (String)tmp.get("Good1_c");
+                               Long LGood1Qty_c                = null;
+                               String Good1Qty_c              = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good1Qty_c"))){
+                            	   LGood1Qty_c = (Long)tmp.get("Good1Qty_c");
+                            	   Good1Qty_c  = LGood1Qty_c.toString();
+                               }
+                               Long LGood1Price_c             = null;
+                               String Good1Price_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good1Price_c"))){
+                            	   LGood1Price_c = (Long)tmp.get("Good1Price_c");
+                            	   Good1Price_c  = LGood1Price_c.toString();
+                               }
+                               String Good2_c                 = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good2_c"))) Good2_c = (String)tmp.get("Good2_c");
+                               Long LGood2Price_c             = null;
+                               String Good2Price_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good2Price_c"))){
+                            	   LGood2Price_c = (Long)tmp.get("Good2Price_c");
+                            	   Good2Price_c  = LGood2Price_c.toString();
+                               }
+                               Long LGood2Qty_c               = null;
+                               String Good2Qty_c              = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good2Qty_c"))){
+                            	   LGood2Qty_c = (Long)tmp.get("Good2Qty_c");
+                            	   Good2Qty_c  = LGood2Qty_c.toString();
+                               }
+                               String Good3_c                 = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good3_c"))) Good3_c = (String)tmp.get("Good3_c");
+                               String Good4_c                 = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good4_c"))) Good4_c = (String)tmp.get("Good4_c");
+                               Long LGood3Price_c             = null;
+                               String Good3Price_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good3Price_c"))){
+                            	   LGood3Price_c = (Long)tmp.get("Good3Price_c");
+                            	   Good3Price_c  = LGood3Price_c.toString();
+                               }
+                               Long LGood4Price_c             = null;
+                               String Good4Price_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good4Price_c"))){
+                            	   LGood4Price_c = (Long)tmp.get("Good4Price_c");
+                            	   Good4Price_c  = LGood4Price_c.toString();
+                               }
+                               Long LGood3Qty_c               = null;
+                               String Good3Qty_c              = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good3Qty_c"))){
+                            	   LGood3Qty_c = (Long)tmp.get("Good3Qty_c");
+                            	   Good3Qty_c  = LGood3Qty_c.toString();
+                               }
+                               Long LGood4Qty_c               = null;
+                               String Good4Qty_c              = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good4Qty_c"))){
+                            	   LGood4Qty_c = (Long)tmp.get("Good4Qty_c");
+                            	   Good4Qty_c  = LGood4Qty_c.toString();
+                               }
+                               Long LGood1CalcF_c             = null;
+                               String Good1CalcF_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good1CalcF_c"))){
+                            	   LGood1CalcF_c = (Long)tmp.get("Good1CalcF_c");
+                            	   Good1CalcF_c  = LGood1CalcF_c.toString();
+                               }
+                               Long LGood2CalcF_c             = null;
+                               String Good2CalcF_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good2CalcF_c"))){
+                            	   LGood2CalcF_c = (Long)tmp.get("Good2CalcF_c");
+                            	   Good2CalcF_c  = LGood2CalcF_c.toString();
+                               }
+                               Long LGood3CalcF_c             = null;
+                               String Good3CalcF_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good3CalcF_c"))){
+                            	   LGood3CalcF_c = (Long)tmp.get("Good3CalcF_c");
+                            	   Good3CalcF_c  = LGood3CalcF_c.toString();
+                               }
+                               Long LGood4CalcF_c             = null;
+                               String Good4CalcF_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("Good4CalcF_c"))){
+                            	   LGood4CalcF_c = (Long)tmp.get("Good4CalcF_c");
+                            	   Good4CalcF_c  = LGood4CalcF_c.toString();
+                               }
+                               Long LGoodTotalCalcF_c         = null;
+                               String GoodTotalCalcF_c        = null;
+                               if(!commonUtil.isEmpty(tmp.get("GoodTotalCalcF_c"))){
+                            	   LGoodTotalCalcF_c = (Long)tmp.get("GoodTotalCalcF_c");
+                            	   GoodTotalCalcF_c  = LGoodTotalCalcF_c.toString();
+                               }
+                               String OptyBranch_c            = null;
+                               if(!commonUtil.isEmpty(tmp.get("OptyBranch_c"))) OptyBranch_c = (String)tmp.get("OptyBranch_c");
+                               String CreatedBy               = (String)tmp.get("CreatedBy");
+                               String CreationDate            = (String)tmp.get("CreationDate");
+                               String LastUpdateDate          = (String)tmp.get("LastUpdateDate");
+                               String LastUpdatedBy           = (String)tmp.get("LastUpdatedBy");
+
+                               
+                               logger.debug("#["+i+"]==========================================================");
+           					   logger.debug("Opportunity optyId                  : " + OptyId);
+           					   logger.debug("Opportunity optyNumber              : " + OptyNumber);
+           					   logger.debug("Opportunity name                    : " + Name);
+           					   logger.debug("Opportunity targetPartyId           : " + TargetPartyId);
+           					   logger.debug("Opportunity targetPartyNam          : " + TargetPartyName);
+           					   logger.debug("Opportunity ownerResourcePartyId    : " + OwnerResourcePartyId);
+           					   logger.debug("Opportunity statusCode              : " + StatusCode);
+           					   logger.debug("Opportunity salesStage              : " + SalesStage);
+           					   logger.debug("Opportunity comments                : " + Comments);
+           					   logger.debug("Opportunity effectiveDate           : " + EffectiveDate);
+           					   logger.debug("Opportunity winProb                 : " + WinProb);
+           					   logger.debug("Opportunity primaryContactPartyName : " + PrimaryContactPartyName);
+           					   logger.debug("Opportunity salesChannelCd          : " + SalesChannelCd);
+           					   logger.debug("Opportunity opptyType_c             : " + OpptyType_c);
+           					   logger.debug("Opportunity competitor_c            : " + Competitor_c);
+           					   logger.debug("Opportunity competitorETC_c         : " + CompetitorETC_c);
+           					   logger.debug("Opportunity openType_c              : " + OpenType_c);
+           					   logger.debug("Opportunity completeType_c          : " + CompleteType_c);
+           					   logger.debug("Opportunity successCause_c          : " + SuccessCause_c);
+           					   logger.debug("Opportunity failCause_c             : " + FailCause_c);
+           					   logger.debug("Opportunity branchNameF_c           : " + BranchNameF_c);
+           					   logger.debug("Opportunity branchCodeF_c           : " + BranchCodeF_c);
+           					   logger.debug("Opportunity approvalID_c            : " + ApprovalID_c);
+           					   logger.debug("Opportunity good1_c                 : " + Good1_c);
+           					   logger.debug("Opportunity good1Qty_c              : " + Good1Qty_c);
+           					   logger.debug("Opportunity good1Price_c            : " + Good1Price_c);
+           					   logger.debug("Opportunity good2_c                 : " + Good2_c);
+           					   logger.debug("Opportunity good2Price_c            : " + Good2Price_c);
+           					   logger.debug("Opportunity good2Qty_c              : " + Good2Qty_c);
+           					   logger.debug("Opportunity good3_c                 : " + Good3_c);
+           					   logger.debug("Opportunity good4_c                 : " + Good4_c);
+           					   logger.debug("Opportunity good3Price_c            : " + Good3Price_c);
+           					   logger.debug("Opportunity good4Price_c            : " + Good4Price_c);
+           					   logger.debug("Opportunity good3Qty_c              : " + Good3Qty_c);
+           					   logger.debug("Opportunity good4Qty_c              : " + Good4Qty_c);
+           					   logger.debug("Opportunity good1CalcF_c            : " + Good1CalcF_c);
+           					   logger.debug("Opportunity good2CalcF_c            : " + Good2CalcF_c);
+           					   logger.debug("Opportunity good3CalcF_c            : " + Good3CalcF_c);
+           					   logger.debug("Opportunity good4CalcF_c            : " + Good4CalcF_c);
+           					   logger.debug("Opportunity goodTotalCalcF_c        : " + GoodTotalCalcF_c);
+           					   logger.debug("Opportunity optyBranch_c            : " + OptyBranch_c);
+           					   logger.debug("Opportunity createdBy               : " + CreatedBy);
+           					   logger.debug("Opportunity creationDate            : " + CreationDate);
+           					   logger.debug("Opportunity lastUpdateDate          : " + LastUpdateDate);
+           					   logger.debug("Opportunity lastUpdatedBy           : " + LastUpdatedBy);
+           					   logger.debug("#["+i+"]==========================================================");
+                               
+                               JSONArray OpportunityLeadList = (JSONArray)tmp.get("OpportunityLead");
+                               for(int j=0;j<OpportunityLeadList.size();j++){
+                            	      olvo = new OpptyLeadVO();
+                            	   
+                                      JSONObject opptyLead = (JSONObject)OpportunityLeadList.get(j);//인덱스 번호로 접근해서 가져온다.
+                                      Long LoptyLeadId = (Long)opptyLead.get("OptyLeadId");
+                                      String OptyLeadId = LoptyLeadId.toString();
+                                      Long LleadId = (Long)opptyLead.get("LeadId");
+                                      logger.info(LleadId);
+                                      String LeadId = LleadId.toString();
+                                      logger.debug("== ["+j+"/"+i+"] ===========================================");
+                                      logger.debug(">>> OptyLeadId : "+OptyLeadId);
+                                      logger.debug(">>> LeadId     : "+LeadId);
+                                      
+                                      olvo.setOptyId(OptyId);
+	              					  olvo.setOptyLeadId(OptyLeadId);
+	              					  olvo.setLeadId(LeadId);
+	              					  olvo.setBatchJobId(batchJobId);
+                                      
+	              					  tgtChlidList.add(olvo);
+                               }
+                               
+                               ovo.setOptyId(OptyId);
+                               ovo.setOptyNumber(OptyNumber);
+                               ovo.setName(Name);
+                               ovo.setTargetPartyId(TargetPartyId);
+                               ovo.setTargetPartyName(TargetPartyName);
+                               ovo.setOwnerResourcePartyId(OwnerResourcePartyId);
+                               ovo.setStatusCode(StatusCode);
+                               ovo.setSalesStage(SalesStage);
+                               ovo.setComments(Comments);
+                               ovo.setEffectiveDate(EffectiveDate);
+                               ovo.setWinProb(WinProb);
+                               ovo.setPrimaryContactPartyName(PrimaryContactPartyName);
+                               ovo.setSalesChannelCd(SalesChannelCd);
+                               ovo.setOpptyType_c(OpptyType_c);
+                               ovo.setCompetitor_c(Competitor_c);
+                               ovo.setCompetitorETC_c(CompetitorETC_c);
+                               ovo.setOpenType_c(OpenType_c);
+                               ovo.setCompleteType_c(CompleteType_c);
+                               ovo.setSuccessCause_c(SuccessCause_c);
+                               ovo.setFailCause_c(FailCause_c);
+                               ovo.setBranchNameF_c(BranchNameF_c);
+                               ovo.setBranchCodeF_c(BranchCodeF_c);
+                               ovo.setApprovalID_c(ApprovalID_c);
+                               ovo.setGood1_c(Good1_c);
+                               ovo.setGood1Qty_c(Good1Qty_c);
+                               ovo.setGood1Price_c(Good1Price_c);
+                               ovo.setGood2_c(Good2_c);
+                               ovo.setGood2Price_c(Good2Price_c);
+                               ovo.setGood2Qty_c(Good2Qty_c);
+                               ovo.setGood3_c(Good3_c);
+                               ovo.setGood4_c(Good4_c);
+                               ovo.setGood3Price_c(Good3Price_c);
+                               ovo.setGood4Price_c(Good4Price_c);
+                               ovo.setGood3Qty_c(Good3Qty_c);
+                               ovo.setGood4Qty_c(Good4Qty_c);
+                               ovo.setGood1CalcF_c(Good1CalcF_c);
+                               ovo.setGood2CalcF_c(Good2CalcF_c);
+                               ovo.setGood3CalcF_c(Good3CalcF_c);
+                               ovo.setGood4CalcF_c(Good4CalcF_c);
+                               ovo.setGoodTotalCalcF_c(GoodTotalCalcF_c);
+                               ovo.setOptyBranch_c(OptyBranch_c);
+                               ovo.setCreatedBy(CreatedBy);
+                               ovo.setCreationDate(CreationDate);
+                               ovo.setLastUpdateDate(LastUpdateDate);
+                               ovo.setLastUpdatedBy(LastUpdatedBy);
+                               ovo.setBatchJobId(batchJobId);
+                               
+                               tgtList.add(ovo);
+                               
+                       }       
+                       
+                       hasMore = (boolean) jsonObj.get("hasMore");
+                       logger.info(">> hasMore :" + hasMore);
+                       
+                       long count = (long) jsonObj.get("count");
+                       logger.info(">> Opportunity count 수 :" + count);
+                       
+                       if (hasMore){
+                               offset = offset + count;
+                       }                             
+                       
+                }else{
+                       hasMore = false;
+                }
+                
+                
+        }while(hasMore);
+		
+		tgtMap.put("opptyList", tgtList);
+		tgtMap.put("opptyLeadList", tgtChlidList);
+        
+        logger.info("End SalesCloud gellAllOpptyRest");
+        
+        return tgtMap;
+		
+	}
+	
+	public int insertOpportunity(List<OpportunityVO> opportunityList) throws Exception
+	{
+		logger.info("InterFace SC_Opportunity Table Insert Start");
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<OpportunityVO>> subList = new ArrayList<List<OpportunityVO>>();		// list를 나누기 위한 temp
+		
+		int tmp_insert_result  = 0;
+		int sc_insert_result   = 0;
+		int delete_result      = 0;
+		int splitSize          = 40;	// partition 나누기
+		
+		delete_result = session.delete("interface.deleteOpportunityTemp");
+		if(delete_result != 0) {
+			session.commit();
+		}
+		
+		if(opportunityList.size() > splitSize) {
+			subList = Lists.partition(opportunityList, splitSize);
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				tmp_insert_result = session.update("interface.insertOpportunityTemp", batchMap);		// addbatch
+			}
+		}
+		else {
+			batchMap.put("list", opportunityList);
+			try{
+				tmp_insert_result = session.update("interface.insertOpportunityTemp", batchMap);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			
+		}
+		logger.info("tmp_insert_result : " +tmp_insert_result);
+		if(tmp_insert_result != 0) {
+			sc_insert_result = session.update("interface.insertOpportunity");
+
+			if(sc_insert_result != 0) {
+				session.commit();
+				logger.info("InterFace SC_Opportunity Table Insert End");
+			}
+		}
+		else {
+			logger.info("Temp Table Insert ERROR");
+		}
+		
+		return sc_insert_result;
+	}
+	
+	public int insertOpportunityLead(List<OpptyLeadVO> oppotyLeadList) throws Exception
+	{
+		logger.info("InterFace SC_OpportunityLead Table Insert Start");
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<OpptyLeadVO>> subList = new ArrayList<List<OpptyLeadVO>>();		// list를 나누기 위한 temp
+		
+		int tmp_insert_result = 0;
+		int sc_insert_result  = 0;
+		int tmp_delete_result = 0;
+		int splitSize          = 40;	// partition 나누기
+		
+		tmp_delete_result = session.delete("interface.deleteOpportunityLeadTemp");
+		if(tmp_delete_result != 0) {
+			session.commit();
+		}
+
+		if(oppotyLeadList.size() > splitSize) {
+			subList = Lists.partition(oppotyLeadList, splitSize);
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				tmp_insert_result = session.update("interface.insertOpportunityLeadTemp", batchMap);		// addbatch
+			}
+		}
+		else {
+			batchMap.put("list", oppotyLeadList);
+			tmp_insert_result = session.update("interface.insertOpportunityLeadTemp", batchMap);
+			
+		}
+		
+		if(tmp_insert_result != 0) {
+			sc_insert_result = session.update("interface.insertOpportunityLead");
+
+			if(sc_insert_result != 0) {
+				session.commit();
+				logger.info("InterFace SC_OpportunityLead Table Insert End");
+			}
+		}
+		else {
+			logger.info("Temp Table Insert ERROR");
+		}
+		
+		return sc_insert_result;
+	}
+	
 	public void initialize(String username, String password, String url)
 	{
 		logger.info("SalesCloud OpportunityManagement initialize");
@@ -79,8 +532,7 @@ public class OpportunityManagement {
 		logger.info("End OpportunityManagement initialize");
 	}
 	
-	//거래처 List
-	public Map<String,Object> getAllOpportunity() throws Exception 
+	public Map<String,Object> getAllOpportunity_soap() throws Exception 
 	{
 		logger.info("SalesCloud OpportunityManagement getAllOpportunity List");
 		
@@ -320,7 +772,7 @@ public class OpportunityManagement {
 					ovo.setOptyNumber(optyNumber);
 					ovo.setName(name);
 					ovo.setTargetPartyId(targetPartyId);
-					ovo.setTargetPartyNam(targetPartyName);
+					ovo.setTargetPartyName(targetPartyName);
 					ovo.setOwnerResourcePartyId(ownerResourcePartyId);
 					ovo.setStatusCode(statusCode);
 					ovo.setSalesStage(salesStage);
@@ -428,95 +880,6 @@ public class OpportunityManagement {
 		tgtMap.put("opptyLeadList", tgtChlidList);
 		
 		return tgtMap;
-	}
-	
-	public int insertOpportunity(List<OpportunityVO> opportunityList) throws Exception
-	{
-		logger.info("InterFace SC_Opportunity Table Insert Start");
-		Map<String, Object> batchMap = new HashMap<String, Object>();
-		List<List<OpportunityVO>> subList = new ArrayList<List<OpportunityVO>>();		// list를 나누기 위한 temp
-		
-		int tmp_insert_result  = 0;
-		int sc_insert_result   = 0;
-		int delete_result      = 0;
-		int splitSize          = 40;	// partition 나누기
-		
-		delete_result = session.delete("interface.deleteOpportunityTemp");
-		if(delete_result != 0) {
-			session.commit();
-		}
-		
-		if(opportunityList.size() > splitSize) {
-			subList = Lists.partition(opportunityList, splitSize);
-			
-			for(int i=0; i<subList.size(); i++) {
-				batchMap.put("list", subList.get(i));
-				tmp_insert_result = session.update("interface.insertOpportunityTemp", batchMap);		// addbatch
-			}
-		}
-		else {
-			batchMap.put("list", opportunityList);
-			tmp_insert_result = session.update("interface.insertOpportunityTemp", batchMap);
-		}
-		
-		if(tmp_insert_result != 0) {
-			sc_insert_result = session.update("interface.insertOpportunity");
-
-			if(sc_insert_result != 0) {
-				session.commit();
-				logger.info("InterFace SC_Opportunity Table Insert End");
-			}
-		}
-		else {
-			logger.info("Temp Table Insert ERROR");
-		}
-		
-		return sc_insert_result;
-	}
-	
-	public int insertOpportunityLead(List<OpptyLeadVO> oppotyLeadList) throws Exception
-	{
-		logger.info("InterFace SC_OpportunityLead Table Insert Start");
-		Map<String, Object> batchMap = new HashMap<String, Object>();
-		List<List<OpptyLeadVO>> subList = new ArrayList<List<OpptyLeadVO>>();		// list를 나누기 위한 temp
-		
-		int tmp_insert_result = 0;
-		int sc_insert_result  = 0;
-		int tmp_delete_result = 0;
-		int splitSize          = 40;	// partition 나누기
-		
-		tmp_delete_result = session.delete("interface.deleteOpportunityLeadTemp");
-		if(tmp_delete_result != 0) {
-			session.commit();
-		}
-
-		if(oppotyLeadList.size() > splitSize) {
-			subList = Lists.partition(oppotyLeadList, splitSize);
-			
-			for(int i=0; i<subList.size(); i++) {
-				batchMap.put("list", subList.get(i));
-				tmp_insert_result = session.update("interface.insertOpportunityLeadTemp", batchMap);		// addbatch
-			}
-		}
-		else {
-			batchMap.put("list", oppotyLeadList);
-			tmp_insert_result = session.update("interface.insertOpportunityLeadTemp", batchMap);
-			
-		}
-		
-		if(tmp_insert_result != 0) {
-			sc_insert_result = session.update("interface.insertOpportunityLead");
-
-			if(sc_insert_result != 0) {
-				session.commit();
-				logger.info("InterFace SC_OpportunityLead Table Insert End");
-			}
-		}
-		else {
-			logger.info("Temp Table Insert ERROR");
-		}
-		
-		return sc_insert_result;
 	}
 	
 }

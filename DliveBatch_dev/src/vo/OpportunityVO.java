@@ -80,10 +80,10 @@ public class OpportunityVO {
 	public void setTargetPartyId(String targetPartyId) {
 		this.targetPartyId = targetPartyId;
 	}
-	public String getTargetPartyNam() {
+	public String getTargetPartyName() {
 		return targetPartyName;
 	}
-	public void setTargetPartyNam(String targetPartyName) {
+	public void setTargetPartyName(String targetPartyName) {
 		this.targetPartyName = targetPartyName;
 	}
 	public String getOwnerResourcePartyId() {

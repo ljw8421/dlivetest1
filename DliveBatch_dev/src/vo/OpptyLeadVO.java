@@ -3,8 +3,15 @@ package vo;
 public class OpptyLeadVO {
 	private String optyId;
 	private String optyLeadId;
+	private String leadId;
 	private String batchJobId;
 	
+	public String getLeadId() {
+		return leadId;
+	}
+	public void setLeadId(String leadId) {
+		this.leadId = leadId;
+	}
 	public String getOptyId() {
 		return optyId;
 	}
@@ -26,7 +33,8 @@ public class OpptyLeadVO {
 	
 	@Override
 	public String toString() {
-		return "OpptyLeadVO [optyId=" + optyId + ", optyLeadId=" + optyLeadId + ", batchJobId=" + batchJobId + "]";
+		return "OpptyLeadVO [optyId=" + optyId + ", optyLeadId=" + optyLeadId + ", leadId=" + leadId + ", batchJobId="
+				+ batchJobId + "]";
 	}
 	
 }

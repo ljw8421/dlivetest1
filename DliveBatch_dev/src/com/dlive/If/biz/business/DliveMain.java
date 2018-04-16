@@ -168,7 +168,7 @@ public class DliveMain {
 				logVo.setStatus("success");
 				batchLogInsert(logVo);
 				break;
-			case "resouces_in":
+			case "resources_in":
 				batchLogInsert(logVo);
 				resources_in(map);
 				logVo.setStatus("success");
@@ -255,7 +255,7 @@ public class DliveMain {
 					logVo.setStatus("success");
 					batchLogInsert(logVo);
 					break;
-				case "resouces_in":
+				case "resources_in":
 					batchLogInsert(logVo);
 					resources_in(map);
 					logVo.setStatus("success");
@@ -383,9 +383,9 @@ public class DliveMain {
 	private static void opportunity_in(Map<String, String> map) throws Exception
 	{
 		opportunity = new OpportunityManagement(mssession, map);		// Opportunity
-		opportunity.initialize(restId, restPw, restUrl);				// webService 호출
+//		opportunity.initialize(restId, restPw, restUrl);				// webService 호출
 
-		Map<String,Object> resultMap = opportunity.getAllOpportunity();	// Opportunity List
+		Map<String,Object> resultMap = opportunity.getAllOpportunity_rest(restId, restPw, restUrl);	// Opportunity List
 		
 		List<OpportunityVO> opptyList   = new ArrayList<OpportunityVO>();
 		List<OpptyLeadVO> opptyLeadlist = new ArrayList<OpptyLeadVO>();
@@ -394,7 +394,7 @@ public class DliveMain {
 		
 		opptyList     = (List<OpportunityVO>) resultMap.get("opptyList");
 		opptyLeadlist = (List<OpptyLeadVO>) resultMap.get("opptyLeadList");
-		
+		logger.info("opptyList.size() : " + opptyList.size());
 		if(opptyList.size() > 0 ) {
 			result = opportunity.insertOpportunity(opptyList);
 			

@@ -121,11 +121,11 @@ public class ServiceRequestManagement {
 								, "SourceCd", "ChannelTypeCd", "StatusCd", "StatusF_c", "DeleteFlag"
 								, "ServiceType_c", "ApprovalID_c", "CompleteType_c", "Competitor_c", "CompetitorETC_c"
 								, "BranchNameF_c", "BranchCodeF_c", "DliveCloseDt_c", "ApprovalYN_c", "SRBranch_c"
-								, "ProblemResult_c"
+								, "ProblemResult_c", "SrConaId_c"
 						 };
 		// key : ID
-		String itemAttribute[] = { "SrId" };
-		String itemValue[] = { "" };
+		String itemAttribute[] = { "LastUpdateDate" };
+		String itemValue[] = { betweenDt };
 		String operator[] = { "BETWEEN" };
 		
 		boolean upperCaseCompare[] = { true };
@@ -348,6 +348,10 @@ public class ServiceRequestManagement {
 					if(serviceRequest.getLastUpdateDate() != null) {
 						LastUpdateDate = serviceRequest.getLastUpdateDate().toString();
 					}
+					String srConaId_c = "";
+					if(serviceRequest.getSrConaIdC() != null) {
+						LastUpdateDate = serviceRequest.getSrConaIdC().getValue();
+					}
 					
 					srvo.setSrId(SrId);
 					srvo.setSrNumber(SrNumber);
@@ -385,6 +389,7 @@ public class ServiceRequestManagement {
 					srvo.setApprovalYN_c(ApprovalYN_c);
 					srvo.setSRBranch_c(SRBranch_c);
 					srvo.setProblemResult_c(ProblemResult_c);
+					srvo.setSrConaId_c(srConaId_c);
 					srvo.setBatchJobId(batchJobId);
 					
 					tgtList.add(srvo);

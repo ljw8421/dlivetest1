@@ -93,6 +93,12 @@ public class CreateCsvFile {
 			header.add("SurFee_c");
 			header.add("ContractFrom_c");
 			header.add("ContractTo_c");
+			header.add("OTTFee_c");
+			header.add("DTVFee_c");
+			header.add("ISPFee_c");
+			header.add("VOIPFee_c");
+			header.add("NoPayFee_c");
+			header.add("DliveCustomerType_c");
 	         break;
 		}
 		

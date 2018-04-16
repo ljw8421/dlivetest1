@@ -33,9 +33,16 @@ public class ActivityVO {
 	private String lastUpdatedBy;
 	private String actBranch_c;
 	private String privateFlag;
+	private String dliveActType;
 	private String batchJobId;
 	
 	
+	public String getDliveActType() {
+		return dliveActType;
+	}
+	public void setDliveActType(String dliveActType) {
+		this.dliveActType = dliveActType;
+	}
 	public String getPrivateFlag() {
 		return privateFlag;
 	}
@@ -228,7 +235,6 @@ public class ActivityVO {
 	public void setBatchJobId(String batchJobId) {
 		this.batchJobId = batchJobId;
 	}
-	
 	@Override
 	public String toString() {
 		return "ActivityVO [activityId=" + activityId + ", activityNumber=" + activityNumber + ", accountId="
@@ -243,7 +249,8 @@ public class ActivityVO {
 				+ ", initialDateF_c=" + initialDateF_c + ", initialDateTextF_c=" + initialDateTextF_c + ", createdBy="
 				+ createdBy + ", creationDate=" + creationDate + ", lastUpdateDate=" + lastUpdateDate
 				+ ", lastUpdatedBy=" + lastUpdatedBy + ", actBranch_c=" + actBranch_c + ", privateFlag=" + privateFlag
-				+ ", batchJobId=" + batchJobId + "]";
+				+ ", dliveActType=" + dliveActType + ", batchJobId=" + batchJobId + "]";
 	}
+	
 	
 }

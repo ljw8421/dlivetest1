@@ -21,7 +21,6 @@ import com.oracle.xmlns.adf.svc.types.ViewCriteria;
 import com.oracle.xmlns.adf.svc.types.ViewCriteriaItem;
 import com.oracle.xmlns.adf.svc.types.ViewCriteriaRow;
 import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.Resource;
-import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.ResourceResult;
 import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.applicationmodule.ResourceService;
 import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.applicationmodule.ResourceService_Service;
 
@@ -43,6 +42,7 @@ public class ResourcesManagement {
 	CommonUtil commonUtil;
 	
 	private String batchJobId;
+	private String paramDt, todayDt, betweenDt;
 	
 	private static Logger logger = Logger.getLogger(ResourcesManagement.class);
 	
@@ -51,6 +51,9 @@ public class ResourcesManagement {
 		
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
+		this.paramDt    = map.get("paramDt");
+		this.todayDt    = map.get("todayDt");
+		this.betweenDt  = paramDt+","+todayDt;
 	}
 	
 	public void initialize(String username, String password, String url)
@@ -92,13 +95,13 @@ public class ResourcesManagement {
 		
 		String items[] = {
 								"ResourceProfileId", "PartyId", "PartyName", "PartyNumber", "Roles", "EmailAddress"
-						  	  , "Manager", "Username", "Organizations", "ResourceEO_ManagerPartyId_c", "ResourceEO_DliveBranchCode_c"
+						  	  , "Manager", "Username", "Organizations", "ResourceEO_ManagerPartyId_c"
 						 };
-		String itemAttribute[] = { };
-		String itemValue[] = { };
-		String operator[] = { };
+		String itemAttribute[] = { "LastUpdateDate" };
+		String itemValue[] = { "BETWEEN" };
+		String operator[] = { betweenDt };
 		
-		boolean upperCaseCompare[] = { };
+		boolean upperCaseCompare[] = { true };
 		
 		/* Find Page Size  */
 		int pageNum = 1;		// Start Size
@@ -157,11 +160,6 @@ public class ResourcesManagement {
 						organizations = resource.getOrganizations().getValue();
 					}
 					
-					String dliveBranchCode = "";
-					if(resource.getResourceEODliveBranchCodeC().getValue() != null) {
-						dliveBranchCode = resource.getResourceEODliveBranchCodeC().getValue();
-					}
-					
 					logger.debug("#["+i+"]");
 					logger.debug("Resource ResourceProfileId   : " + resourceProfileId);
 					logger.debug("Resource PartyId             : " + partyId);
@@ -173,7 +171,6 @@ public class ResourcesManagement {
 					logger.debug("Resource Manager             : " + manager);
 					logger.debug("Resource ManagerId           : " + managerId);
 					logger.debug("Resource Organizations       : " + organizations);
-					logger.debug("Resource DliveBranchCode     : " + dliveBranchCode);
 					
 					rvo.setResourceProfileId(resourceProfileId);
 					rvo.setPartyId(partyId);
@@ -185,7 +182,6 @@ public class ResourcesManagement {
 					rvo.setManager(manager);
 					rvo.setManagerId(managerId);
 					rvo.setOrganizations(organizations);
-					rvo.setDliveBranchCode(dliveBranchCode);
 					rvo.setBatchJobId(batchJobId);
 					
 					tgtList.add(rvo);
@@ -213,7 +209,7 @@ public class ResourcesManagement {
 		int tmp_insert_result  = 0;
 		int sc_insert_result   = 0;
 		int delete_result      = 0;
-		int splitSize          = 1000;	// partition 나누기
+		int splitSize          = 150;	// partition 나누기
 		
 		delete_result = session.delete("interface.deleteResourcesTemp");
 		if(delete_result != 0) {

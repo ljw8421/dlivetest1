@@ -35,8 +35,15 @@ public class LeadVO {
 	private String CreatedBy;
 	private String LastUpdateDate;
 	private String LastUpdatedBy;
+	private String leadSourceType_c;
 	private String batchJobId;
 	
+	public String getLeadSourceType_c() {
+		return leadSourceType_c;
+	}
+	public void setLeadSourceType_c(String leadSourceType_c) {
+		this.leadSourceType_c = leadSourceType_c;
+	}
 	public String getSalesChannelMeaning() {
 		return SalesChannelMeaning;
 	}
@@ -258,7 +265,7 @@ public class LeadVO {
 				+ ConvertedTimestamp + ", DeleteFlag=" + DeleteFlag + ", BranchNameF_c=" + BranchNameF_c
 				+ ", BranchCodeF_c=" + BranchCodeF_c + ", LeadBranch_c=" + LeadBranch_c + ", CreationDate="
 				+ CreationDate + ", CreatedBy=" + CreatedBy + ", LastUpdateDate=" + LastUpdateDate + ", LastUpdatedBy="
-				+ LastUpdatedBy + ", batchJobId=" + batchJobId + "]";
+				+ LastUpdatedBy + ", leadSourceType_c=" + leadSourceType_c + ", batchJobId=" + batchJobId + "]";
 	}
 	
 }

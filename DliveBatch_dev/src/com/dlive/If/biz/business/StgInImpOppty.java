@@ -19,56 +19,51 @@ public class StgInImpOppty {
 		this.batchJobId = map.get("batchJobId");
 	}
 
-	public void stgInImp()
+	public void stgInImp() throws Exception
 	{
 		logger.info("Start Stg oppty To imp oppty/oppty_account insert");
 		
-		try {
-			int tmp_insert_result    = 0;
-			int oppty_account_result = 0;
-			int oppty_result         = 0;
-			int target_result        = 0;
+		int tmp_insert_result    = 0;
+		int oppty_account_result = 0;
+		int oppty_result         = 0;
+		int target_result        = 0;
+		
+		List<Map<String, String>> dateList = new ArrayList<>();
+		dateList = mssession.selectList("interface.selectDateCount");	// 날짜 쿼리.
+		
+		int delete = mssession.insert("interface.deleteTmpStgOppty");
+		logger.debug("tmp table delete : " + delete);
+		
+		for(Map<String, String> dateMap : dateList) 
+		{
+			// tmp table insert
+			tmp_insert_result = mssession.insert("interface.insertTmpStgOppty", dateMap);
 			
-			List<Map<String, String>> dateList = new ArrayList<>();
-			dateList = mssession.selectList("interface.selectDateCount");	// 날짜 쿼리.
-			
-			int delete = mssession.insert("interface.deleteTmpStgOppty");
-			logger.debug("tmp table delete : " + delete);
-			
-			for(Map<String, String> dateMap : dateList) 
+			if(tmp_insert_result != 0) 
 			{
-				// tmp table insert
-				tmp_insert_result = mssession.insert("interface.insertTmpStgOppty", dateMap);
+				// oppty_account & oppty imp table insert
+				oppty_account_result = mssession.update("interface.mergeImpOpptyAccount", batchJobId);
+				oppty_result         = mssession.update("interface.mergeImpOppty", batchJobId);
 				
-				if(tmp_insert_result != 0) 
-				{
-					// oppty_account & oppty imp table insert
-					oppty_account_result = mssession.update("interface.mergeImpOpptyAccount", batchJobId);
-					oppty_result         = mssession.update("interface.mergeImpOppty", batchJobId);
-					
-					logger.debug("oppty account result : " + oppty_account_result);
-					logger.debug("oppty result         : " + oppty_result);
-					
-					if(oppty_account_result != 0 || oppty_result != 0) {
-						mssession.commit();
-						logger.info("imp oppty account & imp oppty insert commit");
-					}
+				logger.debug("oppty account result : " + oppty_account_result);
+				logger.debug("oppty result         : " + oppty_result);
+				
+				if(oppty_account_result != 0 || oppty_result != 0) {
+					mssession.commit();
+					logger.info("imp oppty account & imp oppty insert commit");
 				}
 			}
-			
-			/* TargetYN N set*/
-			target_result = mssession.update("interface.updateOpptyTargetYN");
-			logger.debug("Target Set N : " + target_result);
-			
-			if(target_result != 0) {
-				mssession.commit();
-				logger.info("TargetYN set N success");
-			}
-			
-		} catch (Exception e) {
-			// TODO: handle exception
-			logger.info("error : " + e.toString());
 		}
+		
+		/* TargetYN N set*/
+		target_result = mssession.update("interface.updateOpptyTargetYN");
+		logger.debug("Target Set N : " + target_result);
+		
+		if(target_result != 0) {
+			mssession.commit();
+			logger.info("TargetYN set N success");
+		}
+		
 		logger.info("End Stg oppty To imp oppty/oppty_account insert");
 	}
 }

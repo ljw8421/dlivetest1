@@ -94,7 +94,7 @@ public class LeadManagement {
 							 , "PrimaryContactProvince", "PrimaryContactState", "PrimaryContactCity", "PrimaryContactAddress1"
 							 , "PrimaryContactAddress2", "PrimaryContactPostalCode", "RetiredDateTime", "ConvertedTimestamp"
 							 , "DeleteFlag", "BranchNameF_c", "BranchCodeF_c", "LeadBranch_c"
-							 , "CreationDate", "CreatedBy", "LastUpdateDate", "LastUpdatedBy"
+							 , "CreationDate", "CreatedBy", "LastUpdateDate", "LastUpdatedBy", "LeadSourceType_c"
 						 };
 
 		String itemAttribute[] = {
@@ -299,6 +299,11 @@ public class LeadManagement {
 						lastUpdateDate = lead.getLastUpdateDate().toString();
 					}
 					
+					String leadSourceType_c = null;
+					if(lead.getLeadSourceTypeC() != null) {
+						lastUpdateDate = lead.getLeadSourceTypeC().getValue();
+					}
+					
 					logger.debug("#["+i+"]");
 					logger.debug("Lead leadId                   : " + leadId);          
 					logger.debug("Lead name                     : " + leadName);
@@ -333,6 +338,7 @@ public class LeadManagement {
 					logger.debug("Lead createdBy                : " + createdBy);
 					logger.debug("Lead lastUpdateDate           : " + lastUpdateDate);
 					logger.debug("Lead lastUpdatedBy            : " + lastUpdatedBy);
+					logger.debug("Lead leadSourceType_c         : " + leadSourceType_c);
 					
 					leadVo.setLeadId(leadId);
 					leadVo.setName(leadName);
@@ -367,6 +373,7 @@ public class LeadManagement {
 					leadVo.setCreatedBy(createdBy);
 					leadVo.setLastUpdateDate(lastUpdateDate);
 					leadVo.setLastUpdatedBy(lastUpdatedBy);
+					leadVo.setLeadSourceType_c(leadSourceType_c);
 					leadVo.setBatchJobId(batchJobId);
 					
 					tgtList.add(leadVo);
