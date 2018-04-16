@@ -18,6 +18,7 @@
 		
 		<mappers>
 			<mapper resource="mapper/InterfaceMapper.xml"/>
+			<mapper resource="mapper/LogMapper.xml"/>
 		</mappers>
 </configuration>
 
