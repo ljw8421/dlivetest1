@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mySql interface DB -->
+<mapper namespace="log">
+
+	<insert id="insertLog" parameterType="vo.LogVO">
+		MERGE INTO batchjoblog A
+		    USING (SELECT
+		          #{batchJobId} as batchJobId 
+		         , #{workType}   as workType
+		         , #{workJob}    as workJob
+		         , getdate()     as batchDt
+		         , #{status}     as status
+		         , #{batchDesc}  as batchDesc ) B
+		 ON (A.batchJobId = B.batchJobId AND A.workType = B.workType AND A.workJob = B.workJob)
+		 WHEN MATCHED THEN
+		    UPDATE SET
+		          A.batchDt       = B.batchDt 
+		        , A.status       = B.status 
+		        , A.batchDesc    = B.batchDesc
+		  WHEN NOT MATCHED THEN
+		     INSERT
+		     (
+		        batchJobId, workType, workJob, batchDt, status, batchDesc
+		     )
+		     VALUES
+		    (
+		       B.batchJobId, B.workType, B.workJob, B.batchDt, B.status, B.batchDesc
+		    ); 
+	</insert>
+   
+</mapper>

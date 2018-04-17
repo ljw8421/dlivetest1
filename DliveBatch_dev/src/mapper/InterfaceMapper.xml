@@ -1,0 +1,1745 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- mySql interface DB -->
+<mapper namespace="interface">
+
+	<!-- Code -->
+	<select id="selectCode" parameterType="vo.CodeVO" resultType="vo.CodeVO">
+		SELECT
+			cd_id,
+			type,
+			type_name,
+			cd_name,
+			cd_val,
+			seq,
+			use_yn
+		FROM
+			code
+		WHERE
+			type = #{type}
+			<if test="use_yn != null and use_yn != ''">
+		AND use_yn = #{use_yn}
+			</if>
+			<if test="cd_name != null and cd_name != ''">
+		AND cd_name = #{cd_name}
+			</if>
+		ORDER BY seq
+	</select>
+	
+	<!-- BatchJobId Seq -->
+	<select id="getBatchJobId" resultType="String">
+		SELECT (CONVERT(VARCHAR(4), getDate(), 23) + CONVERT(VARCHAR(8), (NEXT VALUE FOR [dbo].[SEQ_SC_BATCHJOBID])) ) as BATCHJOBID
+	</select>
+	
+
+	<!-- Resources -->
+	<!-- Temp Table TRUNCATE -->
+	<delete id="deleteResourcesTemp">
+		TRUNCATE TABLE TMP_RESOURCES
+	</delete>
+
+	<!-- Resources Temp Table Insert -->
+	<update id="insertResoucesTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_RESOURCES
+		(
+			  RESOURCEPROFILEID
+			, PARTYID
+			, PARTYNAME
+			, PARTYNUMBER
+			, ROLES
+			, EMAILADDRESS
+			, USERNAME
+			, MANAGER
+			, MANAGERID
+			, ORGANIZATIONS
+			, BatchJobId
+		)
+		VALUES
+		<foreach item="resources" index="index" collection="list" open="" separator="," close="">
+			(
+				  #{resources.resourceProfileId}
+				, #{resources.partyId}
+				, #{resources.partyName}
+				, #{resources.partyNumber}
+				, #{resources.roles}
+				, #{resources.emailAddress}
+				, #{resources.userName}
+				, #{resources.manager}
+				, #{resources.managerId}
+				, #{resources.organizations}
+				, #{resources.batchJobId}
+			)
+		</foreach>
+	</update>
+	
+	<!-- Temp Table -> Resources Table Update -->
+	<update id="insertResources">
+		MERGE INTO SC_RESOURCES A
+		USING TMP_RESOURCES B
+		ON (A.RESOURCEPROFILEID = B.RESOURCEPROFILEID)
+		WHEN MATCHED THEN
+			UPDATE SET
+			      A.PARTYID           = B.PARTYID        
+			    , A.PARTYNAME         = B.PARTYNAME      
+			    , A.PARTYNUMBER       = B.PARTYNUMBER    
+			    , A.ROLES             = B.ROLES          
+			    , A.EMAILADDRESS      = B.EMAILADDRESS   
+			    , A.USERNAME          = B.USERNAME       
+			    , A.MANAGER           = B.MANAGER        
+			    , A.MANAGERID         = B.MANAGERID      
+			    , A.ORGANIZATIONS     = B.ORGANIZATIONS  
+			    , A.WORKDATE          = getDate()
+			    , A.BATCHJOBID        = B.BATCHJOBID
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  RESOURCEPROFILEID
+				, PARTYID
+				, PARTYNAME
+				, PARTYNUMBER
+				, ROLES
+				, EMAILADDRESS
+				, USERNAME
+				, MANAGER
+				, MANAGERID
+				, ORGANIZATIONS
+				, WORKDATE
+				, BATCHJOBID
+			)
+			VALUES
+			(
+				  B.RESOURCEPROFILEID
+				, B.PARTYID
+				, B.PARTYNAME
+				, B.PARTYNUMBER
+				, B.ROLES
+				, B.EMAILADDRESS
+				, B.USERNAME
+				, B.MANAGER
+				, B.MANAGERID
+				, B.ORGANIZATIONS
+				, getDate()
+				, B.BatchJobId
+			);
+	</update>
+	
+	
+	
+	<!-- Account -->
+	<!-- tmp account table delete -->
+	<delete id="deleteAccountTemp">
+		TRUNCATE TABLE TMP_ACCOUNT
+	</delete>
+	
+	<!-- imp account tmp table delete -->
+	<delete id="deleteImpAccountTemp">
+		TRUNCATE TABLE TMP_IMP_ACCOUNT
+	</delete>
+	
+	<!-- trns tmp account table delete -->
+	<delete id="deleteTransAccountTemp">
+		TRUNCATE TABLE TMP_TRNS_ACCOUNT
+	</delete>
+
+	<select id="selectStgAccountDateGroup" resultType="java.util.Map">
+		SELECT 
+			CONVERT(VARCHAR(10),CREATIONDATE,23)AS DATE
+		FROM 
+			STG_ACCOUNT
+		WHERE 
+			TARGETYN = 'Y'
+		GROUP BY CREATIONDATE
+	</select>
+	
+	<!-- Account Temp Table Insert -->
+	<update id="insertAccountTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_ACCOUNT
+		(
+			  PARTYID
+			, PARTYNUMBER
+			, SOURCESYSTEM 
+			, SOURCESYSTEMREFERENCEVALUE 
+			, ORGANIZATIONNAME 
+			, TYPE 
+			, OWNERPARTYID 
+			, OWNERPARTYNUMBER 
+			, OWNEREMAILADDRESS
+			, OWNERNAME
+			, SALESPROFILESTATUS 
+			, CREATEDBY
+			, CREATIONDATE 
+			, LASTUPDATEDATE 
+			, LASTUPDATEDBY
+			, PHONECOUNTRYCODE 
+			, PHONEAREACODE
+			, PHONENUMBER
+			, PHONEEXTENSION 
+			, ADDRESSNUMBER
+			, ADDRESSLINE1 
+			, ADDRESSLINE2 
+			, CITY 
+			, COUNTRY
+			, POSTALCODE 
+			, PROVINCE 
+			, STATE
+			, SOCIETYTYPE_C
+			, SOCIETYTYPEF_C
+			, NEWBUILDFLAG_C 
+			, BUILDDATE_C
+			, NETWORKINDATE_C
+			, HOUSEHOLDNUMBER_C
+			, INVASIONRATE_C 
+			, STANDARDFEE_C
+			, SURFEE_C 
+			, CONAID_C 
+			, DTVCOUNT_C 
+			, ISPCOUNT_C 
+			, VOIPCOUNT_C
+			, SHARERATE_C
+			, REMARKF_C 
+			, TYPEOFBUSINESS_C 
+			, OTTCOUNT_C 
+			, CONTRACTFROM_C 
+			, CONTRACTTO_C 
+			, INVASIONRATEF_C
+			, BRANCHNM_C
+			, BATCHJOBID 
+		)
+		VALUES
+		<foreach item="account" index="index" collection="list" open="" separator="," close="">
+			(
+				   #{account.partyId}
+				,  #{account.partyNumber}
+				,  #{account.sourceSystem}
+				,  #{account.sourceSystemReferenceValue}
+				,  #{account.organizationName}
+				,  #{account.type}
+				,  #{account.ownerPartyId}
+				,  #{account.ownerPartyNumber}
+				,  #{account.ownerEmailAddress}
+				,  #{account.ownerName}
+				,  #{account.salesProfileStatus}
+				,  #{account.createdBy}
+				,  #{account.creationDate}
+				,  #{account.lastUpdateDate}
+				,  #{account.lastUpdatedBy}
+				,  #{account.phoneCountryCode}
+				,  #{account.phoneAreaCode}
+				,  #{account.phoneNumber}
+				,  #{account.phoneExtension}
+				,  #{account.addressNumber}
+				,  #{account.addressLine1}
+				,  #{account.addressLine2}
+				,  #{account.city}
+				,  #{account.country}
+				,  #{account.postalCode}
+				,  #{account.province}
+				,  #{account.state}
+				,  #{account.SocietyType_c}
+				,  #{account.SocietyTypeF_c}
+				,  #{account.NewBuildFlag_c}
+				,  #{account.BuildDate_c}
+				,  #{account.NetworkInDate_c}
+				,  #{account.HouseholdNumber_c}
+				,  #{account.InvasionRate_c}
+				,  #{account.StandardFee_c}
+				,  #{account.SurFee_c}
+				,  #{account.ConaId_c}
+				,  #{account.DTVCount_c}
+				,  #{account.ISPCount_c}
+				,  #{account.VoIPCount_c}
+				,  #{account.ShareRate_c}
+				,  #{account.RemarkF_c}
+				,  #{account.TypeOfBusiness_c}
+				,  #{account.OTTCount_c}
+				,  #{account.ContractFrom_c}
+				,  #{account.ContractTo_c}
+				,  #{account.InvasionRateF_c}
+				,  #{account.BranchNm_c}
+				,  #{account.batchJobId}
+			)
+		</foreach>
+	</update>
+	
+	<!-- Temp Table -> Account Table Update -->
+	<update id="insertAccount" parameterType="java.util.Map">
+		MERGE INTO SC_ACCOUNT A
+		USING TMP_ACCOUNT B
+		ON (A.PARTYID = B.PARTYID)
+		WHEN MATCHED THEN
+			UPDATE SET
+			      A.PARTYNUMBER                     = B.PARTYNUMBER                      
+				, A.SOURCESYSTEM                    = B.SOURCESYSTEM                     
+				, A.SOURCESYSTEMREFERENCEVALUE      = B.SOURCESYSTEMREFERENCEVALUE       
+				, A.ORGANIZATIONNAME                = B.ORGANIZATIONNAME                 
+				, A.TYPE                            = B.TYPE                             
+				, A.OWNERPARTYID                    = B.OWNERPARTYID                     
+				, A.OWNERPARTYNUMBER                = B.OWNERPARTYNUMBER                 
+				, A.OWNEREMAILADDRESS               = B.OWNEREMAILADDRESS                
+				, A.OWNERNAME                       = B.OWNERNAME                        
+				, A.SALESPROFILESTATUS              = B.SALESPROFILESTATUS               
+				, A.CREATEDBY                       = B.CREATEDBY                        
+				, A.CREATIONDATE                    = B.CREATIONDATE                     
+				, A.LASTUPDATEDATE                  = B.LASTUPDATEDATE                   
+				, A.LASTUPDATEDBY                   = B.LASTUPDATEDBY                    
+				, A.PHONECOUNTRYCODE                = B.PHONECOUNTRYCODE                 
+				, A.PHONEAREACODE                   = B.PHONEAREACODE                    
+				, A.PHONENUMBER                     = B.PHONENUMBER                      
+				, A.PHONEEXTENSION                  = B.PHONEEXTENSION                   
+				, A.ADDRESSNUMBER                   = B.ADDRESSNUMBER                    
+				, A.ADDRESSLINE1                    = B.ADDRESSLINE1                     
+				, A.ADDRESSLINE2                    = B.ADDRESSLINE2                     
+				, A.CITY                            = B.CITY                             
+				, A.COUNTRY                         = B.COUNTRY                          
+				, A.POSTALCODE                      = B.POSTALCODE                       
+				, A.PROVINCE                        = B.PROVINCE                         
+				, A.STATE                           = B.STATE                            
+				, A.SOCIETYTYPE_C         			= B.SOCIETYTYPE_C 
+				, A.SOCIETYTYPEF_C        			= B.SOCIETYTYPEF_C   
+				, A.NEWBUILDFLAG_C        			= B.NEWBUILDFLAG_C   
+				, A.BUILDDATE_C           			= B.BUILDDATE_C      
+				, A.NETWORKINDATE_C       			= B.NETWORKINDATE_C  
+				, A.HOUSEHOLDNUMBER_C     			= B.HOUSEHOLDNUMBER_C
+				, A.INVASIONRATE_C        			= B.INVASIONRATE_C   
+				, A.STANDARDFEE_C         			= B.STANDARDFEE_C    
+				, A.SURFEE_C              			= B.SURFEE_C         
+				, A.CONAID_C              			= B.CONAID_C         
+				, A.DTVCOUNT_C            			= B.DTVCOUNT_C       
+				, A.ISPCOUNT_C            			= B.ISPCOUNT_C       
+				, A.VOIPCOUNT_C           			= B.VOIPCOUNT_C      
+				, A.SHARERATE_C           			= B.SHARERATE_C      
+				, A.REMARKF_C              			= B.REMARKF_C         
+				, A.TYPEOFBUSINESS_C      			= B.TYPEOFBUSINESS_C 
+				, A.OTTCOUNT_C            			= B.OTTCOUNT_C       
+				, A.CONTRACTFROM_C        			= B.CONTRACTFROM_C   
+				, A.CONTRACTTO_C          			= B.CONTRACTTO_C     
+				, A.INVASIONRATEF_C       			= B.INVASIONRATEF_C  
+				, A.BRANCHNM_C            			= B.BRANCHNM_C       
+				, A.WORKDATE            			= GETDATE()
+				, A.TRNSYN            			    = 'N'  
+				, A.BATCHJOBID                      = B.BATCHJOBID
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  PARTYID                          
+				, PARTYNUMBER                      
+				, SOURCESYSTEM                     
+				, SOURCESYSTEMREFERENCEVALUE       
+				, ORGANIZATIONNAME                 
+				, TYPE                             
+				, OWNERPARTYID                     
+				, OWNERPARTYNUMBER                 
+				, OWNEREMAILADDRESS                
+				, OWNERNAME                        
+				, SALESPROFILESTATUS               
+				, CREATEDBY                        
+				, CREATIONDATE                     
+				, LASTUPDATEDATE                   
+				, LASTUPDATEDBY                    
+				, PHONECOUNTRYCODE                 
+				, PHONEAREACODE                    
+				, PHONENUMBER                      
+				, PHONEEXTENSION                   
+				, ADDRESSNUMBER                    
+				, ADDRESSLINE1                     
+				, ADDRESSLINE2                     
+				, CITY                             
+				, COUNTRY                          
+				, POSTALCODE                       
+				, PROVINCE                         
+				, STATE                            
+				, SOCIETYTYPE_C    
+				, SOCIETYTYPEF_C   
+				, NEWBUILDFLAG_C   
+				, BUILDDATE_C      
+				, NETWORKINDATE_C  
+				, HOUSEHOLDNUMBER_C
+				, INVASIONRATE_C   
+				, STANDARDFEE_C    
+				, SURFEE_C         
+				, CONAID_C         
+				, DTVCOUNT_C       
+				, ISPCOUNT_C       
+				, VOIPCOUNT_C      
+				, SHARERATE_C      
+				, REMARKF_C         
+				, TYPEOFBUSINESS_C 
+				, OTTCOUNT_C       
+				, CONTRACTFROM_C   
+				, CONTRACTTO_C     
+				, INVASIONRATEF_C  
+				, BRANCHNM_C       
+				, WORKDATE
+				, TRNSYN
+				, BATCHJOBID 
+			)
+			VALUES
+			(
+				  B.PARTYID                          
+				, B.PARTYNUMBER                      
+				, B.SOURCESYSTEM                     
+				, B.SOURCESYSTEMREFERENCEVALUE       
+				, B.ORGANIZATIONNAME                 
+				, B.TYPE                             
+				, B.OWNERPARTYID                     
+				, B.OWNERPARTYNUMBER                 
+				, B.OWNEREMAILADDRESS                
+				, B.OWNERNAME                        
+				, B.SALESPROFILESTATUS               
+				, B.CREATEDBY                        
+				, B.CREATIONDATE                     
+				, B.LASTUPDATEDATE                   
+				, B.LASTUPDATEDBY                    
+				, B.PHONECOUNTRYCODE                 
+				, B.PHONEAREACODE                    
+				, B.PHONENUMBER                      
+				, B.PHONEEXTENSION                   
+				, B.ADDRESSNUMBER                    
+				, B.ADDRESSLINE1                     
+				, B.ADDRESSLINE2                     
+				, B.CITY                             
+				, B.COUNTRY                          
+				, B.POSTALCODE                       
+				, B.PROVINCE                         
+				, B.STATE                            
+				, B.SOCIETYTYPE_C   
+				, B.SOCIETYTYPEF_C  
+				, B.NEWBUILDFLAG_C   
+				, B.BUILDDATE_C      
+				, B.NETWORKINDATE_C  
+				, B.HOUSEHOLDNUMBER_C
+				, B.INVASIONRATE_C   
+				, B.STANDARDFEE_C    
+				, B.SURFEE_C         
+				, B.CONAID_C         
+				, B.DTVCOUNT_C       
+				, B.ISPCOUNT_C       
+				, B.VOIPCOUNT_C      
+				, B.SHARERATE_C      
+				, B.REMARKF_C         
+				, B.TYPEOFBUSINESS_C 
+				, B.OTTCOUNT_C       
+				, B.CONTRACTFROM_C   
+				, B.CONTRACTTO_C     
+				, B.INVASIONRATEF_C  
+				, B.BRANCHNM_C   
+				, GETDATE()
+				, 'N'
+				, B.BatchJobId
+			);
+	</update>
+	
+	<update id="insertImpAccount" parameterType="java.util.Map">
+		MERGE INTO IMP_ACCOUNT A
+		USING (SELECT C.SEQ
+					, C.CONAID_C
+					, LTRIM(RTRIM(PARTYNUMBER)) AS PARTYNUMBER
+					, LTRIM(RTRIM(ISNULL(C.OTTCOUNT_C,'0'))) AS OTTCOUNT_C
+					, LTRIM(RTRIM(ISNULL(C.DTVCOUNT_C,'0'))) AS DTVCOUNT_C
+					, LTRIM(RTRIM(ISNULL(C.ISPCOUNT_C,'0'))) AS ISPCOUNT_C
+					, LTRIM(RTRIM(ISNULL(C.VOIPCOUNT_C,'0'))) AS VOIPCOUNT_C
+					, LTRIM(RTRIM(ISNULL(C.STANDARDFEE_C,'0'))) AS STANDARDFEE_C
+					, LTRIM(RTRIM(ISNULL(C.SURFEE_C,'0'))) AS SURFEE_C
+					, C.CONTRACTTO_C
+					, C.CONTRACTFROM_C
+					, LTRIM(RTRIM(ISNULL(C.OTTFEE_C,'0'))) AS OTTFEE_C
+					, LTRIM(RTRIM(ISNULL(C.DTVFEE_C,'0'))) AS DTVFEE_C
+					, LTRIM(RTRIM(ISNULL(C.ISPFEE_C,'0'))) AS ISPFEE_C
+					, LTRIM(RTRIM(ISNULL(C.VOIPFEE_C,'0'))) AS VOIPFEE_C
+					, LTRIM(RTRIM(ISNULL(C.NOPAYFEE_C,'0'))) AS NOPAYFEE_C
+					, LTRIM(RTRIM(C.DLIVECUSTOMERTYPE_C)) AS DLIVECUSTOMERTYPE_C
+	           FROM   STG_ACCOUNT C, TMP_IMP_ACCOUNT D
+	          WHERE   1=1
+	            AND   C.SEQ = D.SEQ
+	            AND   C.TARGETYN = 'Y'
+	            AND   C.CREATIONDATE BETWEEN #{DATE} AND #{DATE} + ' 23:59:59.999') B
+		ON (A.PARTYNUMBER = B.PARTYNUMBER)
+		WHEN MATCHED THEN
+			UPDATE SET
+					  A.CONAID_C             = B.CONAID_C
+					, A.PARTYNUMBER          = B.PARTYNUMBER
+					, A.OTTCOUNT_C           = B.OTTCOUNT_C
+					, A.DTVCOUNT_C           = B.DTVCOUNT_C
+					, A.ISPCOUNT_C           = B.ISPCOUNT_C
+					, A.VOIPCOUNT_C          = B.VOIPCOUNT_C
+					, A.STANDARDFEE_C        = B.STANDARDFEE_C
+					, A.SURFEE_C             = B.SURFEE_C
+					, A.CONTRACTTO_C         = B.CONTRACTTO_C
+					, A.CONTRACTFROM_C       = B.CONTRACTFROM_C
+					, A.TRNSYN               = 'N'
+					, A.IMPORTDATE           = GETDATE()
+					, A.BATCHJOBID	         = #{batchJobId}
+					, A.OTTFEE_C             = B.OTTFEE_C
+					, A.DTVFEE_C             = B.DTVFEE_C
+					, A.ISPFEE_C             = B.ISPFEE_C
+					, A.VOIPFEE_C            = B.VOIPFEE_C
+					, A.NOPAYFEE_C           = B.NOPAYFEE_C
+					, A.DLIVECUSTOMERTYPE_C  = B.DLIVECUSTOMERTYPE_C
+		WHEN NOT MATCHED THEN
+			INSERT(
+					  CONAID_C
+					, PARTYNUMBER
+					, OTTCOUNT_C
+					, DTVCOUNT_C
+					, ISPCOUNT_C
+					, VOIPCOUNT_C
+					, STANDARDFEE_C
+					, SURFEE_C
+					, CONTRACTTO_C
+					, CONTRACTFROM_C
+					, TRNSYN
+					, IMPORTDATE
+					, BATCHJOBID
+					, OTTFEE_C
+					, DTVFEE_C
+					, ISPFEE_C
+					, VOIPFEE_C
+					, NOPAYFEE_C
+					, DLIVECUSTOMERTYPE_C
+			)
+			VALUES(
+					  B.CONAID_C
+					, B.PARTYNUMBER
+					, B.OTTCOUNT_C
+					, B.DTVCOUNT_C
+					, B.ISPCOUNT_C
+					, B.VOIPCOUNT_C
+					, B.STANDARDFEE_C
+					, B.SURFEE_C
+					, B.CONTRACTTO_C
+					, B.CONTRACTFROM_C
+					, 'N'
+					, GETDATE()
+					, #{batchJobId}
+					, B.OTTFEE_C
+					, B.DTVFEE_C
+					, B.ISPFEE_C
+					, B.VOIPFEE_C
+					, B.NOPAYFEE_C
+					, B.DLIVECUSTOMERTYPE_C
+			);
+	</update>
+	
+	<!-- stg target Y insert imp account tmp table -->
+	<update id="insertImpAccountTemp">
+		INSERT INTO TMP_IMP_ACCOUNT
+		(
+			SEQ
+		)
+     	SELECT   SEQ
+	   	FROM     STG_ACCOUNT
+	  	WHERE    TARGETYN = 'Y'
+   	</update>
+   
+   	<!-- imp insert after stg target N set -->
+	<update id="updateStgAccount">
+		MERGE INTO STG_ACCOUNT A
+      	USING (SELECT SEQ
+               FROM   TMP_IMP_ACCOUNT) B
+      	ON (A.SEQ = B.SEQ)
+      	WHEN MATCHED THEN
+			UPDATE SET
+	              A.TARGETYN          = 'N'
+		;
+	</update>
+	
+	<!-- trns N insert import tmp table -->
+	<update id="insertTransAccountTemp">
+		INSERT INTO TMP_TRNS_ACCOUNT
+		(
+			PartyNumber
+		)
+		SELECT   PartyNumber
+		FROM     IMP_ACCOUNT
+		WHERE    TRNSYN = 'N'
+	</update>
+	
+	<!-- import success after trns Y set -->
+	<update id="updateImpAccount">
+	   	MERGE INTO IMP_ACCOUNT A
+	   	USING (
+	   		SELECT 
+				PartyNumber
+			FROM 
+				TMP_TRNS_ACCOUNT
+		) B
+	   	ON (A.PartyNumber = B.PartyNumber)
+	   	WHEN MATCHED THEN
+			UPDATE SET
+		           A.TRNSYN   = 'Y'
+		         , A.TRNSDATE = GETDATE()
+		;
+	</update>
+
+	
+	
+	
+	<!-- Opportunity -->
+	<!-- tmp oppty table delete -->
+	<delete id="deleteOpportunityTemp">
+		TRUNCATE TABLE TMP_OPPORTUNITY
+	</delete>
+	
+	<!-- tmp oppty lead table delete -->
+	<delete id="deleteOpportunityLeadTemp">
+		TRUNCATE TABLE TMP_OPPORTUNITYLEAD
+	</delete>
+	
+	<!-- Opportunity Temp Table Insert -->
+	<update id="insertOpportunityTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_OPPORTUNITY
+		(
+			  OPTYID                       
+			, OPTYNUMBER                   
+			, NAME                         
+			, TARGETPARTYID                
+			, TARGETPARTYNAME              
+			, OWNERRESOURCEPARTYID         
+			, STATUSCODE                   
+			, SALESSTAGE                   
+			, COMMENTS                     
+			, EFFECTIVEDATE                
+			, WINPROB                      
+			, PRIMARYCONTACTPARTYNAME      
+			, SALESCHANNELCD               
+			, OPPTYTYPE_C                  
+			, COMPETITOR_C                 
+			, COMPETITORETC_C              
+			, OPENTYPE_C                   
+			, COMPLETETYPE_C               
+			, SUCCESSCAUSE_C               
+			, FAILCAUSE_C                  
+			, BRANCHNAMEF_C                
+			, BRANCHCODEF_C                
+			, APPROVALID_C                 
+			, GOOD1_C                      
+			, GOOD1QTY_C                   
+			, GOOD1PRICE_C                 
+			, GOOD1CALCF_C                 
+			, GOOD2_C                      
+			, GOOD2PRICE_C                 
+			, GOOD2QTY_C                   
+			, GOOD2CALCF_C                 
+			, GOOD3_C                      
+			, GOOD3PRICE_C                 
+			, GOOD3QTY_C                   
+			, GOOD3CALCF_C                 
+			, GOOD4_C                      
+			, GOOD4PRICE_C                 
+			, GOOD4QTY_C                   
+			, GOOD4CALCF_C                 
+			, GOODTOTALCALCF_C             
+			, OPTYBRANCH_C                 
+			, CREATEDBY                    
+			, CREATIONDATE                 
+			, LASTUPDATEDATE               
+			, LASTUPDATEDBY
+			, BATCHJOBID          
+		)
+		VALUES
+		<foreach item="opportunity" index="index" collection="list" open="" separator="," close="">
+			(
+				  #{opportunity.optyId}
+				, #{opportunity.optyNumber}
+				, #{opportunity.name}
+				, #{opportunity.targetPartyId}
+				, #{opportunity.targetPartyName}
+				, #{opportunity.ownerResourcePartyId}
+				, #{opportunity.statusCode}
+				, #{opportunity.salesStage}
+				, #{opportunity.comments}
+				, #{opportunity.effectiveDate}
+				, #{opportunity.winProb}
+				, #{opportunity.primaryContactPartyName}
+				, #{opportunity.salesChannelCd}
+				, #{opportunity.opptyType_c}
+				, #{opportunity.competitor_c}
+				, #{opportunity.competitorETC_c}
+				, #{opportunity.openType_c}
+				, #{opportunity.completeType_c}
+				, #{opportunity.successCause_c}
+				, #{opportunity.failCause_c}
+				, #{opportunity.branchNameF_c}
+				, #{opportunity.branchCodeF_c}
+				, #{opportunity.approvalID_c}
+				, #{opportunity.good1_c}
+				, #{opportunity.good1Qty_c}
+				, #{opportunity.good1Price_c}
+				, #{opportunity.good1CalcF_c}
+				, #{opportunity.good2_c}
+				, #{opportunity.good2Price_c}
+				, #{opportunity.good2Qty_c}
+				, #{opportunity.good2CalcF_c}
+				, #{opportunity.good3_c}
+				, #{opportunity.good3Price_c}
+				, #{opportunity.good3Qty_c}
+				, #{opportunity.good3CalcF_c}
+				, #{opportunity.good4_c}
+				, #{opportunity.good4Price_c}
+				, #{opportunity.good4Qty_c}
+				, #{opportunity.good4CalcF_c}
+				, #{opportunity.goodTotalCalcF_c}
+				, #{opportunity.optyBranch_c}
+				, #{opportunity.createdBy}
+				, #{opportunity.creationDate}
+				, #{opportunity.lastUpdateDate}
+				, #{opportunity.lastUpdatedBy}
+				, #{opportunity.batchJobId}
+			)
+		</foreach>
+	</update>
+	
+	<!-- Temp Table -> Opportunity Table Update -->
+	<update id="insertOpportunity" parameterType="java.util.Map">
+		MERGE INTO SC_OPPORTUNITY A
+		USING TMP_OPPORTUNITY B
+		ON (A.OPTYID = B.OPTYID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.OPTYNUMBER              = B.OPTYNUMBER                  
+				, A.NAME                    = B.NAME                        
+				, A.TARGETPARTYID           = B.TARGETPARTYID               
+				, A.TARGETPARTYNAME         = B.TARGETPARTYNAME             
+				, A.OWNERRESOURCEPARTYID    = B.OWNERRESOURCEPARTYID        
+				, A.STATUSCODE              = B.STATUSCODE                  
+				, A.SALESSTAGE              = B.SALESSTAGE                  
+				, A.COMMENTS                = B.COMMENTS                    
+				, A.EFFECTIVEDATE           = B.EFFECTIVEDATE               
+				, A.WINPROB                 = B.WINPROB                     
+				, A.PRIMARYCONTACTPARTYNAME = B.PRIMARYCONTACTPARTYNAME     
+				, A.SALESCHANNELCD          = B.SALESCHANNELCD              
+				, A.OPPTYTYPE_C             = B.OPPTYTYPE_C                 
+				, A.COMPETITOR_C            = B.COMPETITOR_C                
+				, A.COMPETITORETC_C         = B.COMPETITORETC_C             
+				, A.OPENTYPE_C              = B.OPENTYPE_C                  
+				, A.COMPLETETYPE_C          = B.COMPLETETYPE_C              
+				, A.SUCCESSCAUSE_C          = B.SUCCESSCAUSE_C              
+				, A.FAILCAUSE_C             = B.FAILCAUSE_C                 
+				, A.BRANCHNAMEF_C           = B.BRANCHNAMEF_C               
+				, A.BRANCHCODEF_C           = B.BRANCHCODEF_C               
+				, A.APPROVALID_C            = B.APPROVALID_C                
+				, A.GOOD1_C                 = B.GOOD1_C                     
+				, A.GOOD1QTY_C              = B.GOOD1QTY_C                  
+				, A.GOOD1PRICE_C            = B.GOOD1PRICE_C                
+				, A.GOOD1CALCF_C            = B.GOOD1CALCF_C                
+				, A.GOOD2_C                 = B.GOOD2_C                     
+				, A.GOOD2PRICE_C            = B.GOOD2PRICE_C                
+				, A.GOOD2QTY_C              = B.GOOD2QTY_C                  
+				, A.GOOD2CALCF_C            = B.GOOD2CALCF_C                
+				, A.GOOD3_C                 = B.GOOD3_C                     
+				, A.GOOD3PRICE_C            = B.GOOD3PRICE_C                
+				, A.GOOD3QTY_C              = B.GOOD3QTY_C                  
+				, A.GOOD3CALCF_C            = B.GOOD3CALCF_C                
+				, A.GOOD4_C                 = B.GOOD4_C                     
+				, A.GOOD4PRICE_C            = B.GOOD4PRICE_C                
+				, A.GOOD4QTY_C              = B.GOOD4QTY_C                  
+				, A.GOOD4CALCF_C            = B.GOOD4CALCF_C                
+				, A.GOODTOTALCALCF_C        = B.GOODTOTALCALCF_C            
+				, A.OPTYBRANCH_C            = B.OPTYBRANCH_C                
+				, A.CREATEDBY               = B.CREATEDBY                   
+				, A.CREATIONDATE            = B.CREATIONDATE                
+				, A.LASTUPDATEDATE          = B.LASTUPDATEDATE              
+				, A.LASTUPDATEDBY           = B.LASTUPDATEDBY               
+				, A.WORKDATE            	= GETDATE()
+				, A.TRNSYN            		= 'N'
+				, A.BATCHJOBID              = B.BATCHJOBID
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  OPTYID                       
+				, OPTYNUMBER                   
+				, NAME                         
+				, TARGETPARTYID                
+				, TARGETPARTYNAME              
+				, OWNERRESOURCEPARTYID         
+				, STATUSCODE                   
+				, SALESSTAGE                   
+				, COMMENTS                     
+				, EFFECTIVEDATE                
+				, WINPROB                      
+				, PRIMARYCONTACTPARTYNAME      
+				, SALESCHANNELCD               
+				, OPPTYTYPE_C                  
+				, COMPETITOR_C                 
+				, COMPETITORETC_C              
+				, OPENTYPE_C                   
+				, COMPLETETYPE_C               
+				, SUCCESSCAUSE_C               
+				, FAILCAUSE_C                  
+				, BRANCHNAMEF_C                
+				, BRANCHCODEF_C                
+				, APPROVALID_C                 
+				, GOOD1_C                      
+				, GOOD1QTY_C                   
+				, GOOD1PRICE_C                 
+				, GOOD1CALCF_C                 
+				, GOOD2_C                      
+				, GOOD2PRICE_C                 
+				, GOOD2QTY_C                   
+				, GOOD2CALCF_C                 
+				, GOOD3_C                      
+				, GOOD3PRICE_C                 
+				, GOOD3QTY_C                   
+				, GOOD3CALCF_C                 
+				, GOOD4_C                      
+				, GOOD4PRICE_C                 
+				, GOOD4QTY_C                   
+				, GOOD4CALCF_C                 
+				, GOODTOTALCALCF_C             
+				, OPTYBRANCH_C                 
+				, CREATEDBY                    
+				, CREATIONDATE                 
+				, LASTUPDATEDATE               
+				, LASTUPDATEDBY
+				, WORKDATE
+				, TRNSYN
+				, BATCHJOBID
+			)
+			VALUES
+			(
+				  B.OPTYID                       
+				, B.OPTYNUMBER                   
+				, B.NAME                         
+				, B.TARGETPARTYID                
+				, B.TARGETPARTYNAME              
+				, B.OWNERRESOURCEPARTYID         
+				, B.STATUSCODE                   
+				, B.SALESSTAGE                   
+				, B.COMMENTS                     
+				, B.EFFECTIVEDATE                
+				, B.WINPROB                      
+				, B.PRIMARYCONTACTPARTYNAME      
+				, B.SALESCHANNELCD               
+				, B.OPPTYTYPE_C                  
+				, B.COMPETITOR_C                 
+				, B.COMPETITORETC_C              
+				, B.OPENTYPE_C                   
+				, B.COMPLETETYPE_C               
+				, B.SUCCESSCAUSE_C               
+				, B.FAILCAUSE_C                  
+				, B.BRANCHNAMEF_C                
+				, B.BRANCHCODEF_C                
+				, B.APPROVALID_C                 
+				, B.GOOD1_C                      
+				, B.GOOD1QTY_C                   
+				, B.GOOD1PRICE_C                 
+				, B.GOOD1CALCF_C                 
+				, B.GOOD2_C                      
+				, B.GOOD2PRICE_C                 
+				, B.GOOD2QTY_C                   
+				, B.GOOD2CALCF_C                 
+				, B.GOOD3_C                      
+				, B.GOOD3PRICE_C                 
+				, B.GOOD3QTY_C                   
+				, B.GOOD3CALCF_C                 
+				, B.GOOD4_C                      
+				, B.GOOD4PRICE_C                 
+				, B.GOOD4QTY_C                   
+				, B.GOOD4CALCF_C                 
+				, B.GOODTOTALCALCF_C             
+				, B.OPTYBRANCH_C                 
+				, B.CREATEDBY                    
+				, B.CREATIONDATE                 
+				, B.LASTUPDATEDATE               
+				, B.LASTUPDATEDBY  
+				, GETDATE()
+				, 'N'    
+				, B.BATCHJOBID        
+			);
+	</update>
+	
+	<!-- Opportunity Temp Table Insert -->
+	<update id="insertOpportunityLeadTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_OPPORTUNITYLEAD
+		(
+			  OPTYID                       
+			, OPTYLEADID
+			, BATCHJOBID
+		)
+		VALUES
+		<foreach item="opportunityLead" index="index" collection="list" open="" separator="," close="">
+			(
+				  #{opportunityLead.optyId}
+				, #{opportunityLead.optyLeadId}
+				, #{opportunityLead.batchJobId}
+			)
+		</foreach>
+	</update>
+	
+	<!-- Temp Table -> Opportunity Table Update -->
+	<update id="insertOpportunityLead" parameterType="java.util.Map">
+		MERGE INTO SC_OPPORTUNITYLEAD A
+		USING TMP_OPPORTUNITYLEAD B
+		ON (A.OPTYID = B.OPTYID AND A.OPTYLEADID = B.OPTYLEADID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.OPTYLEADID              = B.OPTYLEADID                  
+				, A.WORKDATE            	= GETDATE()
+				, A.TRNSYN            		= 'N'
+				, A.BATCHJOBID              = B.BATCHJOBID
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  OPTYID                       
+				, OPTYLEADID                   
+				, WORKDATE
+				, TRNSYN
+				, BATCHJOBID
+			)
+			VALUES
+			(
+				  B.OPTYID                       
+				, B.OPTYLEADID                   
+				, GETDATE()
+				, 'N'  
+				, B.BATCHJOBID         
+			);
+	</update>
+	
+	<!-- Activity -->
+	<!-- Activity Temp Delete -->
+	<delete id="deleteActivityTemp">
+		TRUNCATE TABLE TMP_ACTIVITY
+	</delete>
+
+	<!-- Activity Temp Table Insert -->
+	<update id="insertActivityTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_ACTIVITY
+		(
+			  ACTIVITYID
+			, ACTIVITYNUMBER
+			, ACCOUNTID
+			, ACCOUNTNAME
+			, ACTIVITYFUNCTIONCODE
+			, ACTIVITYTYPECODE
+			, ACTIVITYSTARTDATE
+			, ACTIVITYENDDATE
+			, OWNERID
+			, OWNERNAME
+			, OWNEREMAILADDRESS
+			, SUBJECT
+			, ACTIVITYDESCRIPTION
+			, LEADID
+			, LEADNAME
+			, OPPORTUNITYID
+			, OPPORTUNITYNAME
+			, PRIMARYCONTACTID
+			, PRIMARYCONTACTNAME
+			, VISITRESULT_C
+			, VISITDATE_C
+			, INITIALDATE_C
+			, CREATEDBY
+			, CREATIONDATE
+			, LASTUPDATEDATE
+			, LASTUPDATEDBY
+			, ACTBRANCH_C
+			, PRIVATEFLAG
+			, DLIVEACTTYPE
+			, BATCHJOBID
+		)
+		VALUES
+		<foreach item="activity" index="index" collection="list" open="" separator="," close="">
+		(
+			  #{activity.activityId}
+			, #{activity.activityNumber}
+			, #{activity.accountId}
+			, #{activity.accountName}
+			, #{activity.activityFunctioncode}
+			, #{activity.activityTypeCode}
+			, #{activity.activityStartDate}
+			, #{activity.activityEndDate}
+			, #{activity.ownerId}
+			, #{activity.ownerName}
+			, #{activity.ownerEmailAddress}
+			, #{activity.subject}
+			, #{activity.activityDescription}
+			, #{activity.leadId}
+			, #{activity.leadName}
+			, #{activity.opportunityId}
+			, #{activity.opportunityName}
+			, #{activity.primaryContactId}
+			, #{activity.primaryContactName}
+			, #{activity.visitResult_c}
+			, #{activity.visitDate_c}
+			, #{activity.initialDate_c}
+			, #{activity.createdBy}
+			, #{activity.creationDate}
+			, #{activity.lastUpdateDate}
+			, #{activity.lastUpdatedBy}
+			, #{activity.actBranch_c}
+			, #{activity.privateFlag}
+			, #{activity.dliveActType}
+			, #{activity.batchJobId}
+		)
+		</foreach>
+	</update>
+   
+	<!-- Temp Table -> Activity Table Update -->
+	<update id="insertActivity" parameterType="java.util.Map">
+		MERGE INTO SC_ACTIVITY A
+		USING TMP_ACTIVITY B
+      	ON (A.ACTIVITYID = B.ACTIVITYID)
+      	WHEN MATCHED THEN
+			UPDATE SET
+				  A.ACTIVITYNUMBER          = B.ACTIVITYNUMBER
+				, A.ACCOUNTID               = B.ACCOUNTID
+				, A.ACCOUNTNAME             = B.ACCOUNTNAME
+				, A.ACTIVITYFUNCTIONCODE    = B.ACTIVITYFUNCTIONCODE
+				, A.ACTIVITYTYPECODE        = B.ACTIVITYTYPECODE
+				, A.ACTIVITYSTARTDATE       = B.ACTIVITYSTARTDATE
+				, A.ACTIVITYENDDATE         = B.ACTIVITYENDDATE
+				, A.OWNERID                 = B.OWNERID
+				, A.OWNERNAME               = B.OWNERNAME
+				, A.OWNEREMAILADDRESS       = B.OWNEREMAILADDRESS
+				, A.SUBJECT                 = B.SUBJECT
+				, A.ACTIVITYDESCRIPTION     = B.ACTIVITYDESCRIPTION
+				, A.LEADID                  = B.LEADID
+				, A.LEADNAME                = B.LEADNAME
+				, A.OPPORTUNITYID           = B.OPPORTUNITYID
+				, A.OPPORTUNITYNAME         = B.OPPORTUNITYNAME
+				, A.PRIMARYCONTACTID        = B.PRIMARYCONTACTID
+				, A.PRIMARYCONTACTNAME      = B.PRIMARYCONTACTNAME
+				, A.VISITRESULT_C           = B.VISITRESULT_C
+				, A.VISITDATE_C             = B.VISITDATE_C
+				, A.INITIALDATE_C           = B.INITIALDATE_C
+				, A.CREATEDBY               = B.CREATEDBY
+				, A.CREATIONDATE            = B.CREATIONDATE
+				, A.LASTUPDATEDATE          = B.LASTUPDATEDATE
+				, A.LASTUPDATEDBY           = B.LASTUPDATEDBY
+				, A.WORKDATE                = CONVERT(DATETIME,GETDATE(),120)
+				, A.ACTBRANCH_C             = B.ACTBRANCH_C  
+				, A.DELYN                   = 'N'
+				, A.PRIVATEFLAG             = B.PRIVATEFLAG
+				, A.DLIVEACTTYPE            = B.DLIVEACTTYPE
+				, A.BATCHJOBID              = B.BATCHJOBID
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  ACTIVITYID
+				, ACTIVITYNUMBER
+				, ACCOUNTID
+				, ACCOUNTNAME
+				, ACTIVITYFUNCTIONCODE
+				, ACTIVITYTYPECODE
+				, ACTIVITYSTARTDATE
+				, ACTIVITYENDDATE
+				, OWNERID
+				, OWNERNAME
+				, OWNEREMAILADDRESS
+				, SUBJECT
+				, ACTIVITYDESCRIPTION
+				, LEADID
+				, LEADNAME
+				, OPPORTUNITYID
+				, OPPORTUNITYNAME
+				, PRIMARYCONTACTID
+				, PRIMARYCONTACTNAME
+				, VISITRESULT_C
+				, VISITDATE_C
+				, INITIALDATE_C
+				, CREATEDBY
+				, CREATIONDATE
+				, LASTUPDATEDATE
+				, LASTUPDATEDBY
+				, WORKDATE
+				, ACTBRANCH_C
+				, DELYN
+				, PRIVATEFLAG
+				, DLIVEACTTYPE
+				, BATCHJOBID
+			)
+			VALUES
+			(
+				  B.ACTIVITYID
+				, B.ACTIVITYNUMBER
+				, B.ACCOUNTID
+				, B.ACCOUNTNAME
+				, B.ACTIVITYFUNCTIONCODE
+				, B.ACTIVITYTYPECODE
+				, B.ACTIVITYSTARTDATE
+				, B.ACTIVITYENDDATE
+				, B.OWNERID
+				, B.OWNERNAME
+				, B.OWNEREMAILADDRESS
+				, B.SUBJECT
+				, B.ACTIVITYDESCRIPTION
+				, B.LEADID
+				, B.LEADNAME
+				, B.OPPORTUNITYID
+				, B.OPPORTUNITYNAME
+				, B.PRIMARYCONTACTID
+				, B.PRIMARYCONTACTNAME
+				, B.VISITRESULT_C
+				, B.VISITDATE_C
+				, B.INITIALDATE_C
+				, B.CREATEDBY
+				, B.CREATIONDATE
+				, B.LASTUPDATEDATE
+				, B.LASTUPDATEDBY
+				, CONVERT(DATETIME,GETDATE(),120)
+				, B.ACTBRANCH_C
+				, 'N'
+				, B.PRIVATEFLAG
+				, B.DLIVEACTTYPE
+				, B.BATCHJOBID
+			);
+	</update>
+	
+	
+   
+	<!-- Lead -->
+	<!-- Temp Table TRUNCATE -->
+	<delete id="deleteLeadTemp">
+	   TRUNCATE TABLE dbo.tmp_lead
+	</delete>
+		
+	<!-- Lead Integration Temp Insert -->
+	<update id="insertLeadTemp" parameterType="java.util.Map">
+		INSERT INTO dbo.tmp_lead
+		(
+	        LeadId, Name, LeadNumber, OwnerPartyName
+	      , OwnerId, StatusCode, StatusCdMeaning, CustomerPartyName
+	      , CustomerRegistryId, CustomerId, Description, ChannelType, SalesChannelMeaning
+	      , ChannelTypeMeaning, PrimaryContactPartyName, PrimaryContactId, PrimaryContactCountry
+	      , PrimaryContactProvince, PrimaryContactState, PrimaryContactCity, PrimaryContactAddress1
+	      , PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
+	      , DeleteFlag, BranchNameF_c, BranchCodeF_c, LeadBranch_c
+	      , CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, leadSourceType_c, BatchJobId
+	   	)
+	   	VALUES
+	   	<foreach item="lead" index="index" collection="list" open="" separator="," close="">
+		(
+			  #{lead.leadId}, #{lead.name}, #{lead.leadNumber}, #{lead.ownerPartyName}
+			, #{lead.ownerId}, #{lead.statusCode}, #{lead.statusCdMeaning}, #{lead.customerPartyName}
+			, #{lead.customerRegistryId}, #{lead.customerId}, #{lead.description}, #{lead.channelType}, #{lead.salesChannelMeaning}
+			, #{lead.channelTypeMeaning}, #{lead.primaryContactPartyName}, #{lead.primaryContactId}, #{lead.primaryContactCountry}
+			, #{lead.primaryContactProvince}, #{lead.primaryContactState}, #{lead.primaryContactCity}, #{lead.primaryContactAddress1}, #{lead.primaryContactAddress2}, #{lead.primaryContactPostalCode}
+			, #{lead.retiredDateTime}, #{lead.convertedTimestamp}, #{lead.deleteFlag}, #{lead.branchNameF_c}, #{lead.branchCodeF_c}
+			, #{lead.leadBranch_c}, #{lead.creationDate}, #{lead.createdBy}, #{lead.lastUpdateDate}, #{lead.lastUpdatedBy}, #{lead.leadSourceType_c}, #{lead.batchJobId}
+		)
+		</foreach>
+	</update>
+	
+	<!-- Lead Integration Insert -->
+	<update id="insertLead" parameterType="java.util.Map">
+		MERGE INTO dbo.sc_lead A
+	   	USING dbo.tmp_lead B
+	   	ON (A.LeadId = B.LeadId)
+	   	WHEN MATCHED THEN
+	      	UPDATE SET
+				  A.LeadId                   = B.LeadId                  
+				, A.Name                     = B.Name                    
+				, A.LeadNumber               = B.LeadNumber              
+				, A.OwnerPartyName           = B.OwnerPartyName          
+				, A.OwnerId                  = B.OwnerId                 
+				, A.StatusCode               = B.StatusCode              
+				, A.StatusCdMeaning          = B.StatusCdMeaning         
+				, A.CustomerPartyName        = B.CustomerPartyName       
+				, A.CustomerRegistryId       = B.CustomerRegistryId      
+				, A.CustomerId               = B.CustomerId              
+				, A.Description              = B.Description             
+				, A.ChannelType              = B.ChannelType             
+				, A.ChannelTypeMeaning       = B.ChannelTypeMeaning  
+				, A.SalesChannelMeaning      = B.SalesChannelMeaning  
+				, A.RetiredDateTime          = B.RetiredDateTime         
+				, A.PrimaryContactPartyName  = B.PrimaryContactPartyName 
+				, A.PrimaryContactId         = B.PrimaryContactId        
+				, A.PrimaryContactCountry    = B.PrimaryContactCountry   
+				, A.PrimaryContactProvince   = B.PrimaryContactProvince  
+				, A.PrimaryContactState      = B.PrimaryContactState     
+				, A.PrimaryContactCity       = B.PrimaryContactCity      
+				, A.PrimaryContactAddress1   = B.PrimaryContactAddress1  
+				, A.PrimaryContactAddress2   = B.PrimaryContactAddress2  
+				, A.PrimaryContactPostalCode = B.PrimaryContactPostalCode
+				, A.ConvertedTimestamp       = B.ConvertedTimestamp      
+				, A.DeleteFlag               = B.DeleteFlag              
+				, A.BranchNameF_c            = B.BranchNameF_c           
+				, A.BranchCodeF_c            = B.BranchCodeF_c           
+				, A.LeadBranch_c             = B.LeadBranch_c            
+				, A.CreationDate             = B.CreationDate            
+				, A.CreatedBy                = B.CreatedBy               
+				, A.LastUpdateDate           = B.LastUpdateDate          
+				, A.LastUpdatedBy            = B.LastUpdatedBy  
+				, A.leadSourceType_c         = B.leadSourceType_c  
+				, A.WORKDATE                 = CONVERT(DATETIME,GETDATE(),120)    
+				, A.BATCHJOBID               = B.BATCHJOBID    
+	   	WHEN NOT MATCHED THEN
+	      	INSERT
+	      	(
+				  LeadId, Name, LeadNumber, OwnerPartyName
+				, OwnerId, StatusCode, StatusCdMeaning, CustomerPartyName
+				, CustomerRegistryId, CustomerId, Description, ChannelType, SalesChannelMeaning
+				, ChannelTypeMeaning, PrimaryContactPartyName, PrimaryContactId, PrimaryContactCountry
+				, PrimaryContactProvince, PrimaryContactState, PrimaryContactCity, PrimaryContactAddress1
+				, PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
+				, DeleteFlag, BranchNameF_c, BranchCodeF_c, LeadBranch_c
+				, CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, leadSourceType_c
+				, WORKDATE, BatchJobId
+	      	)
+	      	VALUES
+	      	(
+				  B.LeadId, B.Name, B.LeadNumber, B.OwnerPartyName
+				, B.OwnerId, B.StatusCode, B.StatusCdMeaning, B.CustomerPartyName
+				, B.CustomerRegistryId, B.CustomerId, B.Description, B.ChannelType, B.SalesChannelMeaning
+				, B.ChannelTypeMeaning, B.PrimaryContactPartyName, B.PrimaryContactId, B.PrimaryContactCountry
+				, B.PrimaryContactProvince, B.PrimaryContactState, B.PrimaryContactCity, B.PrimaryContactAddress1
+				, B.PrimaryContactAddress2, B.PrimaryContactPostalCode, B.RetiredDateTime, B.ConvertedTimestamp
+				, B.DeleteFlag, B.BranchNameF_c, B.BranchCodeF_c, B.LeadBranch_c
+				, B.CreationDate, B.CreatedBy, B.LastUpdateDate, B.LastUpdatedBy, B.leadSourceType_c
+				, CONVERT(DATETIME,GETDATE(),120), B.BatchJobId 
+	     	);
+	</update>
+
+
+	<!-- SR -->
+	<!-- SR tmp table delete -->
+	<delete id="deleteServiceRequestTmp">
+		TRUNCATE TABLE TMP_SR
+	</delete>
+	
+	<!-- SR Insert -->
+	<update id="insertServiceRequestTmp" parameterType="java.util.Map">
+		INSERT INTO TMP_SR
+		(
+			  SrId
+			, AssigneePartyId
+			, AccountPartyId
+			, PrimaryContactPartyId
+			, SrNumber
+			, Title
+			, ProblemDescription
+			, SeverityCd
+			, AssigneePersonName
+			, AssigneeEmailAddress
+			, CreatedBy
+			, CreationDate
+			, LastUpdateDate
+			, LastUpdatedBy
+			, LastUpdatedByDisplayName
+			, AccountPartyName
+			, PrimaryContactPartyName
+			, ClosedDate
+			, OpenDate
+			, LastResolvedDate
+			, SourceCd
+			, ChannelTypeCd
+			, StatusCd
+			, StatusF_c
+			, DeleteFlag
+			, ServiceType_c
+			, ApprovalID_c
+			, CompleteType_c
+			, Competitor_c
+			, CompetitorETC_c
+			, BranchNameF_c
+			, BranchCodeF_c
+			, DliveCloseDt_c
+			, ApprovalYN_c
+			, SRBranch_c
+			, ProblemResult_c
+			, SrConaId_c
+			, BatchJobId
+		)
+		VALUES
+		<foreach item="serviceRequest" index="index" collection="list" open="" separator="," close="">
+			(
+				  #{serviceRequest.SrId}
+				, #{serviceRequest.AssigneePartyId}
+				, #{serviceRequest.AccountPartyId}
+				, #{serviceRequest.PrimaryContactPartyId}
+				, #{serviceRequest.SrNumber}
+				, #{serviceRequest.Title}
+				, #{serviceRequest.ProblemDescription}
+				, #{serviceRequest.SeverityCd}
+				, #{serviceRequest.AssigneePersonName}
+				, #{serviceRequest.AssigneeEmailAddress}
+				, #{serviceRequest.CreatedBy}
+				, #{serviceRequest.CreationDate}
+				, #{serviceRequest.LastUpdateDate}
+				, #{serviceRequest.LastUpdatedBy}
+				, #{serviceRequest.LastUpdatedByDisplayName}
+				, #{serviceRequest.AccountPartyName}
+				, #{serviceRequest.PrimaryContactPartyName}
+				, #{serviceRequest.ClosedDate}
+				, #{serviceRequest.OpenDate}
+				, #{serviceRequest.LastResolvedDate}
+				, #{serviceRequest.SourceCd}
+				, #{serviceRequest.ChannelTypeCd}
+				, #{serviceRequest.StatusCd}
+				, #{serviceRequest.StatusF_c}
+				, #{serviceRequest.DeleteFlag}
+				, #{serviceRequest.ServiceType_c}
+				, #{serviceRequest.ApprovalID_c}
+				, #{serviceRequest.CompleteType_c}
+				, #{serviceRequest.Competitor_c}
+				, #{serviceRequest.CompetitorETC_c}
+				, #{serviceRequest.BranchNameF_c}
+				, #{serviceRequest.BranchCodeF_c}
+				, #{serviceRequest.DliveCloseDt_c}
+				, #{serviceRequest.ApprovalYN_c}
+				, #{serviceRequest.SRBranch_c}
+				, #{serviceRequest.ProblemResult_c}
+				, #{serviceRequest.srConaId_c}
+				, #{serviceRequest.batchJobId}
+			)
+		</foreach>
+	</update>
+
+	<!-- Temp Table -> ServiceRequest Table Update -->
+	<update id="insertServiceRequest" parameterType="java.util.Map">
+		MERGE INTO SC_SR A
+		USING TMP_SR B
+		ON (A.SrId = B.SrId)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.AssigneePartyId          = B.AssigneePartyId
+				, A.AccountPartyId           = B.AccountPartyId
+				, A.PrimaryContactPartyId    = B.PrimaryContactPartyId
+				, A.SrNumber                 = B.SrNumber
+				, A.Title                    = B.Title
+				, A.ProblemDescription       = B.ProblemDescription
+				, A.SeverityCd               = B.SeverityCd
+				, A.AssigneePersonName       = B.AssigneePersonName
+				, A.AssigneeEmailAddress     = B.AssigneeEmailAddress
+				, A.CreatedBy                = B.CreatedBy
+				, A.CreationDate             = B.CreationDate
+				, A.LastUpdateDate           = B.LastUpdateDate
+				, A.LastUpdatedBy            = B.LastUpdatedBy
+				, A.LastUpdatedByDisplayName = B.LastUpdatedByDisplayName 
+				, A.AccountPartyName         = B.AccountPartyName
+				, A.PrimaryContactPartyName  = B.PrimaryContactPartyName
+				, A.ClosedDate               = B.ClosedDate
+				, A.OpenDate                 = B.OpenDate
+				, A.LastResolvedDate         = B.LastResolvedDate
+				, A.SourceCd                 = B.SourceCd
+				, A.ChannelTypeCd            = B.ChannelTypeCd
+				, A.StatusCd                 = B.StatusCd
+				, A.StatusF_c                = B.StatusF_c
+				, A.DeleteFlag               = B.DeleteFlag
+				, A.ServiceType_c            = B.ServiceType_c
+				, A.ApprovalID_c             = B.ApprovalID_c
+				, A.CompleteType_c           = B.CompleteType_c
+				, A.Competitor_c             = B.Competitor_c
+				, A.CompetitorETC_c          = B.CompetitorETC_c
+				, A.BranchNameF_c            = B.BranchNameF_c
+				, A.BranchCodeF_c            = B.BranchCodeF_c
+				, A.DliveCloseDt_c           = B.DliveCloseDt_c
+				, A.ApprovalYN_c             = B.ApprovalYN_c
+				, A.SRBranch_c               = B.SRBranch_c
+				, A.ProblemResult_c          = B.ProblemResult_c
+				, A.srConaId_c          	 = B.srConaId_c
+				, A.workdate				 = getDate()
+				, A.BATCHJOBID               = B.BATCHJOBID
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  SrId
+				, AssigneePartyId
+				, AccountPartyId
+				, PrimaryContactPartyId
+				, SrNumber
+				, Title
+				, ProblemDescription
+				, SeverityCd
+				, AssigneePersonName
+				, AssigneeEmailAddress
+				, CreatedBy
+				, CreationDate
+				, LastUpdateDate
+				, LastUpdatedBy
+				, LastUpdatedByDisplayName 
+				, AccountPartyName
+				, PrimaryContactPartyName
+				, ClosedDate
+				, OpenDate
+				, LastResolvedDate
+				, SourceCd
+				, ChannelTypeCd
+				, StatusCd
+				, StatusF_c
+				, DeleteFlag
+				, ServiceType_c
+				, ApprovalID_c
+				, CompleteType_c
+				, Competitor_c
+				, CompetitorETC_c
+				, BranchNameF_c
+				, BranchCodeF_c
+				, DliveCloseDt_c
+				, ApprovalYN_c
+				, SRBranch_c
+				, ProblemResult_c
+				, srConaId_c
+				, workdate
+				, BatchJobId
+			)
+			VALUES
+			(
+				  B.SrId                    
+				, B.AssigneePartyId         
+				, B.AccountPartyId          
+				, B.PrimaryContactPartyId   
+				, B.SrNumber                
+				, B.Title                   
+				, B.ProblemDescription      
+				, B.SeverityCd              
+				, B.AssigneePersonName      
+				, B.AssigneeEmailAddress    
+				, B.CreatedBy               
+				, B.CreationDate            
+				, B.LastUpdateDate          
+				, B.LastUpdatedBy           
+				, B.LastUpdatedByDisplayName
+				, B.AccountPartyName        
+				, B.PrimaryContactPartyName 
+				, B.ClosedDate              
+				, B.OpenDate                
+				, B.LastResolvedDate        
+				, B.SourceCd                
+				, B.ChannelTypeCd           
+				, B.StatusCd                
+				, B.StatusF_c               
+				, B.DeleteFlag              
+				, B.ServiceType_c           
+				, B.ApprovalID_c            
+				, B.CompleteType_c          
+				, B.Competitor_c            
+				, B.CompetitorETC_c         
+				, B.BranchNameF_c           
+				, B.BranchCodeF_c           
+				, B.DliveCloseDt_c          
+				, B.ApprovalYN_c            
+				, B.SRBranch_c              
+				, B.ProblemResult_c   
+				, B.srConaId_c      
+				, getDate()
+				, B.BatchJobId
+		);
+	</update>
+	
+	
+	
+	<!-- stg swap imp table -->
+	<!-- 18.03.22 재욱 -->
+	<!-- Stg / Imp Oppty -->
+	<delete id="deleteTmpImpOppty">
+		TRUNCATE TABLE tmp_imp_oppty
+	</delete>
+	
+	<delete id="deleteTmpImpOpptyAccount">
+		TRUNCATE TABLE tmp_imp_oppty_account
+	</delete>
+
+	<delete id="deleteTmpStgOppty">
+		TRUNCATE TABLE tmp_stg_opportunity
+	</delete>
+	
+	<!-- select date -->
+	<select id="selectDateCount" resultType="java.util.Map">
+		SELECT CONVERT(VARCHAR(10), CreationDate, 23) as date
+		FROM dbo.stg_opportunity
+		WHERE TargetYN = 'Y'
+		GROUP BY CONVERT(VARCHAR(10), CreationDate, 23)
+		ORDER BY date
+	</select>
+	
+	<!-- Select sc_account PartyNumber -->
+	<select id="selectPartyNumber" parameterType="vo.ImpOpptyVO" resultType="String">
+		SELECT 
+			max(PartyNumber)
+		FROM 
+			sc_account
+		WHERE 
+			ConaId_c = #{ConaId_c}
+	</select>
+	
+	<!-- stg oppty merge imp oppty-->
+	<update id="mergeImpOppty" parameterType="String">
+		MERGE INTO imp_oppty T
+	   	USING (
+	   		SELECT
+				  C.Seq
+				, C.Name
+				, C.EffectiveDate
+				, C.SalesStage
+				, C.EmpNumber
+				, C.OpptyType_c
+				, C.OptyBranch_c
+				, case when C.PartyNumber is null and C.PartyNumCona is null then C.seq
+				       when C.PartyNumber is null and C.PartyNumCona is not null then C.PartyNumCona
+				  else C.PartyNumber end as PartyNumber
+				, C.ConaId_c
+			FROM 
+			(
+				SELECT
+					  A.Seq
+					, Name
+					, EffectiveDate
+					, SalesStage
+					, dbo.fn_getPartyNumberByUserName(EmpNumber) as EmpNumber
+					, OpptyType_c
+					, OptyBranch_c
+					, PartyNumber
+					, (select max(PartyNumber) from sc_account where ConaId_c = A.ConaId_c) as PartyNumCona
+					, ConaId_c
+				FROM
+					 stg_opportunity A , tmp_stg_opportunity toppty
+				WHERE 
+				     A.seq = toppty.seq
+			) C
+	   	) B
+		ON (T.seq = B.seq)
+		WHEN MATCHED THEN
+		   UPDATE SET
+			  T.Name          = B.Name          
+			, T.EffectiveDate = B.EffectiveDate 
+			, T.SalesStage    = B.SalesStage    
+			, T.EmpNumber     = B.EmpNumber     
+			, T.PartyNumber   = B.PartyNumber   
+			, T.OpptyType_c   = B.OpptyType_c   
+			, T.OptyBranch_c  = B.OptyBranch_c
+			, T.TrnsYN        = 'N'
+			, T.ImportDate    = getDate()
+			, T.BatchJobId    = #{batchJobId}
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  Seq, Name, EffectiveDate, SalesStage
+				, EmpNumber, PartyNumber, OpptyType_c, OptyBranch_c
+				, TrnsYN, ImportDate, BatchJobId
+			)
+			VALUES
+			(
+				  B.Seq, B.Name, B.EffectiveDate, B.SalesStage
+				, B.EmpNumber, B.PartyNumber, B.OpptyType_c, B.OptyBranch_c
+				, 'N', getDate(), #{batchJobId}
+				
+			);
+	</update>
+	
+	<!-- stg oppty account merge imp oppty account -->
+	<update id="mergeImpOpptyAccount" parameterType="String">
+		MERGE INTO imp_oppty_account T
+	   	USING (
+			SELECT
+				  case when B.partynumber is null then A.seq end as PartyNumber
+				, A.EmpNumber
+				, A.OrganizationName
+				, A.Country
+				, A.Province
+				, A.State
+				, A.City
+				, A.AddressLine1
+				, A.AddressLine2
+				, A.BranchNm_c
+				, A.ConaId_c
+				, A.Seq
+			FROM
+				(
+					SELECT
+						  PartyNumber
+						, dbo.fn_getPartyNumberByUserName(EmpNumber) as EmpNumber
+						, OrganizationName
+						, Country
+						, Province
+						, State
+						, City
+						, AddressLine1
+						, AddressLine2
+						, Branchnm_c
+						, ConaId_c
+						, so.Seq
+					FROM
+						 stg_opportunity so, tmp_stg_opportunity toppty
+					WHERE
+						 PartyNumber is null
+					 AND so.Dseq = toppty.Dseq
+					 AND EmpNumber is not null
+				) A left join sc_account B on A.ConaId_c = B.ConaId_c
+			WHERE B.PartyNumber is null 
+	   	) C
+		ON (T.PartyNumber = C.PartyNumber)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  T.OrganizationName = C.OrganizationName
+				, T.EmpNumber        = C.EmpNumber
+				, T.Country          = C.Country
+				, T.Province         = C.Province
+				, T.State            = C.State
+				, T.City             = C.City
+				, T.AddressLine1     = C.AddressLine1
+				, T.AddressLine2     = C.AddressLine2
+				, T.BranchNm_c       = C.BranchNm_c
+				, T.ConaId_c         = C.ConaId_c
+				, T.TrnsYN           = 'N'
+				, T.ImportDate       = getDate()
+				, T.BatchJobId       = #{batchJobId}
+		WHEN NOT MATCHED THEN
+			INSERT
+			(
+				  PartyNumber, OrganizationName, Country, Province, State
+				, City, AddressLine1, AddressLine2, BranchNm_c, ConaId_c
+				, TrnsYN, ImportDate, EmpNumber, BatchJobId
+			)
+			VALUES
+			(
+				  C.PartyNumber, C.OrganizationName, C.Country, C.Province, C.State       
+				, C.City, C.AddressLine1, C.AddressLine2, C.BranchNm_c, C.ConaId_c
+				, 'N', getDate(), C.EmpNumber, #{batchJobId}
+			);
+	</update>
+	
+	<!-- Insert Tmp Imp Oppty -->
+	<insert id="insertTmpImpOppty"  parameterType="java.util.Map">
+		INSERT INTO tmp_imp_oppty
+		(
+			  seq
+		) 
+		SELECT 
+			seq
+		FROM 
+			imp_oppty
+		WHERE 
+			TrnsYN = 'N'
+	</insert>
+	
+	<insert id="insertTmpImpOpptyAccout" parameterType="java.util.Map">
+		INSERT INTO tmp_imp_oppty_account
+		(
+			PartyNumber
+		) 
+		SELECT
+			PartyNumber
+		FROM
+			imp_oppty_account
+		WHERE
+			TrnsYN = 'N'
+	</insert>
+	
+	<insert id="insertTmpStgOppty" parameterType="java.util.Map">
+		INSERT INTO tmp_stg_opportunity
+		(
+			  Dseq
+			, seq
+		) 
+		SELECT
+			  Dseq
+			, seq
+		FROM
+			stg_opportunity
+		WHERE
+			TargetYN = 'Y'
+		AND CONVERT(VARCHAR(10), CreationDate, 23) = #{date}
+	</insert>
+	
+	<!-- TargetYN set N -->
+	<update id="updateOpptyTargetYN">
+		MERGE INTO stg_opportunity A
+	   	USING tmp_stg_opportunity B
+		ON (A.Dseq = B.Dseq AND A.seq = B.seq)
+		WHEN MATCHED THEN
+		   UPDATE SET
+		        A.TargetYN = 'N'; 
+	</update>
+	
+	<!-- TrnsTN set Y -->
+	<update id="updateOpptyTrnsYN">
+		MERGE INTO imp_oppty A
+	   	USING tmp_imp_oppty B
+		ON (A.seq = B.seq)
+		WHEN MATCHED THEN
+		   UPDATE SET
+		          A.TrnsYN   = 'Y'
+		        , A.TrnsDate = getDate(); 
+	</update>
+	
+	<update id="updateOpptyAccountTrnsYN">
+		MERGE INTO imp_oppty_account A
+	   	USING tmp_imp_oppty_account B
+		ON (A.PartyNumber = B.PartyNumber)
+		WHEN MATCHED THEN
+		   UPDATE SET
+		          A.TrnsYN   = 'Y'
+		        , A.TrnsDate = getDate(); 
+	</update>
+	
+	
+	<!-- Create CSV Query -->
+	<!-- Account CSV -->
+	<select id="imp_account_import" resultType="java.util.Map">
+		SELECT    PartyNumber 
+				, ConaId_c      
+				, OTTCount_c    
+				, DTVCount_c    
+				, ISPCount_c    
+				, VoIPCount_c   
+				, StandardFee_c 
+				, SurFee_c
+				, (SUBSTRING(ContractFrom_c,1,4)+'-'+SUBSTRING(ContractFrom_c,5,2)+'-'+SUBSTRING(ContractFrom_c,7,2)) as ContractFrom_c       
+				, (SUBSTRING(ContractTo_c,1,4)+'-'+SUBSTRING(ContractTo_c,5,2)+'-'+SUBSTRING(ContractTo_c,7,2)) as ContractTo_c 
+				, OTTFee_c
+				, DTVFee_c
+				, ISPFee_c
+				, VOIPFee_c
+				, NoPayFee_c
+				, DliveCustomerType_c
+		FROM    IMP_ACCOUNT
+		WHERE   TRNSYN = 'N'
+	</select>
+	
+	<!-- Oppty Account CSV -->
+	<select id="imp_oppty_account_import" resultType="java.util.Map">
+		SELECT
+			  PartyNumber                              as "PartyNumber"
+			, 'CSV'                                    as "PartyOrigSystem"
+			, PartyNumber                              as "PartyOrigSysRef"
+			, OrganizationName                         as "OrganizationName"
+			, 'ZCA_CUSTOMER'                           as "유형"
+			, EmpNumber                                as "Owner"
+			, 'ADDRESS#' + PartyNumber                 as "SiteNo"
+			, Country                                  as "Country"
+			, ''                                       as "PostNo"
+			, Province                                 as "Province"
+			, State                                    as "State"
+			, City                                     as "City"
+			, AddressLine1                             as "AddressLine1"
+			, AddressLine2                             as "AddressLine2"
+		    , 'SELL_TO'                                as "용도"
+		    , 'SMB'                                    as "단체유형"
+		    , '99'                                     as "업종"
+			, BranchNm_c                               as "BranchNm_c"
+            , ConaId_c                                 as "ConaId_c"
+		FROM
+			dbo.imp_oppty_account
+		WHERE
+			TrnsYN = 'N'
+		AND EmpNumber is not null
+	</select>
+	
+	<!-- Oppty CSV -->
+	<select id="imp_oppty_import" resultType="java.util.Map">
+		SELECT
+			  seq                                                        as "seq"
+			, Name                                                       as "Name"
+			, substring(EffectiveDate, 1, 4) + '-' + substring(EffectiveDate, 5, 2) + '-' + substring(EffectiveDate, 7, 2)        as "EffectiveDate"
+			, '주식회사 딜라이브 BU'                                            as "BuName"
+			, SalesStage                                                 as "SalesStage"
+			, 'KRW'                                                      as "OptyCurcyCode"
+			, SUBSTRING(CONVERT(VARCHAR(20), DATEADD(MI, -1, DATEADD( HH, -9, GETDATE())), 127),1,20)+'000-0000'   as "OptyCreateDate"
+			, 'IF'                                                       as "Created"
+			, SUBSTRING(CONVERT(VARCHAR(20), DATEADD(MI, -1, DATEADD( HH, -9, GETDATE())), 127),1,20)+'000-0000'   as "OptyLastUpdateDate"
+			, 'IF'                                                       as "OptyLastUpdated"
+			, EmpNumber                                                  as "ResourcePartyNumber1"
+			, EmpNumber                                                  as "ResourcePartyNumber2"
+			, PartyNumber                                                as "CustPartyNumber"
+			, OpptyType_c                                                as "OpptyType_c"
+			, OptyBranch_c                                               as "OptyBranch_c"
+		FROM
+			dbo.imp_oppty
+		WHERE
+			TrnsYN = 'N'
+	</select>
+	
+	
+	
+</mapper>
