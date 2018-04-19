@@ -303,8 +303,8 @@ public class AccountManagement {
 					}
 					
 					String organizationDEO_RemarkF_c = null;
-					if(account.getOrganizationDEORemarkFC() != null){
-						organizationDEO_RemarkF_c = commonUtil.cutTxt(account.getOrganizationDEORemarkFC().getValue(), 10000);
+					if(account.getOrganizationDEORemarkFC().getValue() != null){
+						organizationDEO_RemarkF_c = commonUtil.cutTxt(account.getOrganizationDEORemarkFC().getValue(),null,10000, 0, false, true);
 					}
 					
 					String organizationDEO_OTTCount_c = null;
@@ -433,7 +433,7 @@ public class AccountManagement {
 					tgtList.add(avo);
 				}
 				else {
-					logger.info("PartyId Exist : " + account.getPartyId());
+					logger.debug("PartyId Exist : " + account.getPartyId());
 				}
 			}
 			
@@ -455,7 +455,7 @@ public class AccountManagement {
 		int tmp_insert_result  = 0;
 		int sc_insert_result   = 0;
 		int delete_result      = 0;
-		int splitSize          = 40;	// partition 나누기
+		int splitSize          = 30;	// partition 나누기
 
 		delete_result = session.delete("interface.deleteAccountTemp");
 		if(delete_result != 0) {

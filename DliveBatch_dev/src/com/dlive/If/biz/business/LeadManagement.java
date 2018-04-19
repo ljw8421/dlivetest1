@@ -196,7 +196,7 @@ public class LeadManagement {
 					
 					String description = null;
 					if(lead.getDescription().getValue() != null) {
-						description = commonUtil.cutTxt(lead.getDescription().getValue().toString(),10000);
+						description = commonUtil.cutTxt(lead.getDescription().getValue().toString(),null,10000, 0, false, true);
 					}
 					
 					String channelType = null;

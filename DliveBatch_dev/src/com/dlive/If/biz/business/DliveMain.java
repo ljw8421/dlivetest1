@@ -130,10 +130,10 @@ public class DliveMain {
     		}
     		
 		} catch (Exception e) {
-			logVo.setStatus("fail");
-			logVo.setBatchDesc(e.toString());
-			batchLogInsert(logVo);
 			logger.info("Exception - " + e.toString());
+			logVo.setStatus("fail");
+			logVo.setBatchDesc(common.cutTxt(e.toString(),null,10000, 0, false, true));
+			batchLogInsert(logVo);
 			
 		} finally {
 			
@@ -299,11 +299,11 @@ public class DliveMain {
 				
 			} catch (Exception e) {
 				// TODO: handle exception
+				logger.info("All BI & IMP Batch Error Msg : " + e.toString());
 				logVo.setStatus("fail");
-				logVo.setBatchDesc(e.toString());
+				logVo.setBatchDesc(common.cutTxt(e.toString(),null,10000, 0, false, true));
 				batchLogInsert(logVo);
 				logVo.setBatchDesc(null);
-				logger.info("All BI & IMP Batch Error Msg : " + e.toString());
 			}
 		}
 	}

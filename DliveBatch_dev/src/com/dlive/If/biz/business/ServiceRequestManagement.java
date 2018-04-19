@@ -2,52 +2,27 @@ package com.dlive.If.biz.business;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceRef;
 
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.util.EntityUtils;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
 
 import com.google.common.collect.Lists;
 import com.oracle.xmlns.adf.svc.types.Conjunction;
 import com.oracle.xmlns.adf.svc.types.FindControl;
 import com.oracle.xmlns.adf.svc.types.FindCriteria;
-import com.oracle.xmlns.adf.svc.types.ViewCriteria;
-import com.oracle.xmlns.adf.svc.types.ViewCriteriaItem;
-import com.oracle.xmlns.adf.svc.types.ViewCriteriaRow;
-import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ObjectFactory;
 import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequest;
 import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequestService;
 import com.oracle.xmlns.apps.crm.service.svcmgmt.srmgmt.srmgmtservice.ServiceRequestService_Service;
 
 import util.CommonUtil;
-import vo.ApprovalVO;
-import vo.ImpSrVO;
 import vo.SrVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
@@ -194,8 +169,8 @@ public class ServiceRequestManagement {
 					}
 					
 					String ProblemDescription = "";
-					if(serviceRequest.getProblemDescription() != null) {
-						ProblemDescription = commonUtil.cutTxt(serviceRequest.getProblemDescription().getValue(),10000);
+					if(serviceRequest.getProblemDescription().getValue() != null) {
+						ProblemDescription = commonUtil.cutTxt(serviceRequest.getProblemDescription().getValue(),null,10000, 0, false, true);
 					}
 					
 					String SeverityCd = "";
@@ -413,7 +388,7 @@ public class ServiceRequestManagement {
 		
 		int result1        = 0;
 		int result2        = 0;
-		int splitSize      = 50;	// partition 나누기
+		int splitSize      = 40;	// partition 나누기
 		
 		logger.info("Interface ServiceRequest Delete");
 		session.delete("interface.deleteServiceRequestTmp");

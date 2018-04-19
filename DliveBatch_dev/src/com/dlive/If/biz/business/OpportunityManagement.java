@@ -139,7 +139,7 @@ public class OpportunityManagement {
                                if(!commonUtil.isEmpty(tmp.get("StatusCode"))) StatusCode = (String)tmp.get("StatusCode");
                                String SalesStage              = (String)tmp.get("SalesStage");
                                String Comments                = null;
-                               if(!commonUtil.isEmpty(tmp.get("Comments"))) Comments = commonUtil.cutTxt((String)tmp.get("Comments"),10000);
+                               if(!commonUtil.isEmpty(tmp.get("Comments"))) Comments = commonUtil.cutTxt((String)tmp.get("Comments"),null,10000, 0, false, true);
                                String EffectiveDate           = null;
                                if(!commonUtil.isEmpty(tmp.get("EffectiveDate"))) EffectiveDate = (String)tmp.get("EffectiveDate");
                                Long LwinProb                  = null;
@@ -321,7 +321,7 @@ public class OpportunityManagement {
                                       Long LoptyLeadId = (Long)opptyLead.get("OptyLeadId");
                                       String OptyLeadId = LoptyLeadId.toString();
                                       Long LleadId = (Long)opptyLead.get("LeadId");
-                                      logger.info(LleadId);
+
                                       String LeadId = LleadId.toString();
                                       logger.debug("== ["+j+"/"+i+"] ===========================================");
                                       logger.debug(">>> OptyLeadId : "+OptyLeadId);

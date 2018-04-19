@@ -272,7 +272,7 @@ public class ActivityManagement {
 					String activityDescription = null;
 					if(activity.getActivityDescription() != null) {
 						byte[] activityDesc = activity.getActivityDescription().getValue();
-						activityDescription = commonUtil.cutTxt(new String(activityDesc, "UTF-8"),10000);
+						activityDescription = commonUtil.cutTxt(new String(activityDesc, "UTF-8"),null,10000, 0, false, true);
 					}
 					String leadId	= null ;
 			        if(activity.getLeadId().getValue() != null) {
