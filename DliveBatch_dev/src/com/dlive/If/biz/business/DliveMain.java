@@ -83,6 +83,7 @@ public class DliveMain {
 	    	restUrl = sp.getProperty("RestURL");
 	    	
 	    	/* default Date */
+	    	String fromDt  = common.getFromDt();    // 3개월 전
             String paramDt = common.getYesterday();	// 어제 날짜 
             String todayDt = common.getToday();		// 오늘 날짜
 	    	
@@ -100,6 +101,7 @@ public class DliveMain {
     		}
     		
     		map.put("batchJobId", batchJobId);
+    		map.put("fromDt", fromDt);
             map.put("paramDt", paramDt);
             map.put("todayDt", todayDt);
     		
@@ -113,10 +115,12 @@ public class DliveMain {
         			paramDtArg1 = args[2];
         			logVo.setParamDt(paramDtArg1);
         			map.put("paramDt", paramDtArg1);
+        			
+        			String fromDtArg = common.getTomorrow(paramDtArg1);
+        			String paramDtArg2 = common.getTomorrow(paramDtArg1);
+        			map.put("fromDt", fromDtArg);
+        			map.put("todayDt", paramDtArg2);
         		}
-    			
-    			String paramDtArg2 = common.getTomorrow(paramDtArg1);
-    			map.put("todayDt", paramDtArg2);
     			
     			sel_batch_job(map, workJobArg, logVo);
     			break;
@@ -222,6 +226,12 @@ public class DliveMain {
 				logVo.setStatus("success");
 				batchLogInsert(logVo);
 				break;
+//			case "activity_delChk":
+//				batchLogInsert(logVo);
+//				activity_delChk(map);
+//				logVo.setStatus("success");
+//				batchLogInsert(logVo);
+//				break;
 			}
 		}
 	}
@@ -279,6 +289,12 @@ public class DliveMain {
 					logVo.setStatus("success");
 					batchLogInsert(logVo);
 					break;
+//				case "activity_delChk":
+//					batchLogInsert(logVo);
+//					activity_delChk(map);
+//					logVo.setStatus("success");
+//					batchLogInsert(logVo);
+//					break;
 				}
 				
 			} catch (Exception e) {
@@ -408,6 +424,16 @@ public class DliveMain {
 	}
 	
 	/* Activity */
+	private static void activity_delChk(Map<String, String> map) throws Exception 
+	{
+		activity = new ActivityManagement(mssession, map);			// Activity
+		activity.initialize(restId, restPw, restUrl);				// webService 호출
+		
+		List<ActivityVO> resultList = activity.getActivityId();	// Activity 조회
+		
+		activity.updateActDelYN(resultList);					// Activity insert
+	}
+	
 	private static void activity_in(Map<String, String> map) throws Exception 
 	{
 		activity = new ActivityManagement(mssession, map);			// Activity
@@ -454,7 +480,6 @@ public class DliveMain {
 			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
 		}
 	}
-	
 	
 	/* Staging / Import */
 	/* imp Account */

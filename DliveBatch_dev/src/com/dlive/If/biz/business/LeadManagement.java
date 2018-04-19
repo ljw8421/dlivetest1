@@ -194,9 +194,9 @@ public class LeadManagement {
 						customerPartyName = lead.getCustomerPartyName().getValue();
 					}
 					
-					String description = "";
+					String description = null;
 					if(lead.getDescription().getValue() != null) {
-						description = lead.getDescription().getValue().toString();
+						description = commonUtil.cutTxt(lead.getDescription().getValue().toString(),10000);
 					}
 					
 					String channelType = null;
@@ -405,7 +405,7 @@ public class LeadManagement {
 		int tmp_insert_result  = 0;
 		int sc_insert_result   = 0;
 		int delete_result      = 0;
-		int splitSize          = 10;	// partition 나누기
+		int splitSize          = 40;	// partition 나누기
 		
 		delete_result = session.delete("interface.deleteLeadTemp");
 		if(delete_result != 0) {

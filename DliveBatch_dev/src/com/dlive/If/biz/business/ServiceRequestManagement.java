@@ -195,7 +195,7 @@ public class ServiceRequestManagement {
 					
 					String ProblemDescription = "";
 					if(serviceRequest.getProblemDescription() != null) {
-						ProblemDescription = serviceRequest.getProblemDescription().getValue();
+						ProblemDescription = commonUtil.cutTxt(serviceRequest.getProblemDescription().getValue(),10000);
 					}
 					
 					String SeverityCd = "";

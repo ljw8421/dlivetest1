@@ -138,8 +138,8 @@ public class OpportunityManagement {
                                String StatusCode              = null;
                                if(!commonUtil.isEmpty(tmp.get("StatusCode"))) StatusCode = (String)tmp.get("StatusCode");
                                String SalesStage              = (String)tmp.get("SalesStage");
-                               String Comments                = "";
-                               if(!commonUtil.isEmpty(tmp.get("Comments"))) Comments = (String)tmp.get("Comments");
+                               String Comments                = null;
+                               if(!commonUtil.isEmpty(tmp.get("Comments"))) Comments = commonUtil.cutTxt((String)tmp.get("Comments"),10000);
                                String EffectiveDate           = null;
                                if(!commonUtil.isEmpty(tmp.get("EffectiveDate"))) EffectiveDate = (String)tmp.get("EffectiveDate");
                                Long LwinProb                  = null;

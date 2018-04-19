@@ -901,6 +901,31 @@
 	<delete id="deleteActivityTemp">
 		TRUNCATE TABLE TMP_ACTIVITY
 	</delete>
+	
+	<update id="updateActivityDelY" parameterType="java.util.Map">
+		UPDATE  SC_ACTIVITY
+		   SET  DELYN      = 'Y'
+		      , BATCHJOBID = #{batchJobId}
+		      , WORKDATE   = CONVERT(DATETIME,GETDATE(),120)
+		 WHERE  CREATIONDATE BETWEEN #{fromDt} AND #{todayDt} 
+	</update>
+	
+	<update id="updateActivityDelN" parameterType="java.util.Map">
+		MERGE INTO SC_ACTIVITY A
+		USING (
+			<foreach item="activity" index="index" collection="list" separator="union all">
+				SELECT   #{activity.activityId} AS ACTIVITYID
+					   , #{activity.batchJobId} AS BATCHJOBID
+			</foreach>
+			 )B
+		ON (A.ACTIVITYID = B.ACTIVITYID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				, A.DELYN                   = 'N'                  
+				, A.WORKDATE            	= GETDATE()
+				, A.BATCHJOBID              = B.BATCHJOBID
+		;
+	</update>
 
 	<!-- Activity Temp Table Insert -->
 	<update id="insertActivityTemp" parameterType="java.util.Map">
@@ -1666,7 +1691,7 @@
 	
 	<!-- Create CSV Query -->
 	<!-- Account CSV -->
-	<select id="imp_account_import" resultType="java.util.Map">
+	<select id="imp_account" resultType="java.util.Map">
 		SELECT    PartyNumber 
 				, ConaId_c      
 				, OTTCount_c    
@@ -1688,7 +1713,7 @@
 	</select>
 	
 	<!-- Oppty Account CSV -->
-	<select id="imp_oppty_account_import" resultType="java.util.Map">
+	<select id="imp_oppty_account" resultType="java.util.Map">
 		SELECT
 			  PartyNumber                              as "PartyNumber"
 			, 'CSV'                                    as "PartyOrigSystem"
@@ -1717,7 +1742,7 @@
 	</select>
 	
 	<!-- Oppty CSV -->
-	<select id="imp_oppty_import" resultType="java.util.Map">
+	<select id="imp_oppty" resultType="java.util.Map">
 		SELECT
 			  seq                                                        as "seq"
 			, Name                                                       as "Name"

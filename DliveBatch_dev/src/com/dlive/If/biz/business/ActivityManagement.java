@@ -42,15 +42,17 @@ public class ActivityManagement {
 	CommonUtil commonUtil;
 	
 	private String batchJobId;
-	private String paramDt, todayDt, betweenDt;
+	private String fromDt, paramDt, todayDt, betweenMt, betweenDt;
 	
 	private static Logger logger = Logger.getLogger(ActivityManagement.class);
 	
 	public ActivityManagement(SqlSession session, Map<String, String> map) {
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
+		this.fromDt     = map.get("fromDt");
 		this.paramDt    = map.get("paramDt");
 		this.todayDt    = map.get("todayDt");
+		this.betweenMt  = fromDt+","+todayDt;
 		this.betweenDt  = paramDt+","+todayDt;
 	}
 	
@@ -81,6 +83,90 @@ public class ActivityManagement {
 		reqContext.put(BindingProvider.PASSWORD_PROPERTY, password);
 		
 		logger.info("End ResourcesManagement initialize");
+	}
+	
+	//영업활동 조회
+	public List<ActivityVO> getActivityId() throws Exception 
+	{
+		logger.info("Start SalesCloud GetActivityId");
+		
+		String items[] = {
+								"ActivityId"
+						 };
+		// key : ActivityId
+		String itemAttribute[] = {
+									"CreationDate"
+								 };
+
+		String itemValue[] = {
+								betweenMt
+							 };
+		
+		boolean upperCaseCompare[] = {
+										true
+									 };
+		
+		String operator[] = {
+								"BETWEEN"
+							};
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		List<Map<String, Object>> filterList = null;
+		
+		commonUtil = new CommonUtil();
+		filterList = commonUtil.addFilterList(itemAttribute,itemValue,upperCaseCompare,operator);
+		
+		int pageNum = 1;
+		int pageSize = 500;
+		int resultSize = 0;
+		
+		FindCriteria findCriteria = null;
+		FindControl findControl = new FindControl();
+		
+		List<Activity> activityList = null;
+		List<ActivityVO> tgtList = new ArrayList<ActivityVO>();
+		List<Long> checkList      = new ArrayList<Long>();
+		
+		do
+		{
+			findCriteria = null;
+			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
+			
+			activityList = activityService.findActivity(findCriteria, findControl);
+			resultSize = activityList.size();
+			
+			for (int i = 0; i < activityList.size(); i++) 
+			{
+				ActivityVO rvo = new ActivityVO();
+				Activity activity = (Activity)(activityList).get(i);
+				
+				if(!checkList.contains(activity.getActivityId()))
+				{
+					checkList.add(activity.getActivityId());
+					
+					String activityId 			= activity.getActivityId().toString();
+			        
+					logger.debug("#["+i+"]");
+					logger.debug("Activity activityId			: " + activityId);
+					
+					rvo.setActivityId(activityId);
+					rvo.setBatchJobId(batchJobId);
+					
+					tgtList.add(rvo);
+				}
+				else {
+					logger.info("ActivityId Exist : " + activity.getActivityId());
+				}
+				
+			}
+		
+			pageNum++;
+		}
+		while(resultSize == pageSize);
+		
+		logger.info("End SalesCloud GetActivityId");
+		return tgtList;
 	}
 	
 	//영업활동 조회
@@ -183,10 +269,10 @@ public class ActivityManagement {
 						ownerEmailAddress = activity.getOwnerEmailAddress().getValue();
 					}
 					String subject = activity.getSubject();
-					String activityDescription = "";
+					String activityDescription = null;
 					if(activity.getActivityDescription() != null) {
 						byte[] activityDesc = activity.getActivityDescription().getValue();
-						activityDescription = new String(activityDesc, "UTF-8");
+						activityDescription = commonUtil.cutTxt(new String(activityDesc, "UTF-8"),10000);
 					}
 					String leadId	= null ;
 			        if(activity.getLeadId().getValue() != null) {
@@ -323,30 +409,56 @@ public class ActivityManagement {
 	}
 	
 	/**
-	 * delFlag를 Y로 셋팅
+	 * 삭제건 확인을 위한 delYn update
 	 * */
-	public int updateDelFlag() throws Exception
+	public int updateActDelYN(List<ActivityVO> activityIdList) throws Exception
 	{
-		logger.info("InterFace SC_Opportunity delFalg Update");
-		int update = 0;
+		logger.info("Strat InterFace SC_Activity delFalg Update");
+		int update        = 0;
+		int splitSize     = 500;
+		int update_result = 0;
 		
-		session.update("interface.updateActivityDelflg");
-		session.commit();
+		Map<String,String> dateMap = new HashMap<String,String>();
+		dateMap.put("fromDt", fromDt);
+		dateMap.put("todayDt", todayDt);
+		dateMap.put("batchJobId", batchJobId);
 		
-		return update;
+		update = session.update("interface.updateActivityDelY", dateMap);
+		if(update > 0){
+			session.commit();
+		}
+		
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<ActivityVO>> subList = new ArrayList<List<ActivityVO>>();		// list를 나누기 위한 temp
+		
+		if(activityIdList.size() > splitSize) {
+			subList = Lists.partition(activityIdList, splitSize);
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				update_result = session.update("interface.updateActivityDelN", batchMap);		// addbatch
+			}
+		}
+		else {
+			batchMap.put("list", activityIdList);
+			update_result = session.update("interface.updateActivityDelN", batchMap);
+		}
+		logger.info("update_result : " + update_result);
+		logger.info("End InterFace SC_Activity delFalg Update");
+		return update_result;
 	}
 	
 	//영업활동 my-sql DB 저장
 	public int insertActivity(List<ActivityVO> activityList) throws Exception 
 	{
-		logger.info("InterFace Activity Table Insert Start");
+		logger.info("Start InterFace Activity Table Insert");
 		Map<String, Object> batchMap = new HashMap<String, Object>();
 		List<List<ActivityVO>> subList = new ArrayList<List<ActivityVO>>();		// list를 나누기 위한 temp
 		
 		int tmp_insert_result  = 0;
 		int sc_insert_result   = 0;
 		int delete_result      = 0;
-		int splitSize          = 70;	// partition 나누기
+		int splitSize          = 60;	// partition 나누기
 		
 		delete_result = session.delete("interface.deleteActivityTemp");
 		if(delete_result != 0) {
@@ -372,13 +484,12 @@ public class ActivityManagement {
 
 			if(sc_insert_result != 0) {
 				session.commit();
-				logger.info("InterFace Activity Table Insert End");
 			}
 		}
 		else {
 			logger.info("Temp Table Insert ERROR");
 		}
-
+		logger.info("End InterFace Activity Table Insert");
 		return sc_insert_result;
 	}
 	   

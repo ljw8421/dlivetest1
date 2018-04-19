@@ -304,7 +304,7 @@ public class AccountManagement {
 					
 					String organizationDEO_RemarkF_c = null;
 					if(account.getOrganizationDEORemarkFC() != null){
-						organizationDEO_RemarkF_c = account.getOrganizationDEORemarkFC().getValue();
+						organizationDEO_RemarkF_c = commonUtil.cutTxt(account.getOrganizationDEORemarkFC().getValue(), 10000);
 					}
 					
 					String organizationDEO_OTTCount_c = null;

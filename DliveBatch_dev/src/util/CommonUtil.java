@@ -163,6 +163,41 @@ public class CommonUtil {
 	}
 	
 	/**
+	 * 입력한 날짜가 없을 때 오늘 기준 3개월전 일자 구하는 함수
+	 * */
+	public String getFromDt() {
+		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar today = Calendar.getInstance();
+        
+        String fromDt = "";
+        
+        today.set(Calendar.DATE, 1);        					// 현재달 1일
+        today.add(Calendar.MONTH, -3);						// 현재달 두달전
+        fromDt = dateForm.format(today.getTime());			// Data -> String convert
+        
+		return fromDt;
+	}
+
+	/**
+	 * 입력한 날짜가 있을 때 읿력 일자 기준 3개월전 일자 구하는 함수
+	 * */
+	public String getFromDt(String paramDt)  throws Exception{
+		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+		Date tmp = dateForm.parse(paramDt);
+		
+        Calendar today = Calendar.getInstance();
+        today.setTime(tmp);
+        
+        String fromDt = "";
+        
+        today.set(Calendar.DATE, 1);        					// 현재달 1일
+        today.add(Calendar.MONTH, -3);						// 현재달 두달전
+        fromDt = dateForm.format(today.getTime());			// Data -> String convert
+        
+		return fromDt;
+	}
+	
+	/**
 	 * 입력한 날짜가 없을 때 오늘 기준 전일 자 구하는 함수
 	 * */
 	public String getYesterday() 
@@ -179,7 +214,7 @@ public class CommonUtil {
 	}
 	
 	/**
-	 * 입력한 날짜가 없을 때 오늘 기준 내일 자 구하는 함수
+	 * 입력한 날짜가 있을 때 입력 일자 기준 내일 자 구하는 함수
 	 * */
 	public String getTomorrow(String paramDt) throws Exception
 	{
@@ -255,6 +290,46 @@ public class CommonUtil {
 		}
 
 		return str;
+	}
+	
+	public String cutTxt(String txt, int maxByte){
+		int cutByte = 0;
+		int hangulByte = 3;
+		int totalHangul = 0;
+		
+		byte[] inputByte = txt.getBytes();
+		
+		for(int i = 0; i < txt.length() -1; i++){
+			if(isIncludeHangul(txt.substring(i, i+1))){
+				if(cutByte + hangulByte > maxByte){
+					break;
+				}
+				cutByte += hangulByte;
+				totalHangul += hangulByte;
+			}else{
+				if(cutByte + 1 > maxByte){
+					break;
+				}
+				cutByte += 1;
+			}
+		}
+		logger.debug(cutByte + " byte 추출");
+		logger.debug("한글 수 : " + totalHangul/3);
+		
+		String resultTxt = new String(inputByte, 0 , cutByte);
+		
+		logger.debug("resultTxt : " + resultTxt);
+		
+		return resultTxt;
+	}
+	
+	public boolean isIncludeHangul(String input){
+		for(int i = 0; i < input.length(); i++){
+			if(Character.getType(input.charAt(i))==Character.OTHER_LETTER){
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
