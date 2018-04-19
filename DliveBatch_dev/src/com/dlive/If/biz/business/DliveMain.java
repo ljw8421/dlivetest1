@@ -1,9 +1,7 @@
 package com.dlive.If.biz.business;
 
 import java.io.FileInputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,13 +15,13 @@ import util.CommonUtil;
 import util.MssqlDBUtil;
 import vo.AccountVO;
 import vo.ActivityVO;
+import vo.CodeVO;
 import vo.LeadVO;
 import vo.LogVO;
 import vo.OpportunityVO;
 import vo.OpptyLeadVO;
 import vo.ResourcesVO;
 import vo.SrVO;
-import vo.CodeVO;
 
 /**
  * 각 함수 실행하는 Main Function
@@ -289,12 +287,6 @@ public class DliveMain {
 					logVo.setStatus("success");
 					batchLogInsert(logVo);
 					break;
-//				case "activity_delChk":
-//					batchLogInsert(logVo);
-//					activity_delChk(map);
-//					logVo.setStatus("success");
-//					batchLogInsert(logVo);
-//					break;
 				}
 				
 			} catch (Exception e) {
