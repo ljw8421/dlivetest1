@@ -114,7 +114,7 @@ public class DliveMain {
         			logVo.setParamDt(paramDtArg1);
         			map.put("paramDt", paramDtArg1);
         			
-        			String fromDtArg = common.getTomorrow(paramDtArg1);
+        			String fromDtArg = common.getFromDt(paramDtArg1);
         			String paramDtArg2 = common.getTomorrow(paramDtArg1);
         			map.put("fromDt", fromDtArg);
         			map.put("todayDt", paramDtArg2);

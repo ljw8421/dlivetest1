@@ -414,38 +414,55 @@ public class ActivityManagement {
 	public int updateActDelYN(List<ActivityVO> activityIdList) throws Exception
 	{
 		logger.info("Strat InterFace SC_Activity delFalg Update");
-		int update        = 0;
 		int splitSize     = 500;
 		int update_result = 0;
+		int delete_result      = 0;
+		int insert_result = 0;
+		int sc_update_result = 0;
 		
 		Map<String,String> dateMap = new HashMap<String,String>();
 		dateMap.put("fromDt", fromDt);
 		dateMap.put("todayDt", todayDt);
 		dateMap.put("batchJobId", batchJobId);
 		
-		update = session.update("interface.updateActivityDelY", dateMap);
-		if(update > 0){
+		update_result = session.update("interface.updateActivityDelY", dateMap);
+		if(update_result > 0){
 			session.commit();
 		}
 		
 		Map<String, Object> batchMap = new HashMap<String, Object>();
 		List<List<ActivityVO>> subList = new ArrayList<List<ActivityVO>>();		// list를 나누기 위한 temp
 		
+		delete_result = session.delete("interface.deleteActivityTemp");
+		if(delete_result != 0) {
+			session.commit();
+		}
+		
 		if(activityIdList.size() > splitSize) {
 			subList = Lists.partition(activityIdList, splitSize);
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
-				update_result = session.update("interface.updateActivityDelN", batchMap);		// addbatch
+				insert_result = session.update("interface.insertActivityDelNTemp", batchMap);		// addbatch
 			}
 		}
 		else {
 			batchMap.put("list", activityIdList);
-			update_result = session.update("interface.updateActivityDelN", batchMap);
+			insert_result = session.update("interface.insertActivityDelNTemp", batchMap);
 		}
-		logger.info("update_result : " + update_result);
+		
+		if(insert_result > 0) {
+			sc_update_result = session.update("interface.insertActivity");
+	
+			if(sc_update_result > 0) {
+				session.commit();
+			}
+		}
+		else {
+			logger.info("Temp Table Insert ERROR");
+		}
 		logger.info("End InterFace SC_Activity delFalg Update");
-		return update_result;
+		return sc_update_result;
 	}
 	
 	//영업활동 my-sql DB 저장
