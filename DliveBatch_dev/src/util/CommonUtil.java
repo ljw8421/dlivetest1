@@ -2,12 +2,10 @@ package util;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -164,89 +162,123 @@ public class CommonUtil {
 		return findCriteria;
 	}
 	
-	/**
-	 * 입력한 날짜가 없을 때 오늘 기준 3개월전 일자 구하는 함수
-	 * */
-	public String getFromDt() {
+	public String getDateCalc(String paramDt, int year, int month, int day){
 		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
         Calendar today = Calendar.getInstance();
         
-        String fromDt = "";
+        String returnDt = "";
         
-        today.set(Calendar.DATE, 1);        					// 현재달 1일
-        today.add(Calendar.MONTH, -3);						// 현재달 두달전
-        fromDt = dateForm.format(today.getTime());			// Data -> String convert
+        if(paramDt != null && !"".equals(paramDt)){
+        	String[] tempDt = paramDt.split("-");
+        	if(tempDt.length == 3){
+        		String strYear = tempDt[0];
+        		String strMonth = tempDt[1];
+        		String strDate = tempDt[2];
+        		
+        		today.set(Calendar.DATE, Integer.parseInt(strDate));
+        		today.set(Calendar.MONTH, Integer.parseInt(strMonth) - 1);
+        		today.set(Calendar.YEAR, Integer.parseInt(strYear));
+        		
+        		logger.info("paramDt : " + dateForm.format(today.getTime()));
+        	}else{
+        		logger.info("paramDt 포맷에러 (정상 입력 예시 : 2018-01-15) : " + paramDt);
+        	}
+        }else{
+        	logger.info("today : " + dateForm.format(today.getTime()));
+        }
+        if(year != 0) today.add(Calendar.YEAR, year);
+        if(month != 0) today.add(Calendar.MONTH, month);
+        if(day != 0) today.add(Calendar.DATE, day);
         
-		return fromDt;
+        returnDt = dateForm.format(today.getTime());
+        logger.info("returnDt : " + returnDt);
+        
+		return returnDt;
 	}
+	
+	/**
+	 * 입력한 날짜가 없을 때 오늘 기준 3개월전 일자 구하는 함수
+	 * */
+//	public String getFromDt() {
+//		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+//        Calendar today = Calendar.getInstance();
+//        
+//        String fromDt = "";
+//        
+//        today.set(Calendar.DATE, 1);        					// 현재달 1일
+//        today.add(Calendar.MONTH, -3);						// 현재달 두달전
+//        fromDt = dateForm.format(today.getTime());			// Data -> String convert
+//        
+//		return fromDt;
+//	}
 
 	/**
 	 * 입력한 날짜가 있을 때 읿력 일자 기준 3개월전 일자 구하는 함수
 	 * */
-	public String getFromDt(String paramDt)  throws Exception{
-		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
-		Date tmp = dateForm.parse(paramDt);
-		
-        Calendar today = Calendar.getInstance();
-        today.setTime(tmp);
-        
-        String fromDt = "";
-        
-        today.set(Calendar.DATE, 1);        					// 현재달 1일
-        today.add(Calendar.MONTH, -3);						// 현재달 두달전
-        fromDt = dateForm.format(today.getTime());			// Data -> String convert
-        
-		return fromDt;
-	}
+//	public String getFromDt(String paramDt)  throws Exception{
+//		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+//		Date tmp = dateForm.parse(paramDt);
+//		
+//        Calendar today = Calendar.getInstance();
+//        today.setTime(tmp);
+//        
+//        String fromDt = "";
+//        
+//        today.set(Calendar.DATE, 1);        					// 현재달 1일
+//        today.add(Calendar.MONTH, -3);						// 현재달 두달전
+//        fromDt = dateForm.format(today.getTime());			// Data -> String convert
+//        
+//		return fromDt;
+//	}
 	
 	/**
 	 * 입력한 날짜가 없을 때 오늘 기준 전일 자 구하는 함수
 	 * */
-	public String getYesterday() 
-	{
-		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar today = Calendar.getInstance();
-        
-        String yesterday = "";
-        
-        today.add(Calendar.DATE, -1);        					// 어제 날짜(day)
-        yesterday = dateForm.format(today.getTime());			// Data -> String convert
-        
-		return yesterday;
-	}
+//	public String getYesterday() 
+//	{
+//		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+//        Calendar today = Calendar.getInstance();
+//        
+//        String yesterday = "";
+//        
+//        today.add(Calendar.DATE, -1);        					// 어제 날짜(day)
+//        yesterday = dateForm.format(today.getTime());			// Data -> String convert
+//        
+//		return yesterday;
+//	}
 	
 	/**
 	 * 입력한 날짜가 있을 때 입력 일자 기준 내일 자 구하는 함수
 	 * */
-	public String getTomorrow(String paramDt) throws Exception
-	{
-		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
-        Date tmp = dateForm.parse(paramDt);
-		
-		Calendar today = Calendar.getInstance();
-		today.setTime(tmp);
-        
-        String tomorrowday = "";
-        
-        today.add(Calendar.DATE, 1);        					// 내일 날짜(day)
-        tomorrowday = dateForm.format(today.getTime());			// Data -> String convert
-        
-		return tomorrowday;
-	}
+//	public String getTomorrow(String paramDt) throws Exception
+//	{
+//		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+//        Date tmp = dateForm.parse(paramDt);
+//		
+//		Calendar today = Calendar.getInstance();
+//		today.setTime(tmp);
+//        
+//        String tomorrowday = "";
+//        
+//        today.add(Calendar.DATE, 1);        					// 내일 날짜(day)
+//        tomorrowday = dateForm.format(today.getTime());			// Data -> String convert
+//        
+//		return tomorrowday;
+//	}
 	
 	/**
 	 * 입력한 날짜가 없을 때 오늘 기준 전일 자 구하는 함수
 	 * */
-	public String getToday() 
-	{
-		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
-        Calendar today = Calendar.getInstance();
-        
-        String todayDt;
-        todayDt = dateForm.format(today.getTime());				// Data -> String convert
-        
-		return todayDt;
-	}
+//	public String getToday() 
+//	{
+//		SimpleDateFormat dateForm = new SimpleDateFormat("yyyy-MM-dd");
+//        Calendar today = Calendar.getInstance();
+//        
+//        String todayDt;
+//        todayDt = dateForm.format(today.getTime());				// Data -> String convert
+//        
+//		return todayDt;
+//	}
 	
 	/**
 	 * Null이거나 빈값(빈 문자열, 빈 컬렉션)인지 검사

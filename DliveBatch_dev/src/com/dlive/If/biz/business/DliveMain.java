@@ -62,7 +62,6 @@ public class DliveMain {
 		Map<String, String> map = new HashMap<String, String>();
 		Properties sp = new Properties();
 		
-		CodeVO codeVo = new CodeVO();
 		LogVO  logVo  = new LogVO();
 		
 		String batchJobId;
@@ -81,9 +80,9 @@ public class DliveMain {
 	    	restUrl = sp.getProperty("RestURL");
 	    	
 	    	/* default Date */
-	    	String fromDt  = common.getFromDt();    // 3개월 전
-            String paramDt = common.getYesterday();	// 어제 날짜 
-            String todayDt = common.getToday();		// 오늘 날짜
+	    	String fromDt  = common.getDateCalc(null,0,-3,0);    // 3개월 전
+            String paramDt = common.getDateCalc(null,0,0,-1);	// 어제 날짜 
+            String todayDt = common.getDateCalc(null,0,0,0);		// 오늘 날짜
 	    	
 	    	/* batchJobId & Log Set */
 	    	batchJobId = mssession.selectOne("interface.getBatchJobId");
@@ -111,26 +110,26 @@ public class DliveMain {
     		case "2":
     			if(!"".equals(args[2])) {
         			paramDtArg1 = args[2];
-        			logVo.setParamDt(paramDtArg1);
+        			logVo.setParamDt(common.getDateCalc(paramDtArg1,0,0,0));
         			map.put("paramDt", paramDtArg1);
-        			
-        			String fromDtArg = common.getFromDt(paramDtArg1);
-        			String paramDtArg2 = common.getTomorrow(paramDtArg1);
-        			map.put("fromDt", fromDtArg);
-        			map.put("todayDt", paramDtArg2);
         		}
+    			
+    			String fromDtArg = common.getDateCalc(paramDtArg1,0,-3,0);
+    			String paramDtArg2 = common.getDateCalc(paramDtArg1,0,0,1);
+    			map.put("fromDt", fromDtArg);
+    			map.put("todayDt", paramDtArg2);
     			
     			sel_batch_job(map, workJobArg, logVo);
     			break;
     		default:
-    			logger.info("파리미터를 제대로 입력해주세요.");
+    			logger.info("입력된 파리미터"+type+" : 옵션의 종류 1, 2 를 확인하여  입력해주세요.");
     			break;
     		}
     		
 		} catch (Exception e) {
 			logger.info("Exception - " + e.toString());
 			logVo.setStatus("fail");
-			logVo.setBatchDesc(common.cutTxt(e.toString(),null,10000, 0, false, true));
+			logVo.setBatchDesc(common.cutTxt(e.toString(),null,3500,0,false,true));
 			batchLogInsert(logVo);
 			
 		} finally {
@@ -224,12 +223,42 @@ public class DliveMain {
 				logVo.setStatus("success");
 				batchLogInsert(logVo);
 				break;
-//			case "activity_delChk":
-//				batchLogInsert(logVo);
-//				activity_delChk(map);
-//				logVo.setStatus("success");
-//				batchLogInsert(logVo);
-//				break;
+			case "activity_delChk":
+				batchLogInsert(logVo);
+				activity_delChk(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "resources_delChk":
+				batchLogInsert(logVo);
+				resources_delChk(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "account_delChk":
+				batchLogInsert(logVo);
+				account_delChk(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "oppty_delChk":
+				batchLogInsert(logVo);
+				oppty_delChk(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "lead_delChk":
+				batchLogInsert(logVo);
+				lead_delChk(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
+			case "sr_delChk":
+				batchLogInsert(logVo);
+				sr_delChk(map);
+				logVo.setStatus("success");
+				batchLogInsert(logVo);
+				break;
 			}
 		}
 	}
@@ -287,13 +316,49 @@ public class DliveMain {
 					logVo.setStatus("success");
 					batchLogInsert(logVo);
 					break;
+				case "activity_delChk":
+					batchLogInsert(logVo);
+					activity_delChk(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "resources_delChk":
+					batchLogInsert(logVo);
+					resources_delChk(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "account_delChk":
+					batchLogInsert(logVo);
+					account_delChk(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "oppty_delChk":
+					batchLogInsert(logVo);
+					oppty_delChk(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "lead_delChk":
+					batchLogInsert(logVo);
+					lead_delChk(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
+				case "sr_delChk":
+					batchLogInsert(logVo);
+					sr_delChk(map);
+					logVo.setStatus("success");
+					batchLogInsert(logVo);
+					break;
 				}
 				
 			} catch (Exception e) {
 				// TODO: handle exception
 				logger.info("All BI & IMP Batch Error Msg : " + e.toString());
 				logVo.setStatus("fail");
-				logVo.setBatchDesc(common.cutTxt(e.toString(),null,10000, 0, false, true));
+				logVo.setBatchDesc(common.cutTxt(e.toString(),null,3500,0,false,true));
 				batchLogInsert(logVo);
 				logVo.setBatchDesc(null);
 			}
@@ -358,6 +423,16 @@ public class DliveMain {
 	
 	/* BI */
 	/* Resourcec */
+	private static void resources_delChk(Map<String, String> map) throws Exception 
+	{
+		resources = new ResourcesManagement(mssession, map);			
+		resources.initialize(restId, restPw, restUrl);				
+		
+		List<ResourcesVO> resultList = resources.getResourceProfileId();	
+		
+		resources.updateResourceDelYN(resultList);					
+	}
+	
 	private static void resources_in(Map<String, String> map) throws Exception 
 	{
 		resources = new ResourcesManagement(mssession, map);			// Resource
@@ -372,6 +447,16 @@ public class DliveMain {
 	}
 	
 	/* Account */
+	private static void account_delChk(Map<String, String> map) throws Exception 
+	{
+		account = new AccountManagement(mssession, map);			
+		account.initialize(restId, restPw, restUrl);				
+		
+		List<AccountVO> resultList = account.getPartyId();	
+		
+		account.updateAccountDelChk(resultList);					
+	}
+	
 	private static void account_in(Map<String, String> map) throws Exception
 	{
 		account = new AccountManagement(mssession, map);					// Account
@@ -388,6 +473,15 @@ public class DliveMain {
 	}
 	
 	/* Opportunity */
+	private static void oppty_delChk(Map<String, String> map) throws Exception 
+	{
+		opportunity = new OpportunityManagement(mssession, map);			
+		
+		List<OpportunityVO> resultList = opportunity.getOptyId_rest(restId, restPw, restUrl);	
+		
+		opportunity.updateOpptyDelYN(resultList);					
+	}
+	
 	private static void opportunity_in(Map<String, String> map) throws Exception
 	{
 		opportunity = new OpportunityManagement(mssession, map);		// Opportunity
@@ -442,6 +536,16 @@ public class DliveMain {
 	}
 	
 	/* Lead */
+	private static void lead_delChk(Map<String, String> map) throws Exception 
+	{
+		lead = new LeadManagement(mssession, map);			
+		lead.initialize(restId, restPw, restUrl);				
+		
+		List<LeadVO> resultList = lead.getLeadId();	
+		
+		lead.updateLeadDelYN(resultList);					
+	}
+	
 	private static void lead_in(Map<String, String> map) throws Exception 
 	{
 		lead = new LeadManagement(mssession, map);			// Lead
@@ -458,6 +562,16 @@ public class DliveMain {
 	}
 	
 	/* SR */
+	private static void sr_delChk(Map<String, String> map) throws Exception 
+	{
+		sr = new ServiceRequestManagement(mssession, map);			
+		sr.initialize(restId, restPw, restUrl);				
+		
+		List<SrVO> resultList = sr.getSrId();	
+		
+		sr.updateSRDelYN(resultList);					
+	}
+	
 	private static void sr_in(Map<String, String> map) throws Exception
 	{
 		sr = new ServiceRequestManagement(mssession, map);			// SR
@@ -472,6 +586,7 @@ public class DliveMain {
 			logger.info("dosen't exist Oracle Sales Cloud ServiceRequest List");
 		}
 	}
+	
 	
 	/* Staging / Import */
 	/* imp Account */

@@ -52,7 +52,7 @@ public class OpportunityManagement {
 	CommonUtil commonUtil;
 	
 	private String batchJobId;
-	private String paramDt, todayDt, betweenDt;
+	private String fromDt, paramDt, todayDt, betweenDt;
 	
 	private static Logger logger = Logger.getLogger(OpportunityManagement.class);
 	
@@ -61,14 +61,96 @@ public class OpportunityManagement {
 		
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
+		this.fromDt     = map.get("fromDt");
 		this.paramDt    = map.get("paramDt");
 		this.todayDt    = map.get("todayDt");
 		this.betweenDt  = paramDt+","+todayDt;
 	}
 
+	public List<OpportunityVO> getOptyId_rest(String username, String password, String url) throws Exception 
+	{
+		logger.info("Start SalesCloud GetOptyId_rest");
+		CloseableHttpClient httpClient = HttpClients.createDefault();
+        
+		CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+		credentialsProvider.setCredentials(AuthScope.ANY, 
+                       new UsernamePasswordCredentials(username, password));
+		httpClient = 
+				HttpClientBuilder.create().setDefaultCredentialsProvider(credentialsProvider).build();
+                
+		long offset = 0;
+		boolean hasMore = false;
+		StringBuffer fields = new StringBuffer();
+		fields.append("OptyId");
+		
+		List<OpportunityVO> tgtList    = new ArrayList<OpportunityVO>();
+		
+		OpportunityVO ovo;
+		
+		do{
+				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D"+fromDt+"%20and%20%3C"+todayDt+""
+						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
+				
+				HttpGet httpget = new HttpGet(resultUrl);               
+ 
+				CloseableHttpResponse res = httpClient.execute(httpget);
+				logger.debug("Get Opportunities StatusLine:" + res.getStatusLine());
+				int resultCd = res.getStatusLine().getStatusCode();
+				if (resultCd == 200){
+                       String json_string = EntityUtils.toString(res.getEntity(),"UTF-8");
+                       logger.debug("offset : "+ offset);
+//                     logger.info("json_string : "+json_string);
+ 
+                       JSONParser parser = new JSONParser();
+                       Object object = parser.parse(json_string);
+                       JSONObject jsonObj = (JSONObject) object;
+                
+                       JSONArray arr = (JSONArray)jsonObj.get("items");
+                       for(int i=0;i<arr.size();i++){
+                    	       ovo = new OpportunityVO();
+                               JSONObject tmp = (JSONObject)arr.get(i);//인덱스 번호로 접근해서 가져온다.
+                               
+                               Long Loptyid                   = (Long)tmp.get("OptyId");
+                               String OptyId                  = Loptyid.toString();
+
+                               
+                               logger.debug("#["+i+"]==========================================================");
+           					   logger.debug("Opportunity optyId                  : " + OptyId);
+                               
+                               
+                               ovo.setOptyId(OptyId);
+                               
+                               tgtList.add(ovo);
+                               
+                       }       
+                       
+                       hasMore = (boolean) jsonObj.get("hasMore");
+                       logger.debug(">> hasMore :" + hasMore);
+                       
+                       long count = (long) jsonObj.get("count");
+                       logger.debug(">> Opportunity count 수 :" + count);
+                       
+                       if (hasMore){
+                               offset = offset + count;
+                       }                             
+                       
+                }else{
+                       hasMore = false;
+                }
+                
+                
+        }while(hasMore);
+		
+        logger.info("End SalesCloud GetOptyId_rest");
+        
+        return tgtList;
+		
+	}
+	
 	//거래처 List
 	public Map<String,Object> getAllOpportunity_rest(String username, String password, String url) throws Exception 
 	{
+		logger.info("Start SalesCloud GetAllOpportunity_rest");
 		CloseableHttpClient httpClient = HttpClients.createDefault();
         
 		CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
@@ -99,6 +181,8 @@ public class OpportunityManagement {
 		do{
 				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D"+paramDt+"%20and%20%3C"+todayDt+""
 						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
+//				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D"+fromDt+"%20and%20%3C"+todayDt+""
+//						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
 				
 //				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D2018-02-01%20and%20%3C2018-04-09"
 //						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
@@ -110,7 +194,7 @@ public class OpportunityManagement {
 				int resultCd = res.getStatusLine().getStatusCode();
 				if (resultCd == 200){
                        String json_string = EntityUtils.toString(res.getEntity(),"UTF-8");
-                       logger.info("offset : "+ offset);
+                       logger.debug("offset : "+ offset);
 //                     logger.info("json_string : "+json_string);
  
                        JSONParser parser = new JSONParser();
@@ -387,10 +471,10 @@ public class OpportunityManagement {
                        }       
                        
                        hasMore = (boolean) jsonObj.get("hasMore");
-                       logger.info(">> hasMore :" + hasMore);
+                       logger.debug(">> hasMore :" + hasMore);
                        
                        long count = (long) jsonObj.get("count");
-                       logger.info(">> Opportunity count 수 :" + count);
+                       logger.debug(">> Opportunity count 수 :" + count);
                        
                        if (hasMore){
                                offset = offset + count;
@@ -410,6 +494,68 @@ public class OpportunityManagement {
         
         return tgtMap;
 		
+	}
+	
+	/**
+	 * 삭제건 확인을 위한 delYn update
+	 * */
+	public int updateOpptyDelYN(List<OpportunityVO> opportunityList) throws Exception
+	{
+		logger.info("Strat InterFace SC_Opportunity delFalg Update");
+		int update_result = 0;
+		int insert_result  = 0;
+		int sc_update_result   = 0;
+		int delete_result      = 0;
+		int splitSize          = 1000;	// partition 나누기
+		
+		Map<String,String> dateMap = new HashMap<String,String>();
+		dateMap.put("fromDt", fromDt);
+		dateMap.put("todayDt", todayDt);
+		
+		update_result = session.update("interface.updateOpptyDelY", dateMap);
+		if(update_result > 0){
+			session.commit();
+		}
+		
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<OpportunityVO>> subList = new ArrayList<List<OpportunityVO>>();		// list를 나누기 위한 temp
+		
+		delete_result = session.delete("interface.deleteOpptyDelChkTemp");
+		if(delete_result != 0) {
+			session.commit();
+		}
+		
+		if(opportunityList.size() > splitSize) {
+			subList = Lists.partition(opportunityList, splitSize);
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				insert_result = session.update("interface.insertOpptyDelChkTemp", batchMap);		// addbatch
+			}
+		}
+		else {
+			batchMap.put("list", opportunityList);
+			try{
+				insert_result = session.update("interface.insertOpptyDelChkTemp", batchMap);
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			
+		}
+		logger.info("tmp_insert_result : " +insert_result);
+		if(insert_result > 0) {
+			sc_update_result = session.update("interface.updateOpptyDelN");
+
+			if(sc_update_result != 0) {
+				session.commit();
+			}
+		}
+		else {
+			logger.info("Tmp Table Data not exist");
+		}
+		
+		logger.info("End InterFace SC_Opportunity delFalg Update");
+		return sc_update_result;
 	}
 	
 	public int insertOpportunity(List<OpportunityVO> opportunityList) throws Exception

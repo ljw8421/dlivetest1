@@ -40,15 +40,17 @@ public class LeadManagement {
 	CommonUtil commonUtil;
 	
 	private String batchJobId;
-	private String paramDt, todayDt, betweenDt;
+	private String fromDt, paramDt, todayDt, betweenMt, betweenDt;
 	
 	private static Logger logger = Logger.getLogger(LeadManagement.class);
 	
 	public LeadManagement(SqlSession session, Map<String, String> map) {
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
+		this.fromDt     = map.get("fromDt");
 		this.paramDt    = map.get("paramDt");
 		this.todayDt    = map.get("todayDt");
+		this.betweenMt  = fromDt+","+todayDt;
 		this.betweenDt  = paramDt+","+todayDt;
 	}
 	
@@ -81,6 +83,91 @@ public class LeadManagement {
 		logger.info("End SalesLeadManagement initialize");
 	}
 	
+	public List<LeadVO> getLeadId() throws Exception 
+	{
+		logger.info("Start SalesCloud GetLeadId");
+		
+		String items[] = {
+							   "LeadId"
+						 };
+
+		String itemAttribute[] = {
+				"LastUpdateDate"
+			 };
+
+		String itemValue[] = {
+				betweenMt
+				 };
+		
+		boolean upperCaseCompare[] = {
+							true
+						 };
+		
+		String operator[] = {
+					"BETWEEN"
+				};
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		List<Map<String, Object>> filterList = null;
+		
+		commonUtil = new CommonUtil();
+		filterList = commonUtil.addFilterList(itemAttribute,itemValue,upperCaseCompare,operator);
+		
+		int pageNum = 1;
+		int pageSize = 500;
+		int resultSize = 0;
+		
+		FindCriteria findCriteria = null;
+		FindControl findControl = new FindControl();
+		
+		List<MklLead> salesLeadResult = null;
+		List<LeadVO> tgtList = new ArrayList<LeadVO>();
+		List<Long> checkList = new ArrayList<Long>();
+		
+		do
+		{
+			findCriteria = null;
+			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
+			
+			salesLeadResult = salesLeadService.findSalesLead(findCriteria, findControl);
+			resultSize= salesLeadResult.size();
+			
+			for (int i = 0; i < salesLeadResult.size(); i++) 
+			{
+				LeadVO leadVo = new LeadVO();
+				MklLead lead = (MklLead) salesLeadResult.get(i);
+				
+				if(!checkList.contains(lead.getLeadId()))
+				{
+					checkList.add(lead.getLeadId());
+					
+					String leadId  = lead.getLeadId().toString();
+					
+					
+					logger.debug("#["+i+"]");
+					logger.debug("Lead leadId                   : " + leadId);          
+					
+					leadVo.setLeadId(leadId);
+					
+					tgtList.add(leadVo);
+				}
+				else {
+					logger.debug("LeadId Exist : " + lead.getLeadId());
+				}
+				
+				
+			}
+
+			pageNum++;
+		}
+		while(resultSize == pageSize);
+		
+		logger.info("End SalesCloud GetLeadId");
+		
+		return tgtList;
+	}
+	
 	// Sales Cloud Lead Select 
 	public List<LeadVO> getAllLead() throws Exception 
 	{
@@ -103,6 +190,7 @@ public class LeadManagement {
 
 		String itemValue[] = {
 						betweenDt
+//				betweenMt
 				 };
 		
 		boolean upperCaseCompare[] = {
@@ -379,7 +467,7 @@ public class LeadManagement {
 					tgtList.add(leadVo);
 				}
 				else {
-					logger.info("LeadId Exist : " + lead.getLeadId());
+					logger.debug("LeadId Exist : " + lead.getLeadId());
 				}
 				
 				
@@ -394,6 +482,62 @@ public class LeadManagement {
 		return tgtList;
 	}
 	
+	/**
+	 * 삭제건 확인을 위한 delYn update
+	 * */
+	public int updateLeadDelYN(List<LeadVO> leadList) throws Exception 
+	{
+		logger.info("Strat InterFace SC_Lead delFalg Update");
+		int update_result = 0;
+		int insert_result  = 0;
+		int sc_update_result   = 0;
+		int delete_result      = 0;
+		int splitSize          = 1000;	// partition 나누기
+		
+		Map<String,String> dateMap = new HashMap<String,String>();
+		dateMap.put("fromDt", fromDt);
+		dateMap.put("todayDt", todayDt);
+		
+		update_result = session.update("interface.updateLeadDelY", dateMap);
+		if(update_result > 0){
+			session.commit();
+		}
+		
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<LeadVO>> subList = new ArrayList<List<LeadVO>>();		// list를 나누기 위한 temp
+		
+		delete_result = session.delete("interface.deleteLeadDelChkTemp");
+		if(delete_result != 0) {
+			session.commit();
+		}
+		
+		if(leadList.size() > splitSize) {
+			subList = Lists.partition(leadList, splitSize);
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				insert_result = session.update("interface.insertLeadDelChkTemp", batchMap);		// addbatch
+			}
+		}
+		else {
+			batchMap.put("list", leadList);
+			insert_result = session.update("interface.insertLeadDelChkTemp", batchMap);
+		}
+		
+		if(insert_result != 0) {
+			sc_update_result = session.update("interface.updateLeadDelN");
+
+			if(sc_update_result != 0) {
+				session.commit();
+			}
+		}
+		else {
+			logger.info("Tmp Table Data not exist");
+		}
+
+		logger.info("End InterFace SC_Lead delFalg Update");
+		return sc_update_result;
+	}
 	
 	//리소스 my-sql DB 저장
 	public int insertLead(List<LeadVO> leadList) throws Exception 

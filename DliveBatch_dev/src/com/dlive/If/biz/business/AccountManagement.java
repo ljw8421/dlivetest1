@@ -38,7 +38,7 @@ public class AccountManagement {
 	CommonUtil commonUtil;
 	
 	private String batchJobId;
-	private String paramDt, todayDt, betweenDt;
+	private String fromDt, paramDt, todayDt, betweenMt, betweenDt;
 	
 	private static Logger logger = Logger.getLogger(AccountManagement.class);
 	
@@ -47,8 +47,10 @@ public class AccountManagement {
 		
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
+		this.fromDt     = map.get("fromDt");
 		this.paramDt    = map.get("paramDt");
 		this.todayDt    = map.get("todayDt");
+		this.betweenMt  = fromDt+","+todayDt;
 		this.betweenDt  = paramDt+","+todayDt;
 	}
 
@@ -76,6 +78,91 @@ public class AccountManagement {
 		reqContext.put(BindingProvider.PASSWORD_PROPERTY, password);
 		
 		logger.info("End AccountManagement initialize");
+	}
+	
+	public List<AccountVO> getPartyId() throws Exception 
+	{
+		logger.info("Start SalesCloud AccountManagement getPartyId List");
+		
+		/* Find Page Size  */
+		int pageNum = 1;
+		int pageSize = 500;
+		int resultSize = 0;
+		
+		String items[] = {
+							"PartyId"
+						  };
+		
+		String itemAttribute[] = {
+						"LastUpdateDate"
+					 };
+		
+		String itemValue[] = {
+				betweenMt
+				 	 };
+		
+		boolean upperCaseCompare[] = {
+						true
+					 };
+		
+		String operator[] = {
+						"BETWEEN"
+					 };
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		List<Map<String, Object>> filterList = null;
+		filterList = commonUtil.addFilterList(itemAttribute, itemValue, upperCaseCompare,operator);
+		
+		DataObjectResult accountResult = null;
+		
+		List<Object>  accountList = null;
+		List<AccountVO> tgtList = new ArrayList<AccountVO>();
+		List<Long> checkList    = new ArrayList<Long>();
+		
+		AccountVO avo = null;
+		
+		do
+		{
+			FindCriteria findCriteria = null;
+			FindControl  findControl  = new FindControl();
+			
+			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
+
+			accountResult = accountService.findAccount(findCriteria, findControl);
+			accountList = accountResult.getValue();
+			resultSize= accountList.size();
+			
+			for (int i=0; i<accountList.size(); i++) 
+			{
+				avo = new AccountVO();
+				Account account = (Account)(accountList).get(i);
+				
+				if(!checkList.contains(account.getPartyId()))
+				{
+					checkList.add(account.getPartyId());
+					
+					String partyId                          = account.getPartyId().toString();
+					
+					avo.setPartyId(partyId);
+					
+					logger.debug("#["+i+"]==========================================================");
+					logger.debug("Account partyId                    : " + partyId);
+					
+					tgtList.add(avo);
+				}
+				else {
+					logger.debug("PartyId Exist : " + account.getPartyId());
+				}
+			}
+			
+			pageNum++;
+		}
+		while(resultSize == pageSize);
+		
+		logger.info("End SalesCloud AccountManagement getPartyId List");
+		
+		return tgtList;
 	}
 	
 	//거래처 List
@@ -109,6 +196,7 @@ public class AccountManagement {
 		
 		String itemValue[] = {
 						betweenDt
+//				betweenMt
 				 	 };
 		
 		boolean upperCaseCompare[] = {
@@ -126,7 +214,7 @@ public class AccountManagement {
 		
 		DataObjectResult accountResult = null;
 		
-		List  accountList = null;
+		List<Object>  accountList = null;
 		List<AccountVO> tgtList = new ArrayList<AccountVO>();
 		List<Long> checkList    = new ArrayList<Long>();
 		
@@ -444,6 +532,66 @@ public class AccountManagement {
 		logger.info("End SalesCloud AccountManagement getAllAccount List");
 		
 		return tgtList;
+	}
+	
+	/**
+	 * 삭제건 확인을 위한 delYn update
+	 * */
+	public int updateAccountDelChk(List<AccountVO> accountList) throws Exception
+	{
+		logger.info("Start InterFace SC_Account delFalg Update");
+		int insert_result  = 0;
+		int update_result = 0;
+		int sc_update_result   = 0;
+		int delete_result      = 0;
+		int splitSize          = 1000;	// partition 나누기
+		
+		Map<String,String> dateMap = new HashMap<String,String>();
+		dateMap.put("fromDt", fromDt);
+		dateMap.put("todayDt", todayDt);
+		
+		update_result = session.update("interface.updateAccountDelY", dateMap);
+		if(update_result > 0){
+			session.commit();
+		}
+		
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<AccountVO>> subList = new ArrayList<List<AccountVO>>();		// list를 나누기 위한 temp
+		
+		delete_result = session.delete("interface.deleteAccountDelChkTemp");
+		if(delete_result != 0) {
+			logger.debug("delete : " + delete_result);
+			session.commit();
+		}
+		
+		if(accountList.size() > splitSize) 
+		{
+			subList = Lists.partition(accountList, splitSize);
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				insert_result = session.update("interface.insertAccountDelChkTemp", batchMap);		// addbatch
+			}
+		}
+		else {
+			batchMap.put("list", accountList);
+			insert_result = session.update("interface.insertAccountDelChkTemp", batchMap);
+		}
+		
+		if(insert_result != 0) 
+		{
+			sc_update_result = session.update("interface.updateAccountDelN");
+
+			if(sc_update_result != 0) {
+				session.commit();
+			}
+		}
+		else {
+			logger.info("Insert Data not exist");
+		}
+		logger.info("End InterFace SC_Account delFalg Update");
+		
+		return sc_update_result;
 	}
 	
 	public int insertAccount(List<AccountVO> accountList) throws Exception

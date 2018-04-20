@@ -38,6 +38,38 @@
 		TRUNCATE TABLE TMP_RESOURCES
 	</delete>
 
+	<delete id="deleteResourcesDelChkTemp">
+		TRUNCATE TABLE TMP_RESOURCES_DELCHK
+	</delete>
+	
+	<update id="updateResourceDelY" parameterType="java.util.Map">
+		UPDATE  SC_RESOURCES
+		   SET  DELYN      = 'Y'
+	</update>
+	
+	<!-- Resources Del Temp Table Insert -->
+	<update id="insertResourcesDelChkTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_RESOURCES_DELCHK
+		(
+			  RESOURCEPROFILEID
+		)
+		VALUES
+		<foreach item="resources" index="index" collection="list" open="" separator="," close="">
+		(
+			  #{resources.resourceProfileId}
+		)
+		</foreach>
+	</update>
+	
+	<update id="updateResourcesDelN" parameterType="java.util.Map">
+		MERGE INTO SC_RESOURCES A
+		USING TMP_RESOURCES_DELCHK B
+		ON (A.RESOURCEPROFILEID = B.RESOURCEPROFILEID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.DELYN                   = 'N'                  
+		;
+	</update>
 	<!-- Resources Temp Table Insert -->
 	<update id="insertResoucesTemp" parameterType="java.util.Map">
 		INSERT INTO TMP_RESOURCES
@@ -90,6 +122,7 @@
 			    , A.ORGANIZATIONS     = B.ORGANIZATIONS  
 			    , A.WORKDATE          = getDate()
 			    , A.BATCHJOBID        = B.BATCHJOBID
+			    , A.DELYN             = 'N'
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -105,6 +138,7 @@
 				, ORGANIZATIONS
 				, WORKDATE
 				, BATCHJOBID
+				, DELYN
 			)
 			VALUES
 			(
@@ -120,6 +154,7 @@
 				, B.ORGANIZATIONS
 				, getDate()
 				, B.BatchJobId
+				, 'N'
 			);
 	</update>
 	
@@ -140,6 +175,40 @@
 	<delete id="deleteTransAccountTemp">
 		TRUNCATE TABLE TMP_TRNS_ACCOUNT
 	</delete>
+	
+	<delete id="deleteAccountDelChkTemp">
+		TRUNCATE TABLE TMP_ACCOUNT_DELCHK
+	</delete>
+	
+	<update id="updateAccountDelY" parameterType="java.util.Map">
+		UPDATE  SC_ACCOUNT
+		   SET  DELYN      = 'Y'
+		 WHERE  CREATIONDATE BETWEEN #{fromDt} AND #{todayDt} 
+	</update>
+	
+	<!-- Account Del Temp Table Insert -->
+	<update id="insertAccountDelChkTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_ACCOUNT_DELCHK
+		(
+			  PARTYID
+		)
+		VALUES
+		<foreach item="account" index="index" collection="list" open="" separator="," close="">
+		(
+			   #{account.partyId}
+		)
+		</foreach>
+	</update>
+	
+	<update id="updateAccountDelN" parameterType="java.util.Map">
+		MERGE INTO SC_ACCOUNT A
+		USING TMP_ACCOUNT_DELCHK B
+		ON (A.PARTYID = B.PARTYID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.DELYN                   = 'N'                  
+		;
+	</update>
 
 	<select id="selectStgAccountDateGroup" resultType="java.util.Map">
 		SELECT 
@@ -318,6 +387,7 @@
 				, A.WORKDATE            			= GETDATE()
 				, A.TRNSYN            			    = 'N'  
 				, A.BATCHJOBID                      = B.BATCHJOBID
+				, A.DELYN                           = 'N'
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -371,7 +441,8 @@
 				, BRANCHNM_C       
 				, WORKDATE
 				, TRNSYN
-				, BATCHJOBID 
+				, BATCHJOBID
+				, DELYN
 			)
 			VALUES
 			(
@@ -426,6 +497,7 @@
 				, GETDATE()
 				, 'N'
 				, B.BatchJobId
+				, 'N'
 			);
 	</update>
 	
@@ -585,6 +657,40 @@
 		TRUNCATE TABLE TMP_OPPORTUNITYLEAD
 	</delete>
 	
+	<delete id="deleteOpptyDelChkTemp">
+		TRUNCATE TABLE TMP_OPPORTUNITY_DELCHK
+	</delete>
+	
+	<update id="updateOpptyDelY" parameterType="java.util.Map">
+		UPDATE  SC_OPPORTUNITY
+		   SET  DELYN      = 'Y'
+		 WHERE  CREATIONDATE BETWEEN #{fromDt} AND #{todayDt} 
+	</update>
+	
+	<!-- Opportunity Del Temp Table Insert -->
+	<update id="insertOpptyDelChkTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_OPPORTUNITY_DELCHK
+		(
+			  OPTYID
+		)
+		VALUES
+		<foreach item="opportunity" index="index" collection="list" open="" separator="," close="">
+		(
+			  #{opportunity.optyId}
+		)
+		</foreach>
+	</update>
+	
+	<update id="updateOpptyDelN" parameterType="java.util.Map">
+		MERGE INTO SC_OPPORTUNITY A
+		USING TMP_OPPORTUNITY_DELCHK B
+		ON (A.OPTYID = B.OPTYID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.DELYN                   = 'N'                  
+		;
+	</update>
+	
 	<!-- Opportunity Temp Table Insert -->
 	<update id="insertOpportunityTemp" parameterType="java.util.Map">
 		INSERT INTO TMP_OPPORTUNITY
@@ -743,6 +849,7 @@
 				, A.WORKDATE            	= GETDATE()
 				, A.TRNSYN            		= 'N'
 				, A.BATCHJOBID              = B.BATCHJOBID
+				, A.DELYN                   = 'N'
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -794,6 +901,7 @@
 				, WORKDATE
 				, TRNSYN
 				, BATCHJOBID
+				, DELYN
 			)
 			VALUES
 			(
@@ -844,7 +952,8 @@
 				, B.LASTUPDATEDBY  
 				, GETDATE()
 				, 'N'    
-				, B.BATCHJOBID        
+				, B.BATCHJOBID   
+				, 'N'     
 			);
 	</update>
 	
@@ -902,28 +1011,37 @@
 		TRUNCATE TABLE TMP_ACTIVITY
 	</delete>
 	
+	<delete id="deleteActivityDelChkTemp">
+		TRUNCATE TABLE TMP_ACTIVITY_DELCHK
+	</delete>
+	
 	<update id="updateActivityDelY" parameterType="java.util.Map">
 		UPDATE  SC_ACTIVITY
 		   SET  DELYN      = 'Y'
-		      , BATCHJOBID = #{batchJobId}
-		      , WORKDATE   = CONVERT(DATETIME,GETDATE(),120)
 		 WHERE  CREATIONDATE BETWEEN #{fromDt} AND #{todayDt} 
+	</update>
+	
+	<!-- Activity Del Temp Table Insert -->
+	<update id="insertActivityDelChkTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_ACTIVITY_DELCHK
+		(
+			  ACTIVITYID
+		)
+		VALUES
+		<foreach item="activity" index="index" collection="list" open="" separator="," close="">
+		(
+			  #{activity.activityId}
+		)
+		</foreach>
 	</update>
 	
 	<update id="updateActivityDelN" parameterType="java.util.Map">
 		MERGE INTO SC_ACTIVITY A
-		USING (
-			<foreach item="activity" index="index" collection="list" separator="union all">
-				SELECT   #{activity.activityId} AS ACTIVITYID
-					   , #{activity.batchJobId} AS BATCHJOBID
-			</foreach>
-			 )B
+		USING TMP_ACTIVITY_DELCHK B
 		ON (A.ACTIVITYID = B.ACTIVITYID)
 		WHEN MATCHED THEN
 			UPDATE SET
-				, A.DELYN                   = 'N'                  
-				, A.WORKDATE            	= GETDATE()
-				, A.BATCHJOBID              = B.BATCHJOBID
+				  A.DELYN                   = 'N'                  
 		;
 	</update>
 
@@ -1117,6 +1235,40 @@
 	<delete id="deleteLeadTemp">
 	   TRUNCATE TABLE dbo.tmp_lead
 	</delete>
+	
+	<delete id="deleteLeadDelChkTemp">
+		TRUNCATE TABLE TMP_LEAD_DELCHK
+	</delete>
+	
+	<update id="updateLeadDelY" parameterType="java.util.Map">
+		UPDATE  SC_LEAD
+		   SET  DELYN      = 'Y'
+		 WHERE  CREATIONDATE BETWEEN #{fromDt} AND #{todayDt} 
+	</update>
+	
+	<!-- Activity Del Temp Table Insert -->
+	<update id="insertLeadDelChkTemp" parameterType="java.util.Map">
+		INSERT INTO TMP_LEAD_DELCHK
+		(
+			  LEADID
+		)
+		VALUES
+		<foreach item="lead" index="index" collection="list" open="" separator="," close="">
+		(
+			  #{lead.leadId}
+		)
+		</foreach>
+	</update>
+	
+	<update id="updateLeadDelN" parameterType="java.util.Map">
+		MERGE INTO SC_LEAD A
+		USING TMP_LEAD_DELCHK B
+		ON (A.LEADID = B.LEADID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.DELYN                   = 'N'                  
+		;
+	</update>
 		
 	<!-- Lead Integration Temp Insert -->
 	<update id="insertLeadTemp" parameterType="java.util.Map">
@@ -1188,6 +1340,7 @@
 				, A.leadSourceType_c         = B.leadSourceType_c  
 				, A.WORKDATE                 = CONVERT(DATETIME,GETDATE(),120)    
 				, A.BATCHJOBID               = B.BATCHJOBID    
+				, A.DELYN                    = 'N'
 	   	WHEN NOT MATCHED THEN
 	      	INSERT
 	      	(
@@ -1199,7 +1352,7 @@
 				, PrimaryContactAddress2, PrimaryContactPostalCode, RetiredDateTime, ConvertedTimestamp
 				, DeleteFlag, BranchNameF_c, BranchCodeF_c, LeadBranch_c
 				, CreationDate, CreatedBy, LastUpdateDate, LastUpdatedBy, leadSourceType_c
-				, WORKDATE, BatchJobId
+				, WORKDATE, BatchJobId , DELYN
 	      	)
 	      	VALUES
 	      	(
@@ -1211,7 +1364,7 @@
 				, B.PrimaryContactAddress2, B.PrimaryContactPostalCode, B.RetiredDateTime, B.ConvertedTimestamp
 				, B.DeleteFlag, B.BranchNameF_c, B.BranchCodeF_c, B.LeadBranch_c
 				, B.CreationDate, B.CreatedBy, B.LastUpdateDate, B.LastUpdatedBy, B.leadSourceType_c
-				, CONVERT(DATETIME,GETDATE(),120), B.BatchJobId 
+				, CONVERT(DATETIME,GETDATE(),120), B.BatchJobId, 'N'
 	     	);
 	</update>
 
@@ -1221,6 +1374,40 @@
 	<delete id="deleteServiceRequestTmp">
 		TRUNCATE TABLE TMP_SR
 	</delete>
+	
+	<delete id="deleteSRDelChkTmp">
+		TRUNCATE TABLE TMP_SR_DELCHK
+	</delete>
+	
+	<update id="updateSRDelY" parameterType="java.util.Map">
+		UPDATE  SC_SR
+		   SET  DELYN      = 'Y'
+		 WHERE  CREATIONDATE BETWEEN #{fromDt} AND #{todayDt} 
+	</update>
+	
+	<!-- Activity Del Temp Table Insert -->
+	<update id="insertSRDelChkTmp" parameterType="java.util.Map">
+		INSERT INTO TMP_SR_DELCHK
+		(
+			  SRID
+		)
+		VALUES
+		<foreach item="serviceRequest" index="index" collection="list" open="" separator="," close="">
+		(
+			  #{serviceRequest.SrId}
+		)
+		</foreach>
+	</update>
+	
+	<update id="updateSRDelN" parameterType="java.util.Map">
+		MERGE INTO SC_SR A
+		USING TMP_SR_DELCHK B
+		ON (A.SRID = B.SRID)
+		WHEN MATCHED THEN
+			UPDATE SET
+				  A.DELYN                   = 'N'                  
+		;
+	</update>
 	
 	<!-- SR Insert -->
 	<update id="insertServiceRequestTmp" parameterType="java.util.Map">
@@ -1355,6 +1542,7 @@
 				, A.srConaId_c          	 = B.srConaId_c
 				, A.workdate				 = getDate()
 				, A.BATCHJOBID               = B.BATCHJOBID
+				, A.DELYN                    = 'N'
 		WHEN NOT MATCHED THEN
 			INSERT
 			(
@@ -1397,6 +1585,7 @@
 				, srConaId_c
 				, workdate
 				, BatchJobId
+				, DELYN
 			)
 			VALUES
 			(
@@ -1439,6 +1628,7 @@
 				, B.srConaId_c      
 				, getDate()
 				, B.BatchJobId
+				, 'N'
 		);
 	</update>
 	

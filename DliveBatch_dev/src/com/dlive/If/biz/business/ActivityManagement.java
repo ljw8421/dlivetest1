@@ -7,7 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceRef;
@@ -19,9 +18,6 @@ import com.google.common.collect.Lists;
 import com.oracle.xmlns.adf.svc.types.Conjunction;
 import com.oracle.xmlns.adf.svc.types.FindControl;
 import com.oracle.xmlns.adf.svc.types.FindCriteria;
-import com.oracle.xmlns.adf.svc.types.ViewCriteria;
-import com.oracle.xmlns.adf.svc.types.ViewCriteriaItem;
-import com.oracle.xmlns.adf.svc.types.ViewCriteriaRow;
 import com.oracle.xmlns.apps.crmcommon.activities.activitymanagementservice.Activity;
 import com.oracle.xmlns.apps.crmcommon.activities.activitymanagementservice.ActivityService;
 import com.oracle.xmlns.apps.crmcommon.activities.activitymanagementservice.ActivityService_Service;
@@ -151,12 +147,11 @@ public class ActivityManagement {
 					logger.debug("Activity activityId			: " + activityId);
 					
 					rvo.setActivityId(activityId);
-					rvo.setBatchJobId(batchJobId);
 					
 					tgtList.add(rvo);
 				}
 				else {
-					logger.info("ActivityId Exist : " + activity.getActivityId());
+					logger.debug("ActivityId Exist : " + activity.getActivityId());
 				}
 				
 			}
@@ -190,6 +185,7 @@ public class ActivityManagement {
 
 		String itemValue[] = {
 								betweenDt
+//				betweenMt
 							 };
 		
 		boolean upperCaseCompare[] = {
@@ -395,7 +391,7 @@ public class ActivityManagement {
 					tgtList.add(rvo);
 				}
 				else {
-					logger.info("ActivityId Exist : " + activity.getActivityId());
+					logger.debug("ActivityId Exist : " + activity.getActivityId());
 				}
 				
 			}
@@ -414,7 +410,7 @@ public class ActivityManagement {
 	public int updateActDelYN(List<ActivityVO> activityIdList) throws Exception
 	{
 		logger.info("Strat InterFace SC_Activity delFalg Update");
-		int splitSize     = 500;
+		int splitSize     = 1000;
 		int update_result = 0;
 		int delete_result      = 0;
 		int insert_result = 0;
@@ -423,7 +419,6 @@ public class ActivityManagement {
 		Map<String,String> dateMap = new HashMap<String,String>();
 		dateMap.put("fromDt", fromDt);
 		dateMap.put("todayDt", todayDt);
-		dateMap.put("batchJobId", batchJobId);
 		
 		update_result = session.update("interface.updateActivityDelY", dateMap);
 		if(update_result > 0){
@@ -433,7 +428,7 @@ public class ActivityManagement {
 		Map<String, Object> batchMap = new HashMap<String, Object>();
 		List<List<ActivityVO>> subList = new ArrayList<List<ActivityVO>>();		// list를 나누기 위한 temp
 		
-		delete_result = session.delete("interface.deleteActivityTemp");
+		delete_result = session.delete("interface.deleteActivityDelChkTemp");
 		if(delete_result != 0) {
 			session.commit();
 		}
@@ -443,23 +438,23 @@ public class ActivityManagement {
 			
 			for(int i=0; i<subList.size(); i++) {
 				batchMap.put("list", subList.get(i));
-				insert_result = session.update("interface.insertActivityDelNTemp", batchMap);		// addbatch
+				insert_result = session.update("interface.insertActivityDelChkTemp", batchMap);		// addbatch
 			}
 		}
 		else {
 			batchMap.put("list", activityIdList);
-			insert_result = session.update("interface.insertActivityDelNTemp", batchMap);
+			insert_result = session.update("interface.insertActivityDelChkTemp", batchMap);
 		}
 		
 		if(insert_result > 0) {
-			sc_update_result = session.update("interface.insertActivity");
+			sc_update_result = session.update("interface.updateActivityDelN");
 	
 			if(sc_update_result > 0) {
 				session.commit();
 			}
 		}
 		else {
-			logger.info("Temp Table Insert ERROR");
+			logger.info("Actvity Data is Nothing");
 		}
 		logger.info("End InterFace SC_Activity delFalg Update");
 		return sc_update_result;

@@ -1,7 +1,6 @@
 package com.dlive.If.biz.business;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -10,14 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 
 import au.com.bytecode.opencsv.CSVWriter;
 
 public class CreateCsvFile {
-	
-	private static SqlSession mysession;
 	
 	private static Logger logger = Logger.getLogger(CreateCsvFile.class);
 	

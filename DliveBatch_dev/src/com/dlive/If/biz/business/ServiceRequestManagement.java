@@ -37,7 +37,7 @@ public class ServiceRequestManagement {
 	CommonUtil commonUtil;
 	
 	private String batchJobId;
-	private String paramDt, todayDt, betweenDt;
+	private String fromDt, paramDt, todayDt, betweenMt, betweenDt;
 	
 	private static Logger logger = Logger.getLogger(ServiceRequestManagement.class);
 	
@@ -46,8 +46,10 @@ public class ServiceRequestManagement {
 		
 		this.session 	= session;
 		this.batchJobId = map.get("batchJobId");
+		this.fromDt     = map.get("fromDt");
 		this.paramDt    = map.get("paramDt");
 		this.todayDt    = map.get("todayDt");
+		this.betweenMt  = fromDt+","+todayDt;
 		this.betweenDt  = paramDt+","+todayDt;
 	}
 	
@@ -80,6 +82,74 @@ public class ServiceRequestManagement {
 		logger.info("End serviceRequestService initialize");
 	}
 	
+	public List<SrVO> getSrId() throws Exception 
+	{
+		logger.info("Start SalesCloud GetServiceRequestId");
+		
+		List<Map<String, Object>> filterList    = null;
+		List<ServiceRequest> serviceRequestList = null;
+		
+		String items[] = {
+								  "SrId"
+						 };
+		// key : ID
+		String itemAttribute[] = { "LastUpdateDate" };
+		String itemValue[] = { betweenMt };
+		String operator[] = { "BETWEEN" };
+		
+		boolean upperCaseCompare[] = { true };
+		
+		/* Find Page Size  */
+		int pageNum = 1;		// Start Size
+		int pageSize = 500;		// Fatch Size
+		int resultSize = 0;		// Find List Size
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		filterList = commonUtil.addFilterList(itemAttribute,itemValue,upperCaseCompare,operator);
+		
+		List<SrVO> tgtList   = new ArrayList<SrVO>();
+		List<Long> checkList = new ArrayList<Long>();
+		
+		SrVO srvo = null;
+		
+		do
+		{
+			FindCriteria findCriteria = null;	
+			FindControl findControl = new FindControl();
+			
+			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
+			serviceRequestList = serviceRequestService.findServiceRequest(findCriteria, findControl);
+			resultSize = serviceRequestList.size();
+			
+			for (int i = 0; i < serviceRequestList.size(); i++) 
+			{
+				ServiceRequest serviceRequest = serviceRequestList.get(i);
+				
+				if(!checkList.contains(serviceRequest.getSrId()))
+				{
+					srvo = new SrVO();
+					
+					checkList.add(serviceRequest.getSrId());
+					
+					Long SrId = null;
+					if (serviceRequest.getSrId() != null) {
+						SrId = serviceRequest.getSrId();
+					}
+					
+					srvo.setSrId(SrId);
+					
+					tgtList.add(srvo);
+				}
+			}
+			pageNum++;
+		}
+		while(resultSize == pageSize);
+		
+		logger.info("End SalesCloud GetServiceRequestId");
+		
+		return tgtList;
+	}
 	// SalesCloud -> 값 내리기
 	public List<SrVO> getAllServiceRequestService() throws Exception 
 	{
@@ -100,7 +170,10 @@ public class ServiceRequestManagement {
 						 };
 		// key : ID
 		String itemAttribute[] = { "LastUpdateDate" };
-		String itemValue[] = { betweenDt };
+		String itemValue[] = { 
+				betweenDt
+//				betweenMt
+				};
 		String operator[] = { "BETWEEN" };
 		
 		boolean upperCaseCompare[] = { true };
@@ -371,12 +444,78 @@ public class ServiceRequestManagement {
 				
 				}
 			}
+			pageNum++;
 		}
 		while(resultSize == pageSize);
 		
 		logger.info("End SalesCloud GetAllServiceRequest");
 		
 		return tgtList;
+	}
+	
+	/**
+	 * 삭제건 확인을 위한 delYn update
+	 * */
+	public int updateSRDelYN(List<SrVO> ServiceRequestList) throws Exception 
+	{
+		logger.info("Strat InterFace SC_SR delFalg Update");
+		int splitSize      = 1000;	// partition 나누기
+		int update_result = 0;
+		int delete_result      = 0;
+		int insert_result = 0;
+		int sc_update_result = 0;
+		
+		Map<String,String> dateMap = new HashMap<String,String>();
+		dateMap.put("fromDt", fromDt);
+		dateMap.put("todayDt", todayDt);
+		
+		update_result = session.update("interface.updateSRDelY", dateMap);
+		if(update_result > 0){
+			session.commit();
+		}
+		
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<SrVO>> subList = new ArrayList<List<SrVO>>();		// list를 나누기 위한 temp
+		
+		delete_result = session.delete("interface.deleteSRDelChkTmp");
+		if(delete_result != 0) {
+			session.commit();
+		}
+		
+		if(ServiceRequestList.size() > splitSize) 
+		{
+			subList = Lists.partition(ServiceRequestList, splitSize);
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				insert_result = session.update("interface.insertSRDelChkTmp", batchMap);		// addbatch
+			}
+		}
+		else 
+		{
+			logger.info("Interface insert tmp_sr");
+			batchMap.put("list", ServiceRequestList);
+			insert_result = session.update("interface.insertSRDelChkTmp", batchMap);
+		}
+		
+		if(insert_result != 0) 
+		{
+			logger.info("Interface merge sc_sr");
+			sc_update_result = session.update("interface.updateSRDelN");		// sc table insert
+			
+			if(sc_update_result != 0) {
+				session.commit();
+				logger.info("commit success");
+			}
+		}
+		else 
+		{
+			logger.info("Tmp Table Data not exist");
+		}
+		
+		logger.info("End InterFace SC_SR delFalg Update");
+		
+		return sc_update_result;
 	}
 
 	//Service Request ms-sql DB 저장

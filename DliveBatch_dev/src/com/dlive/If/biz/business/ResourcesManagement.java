@@ -12,21 +12,17 @@ import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceRef;
 
 import org.apache.ibatis.session.SqlSession;
+import org.apache.log4j.Logger;
 
 import com.google.common.collect.Lists;
 import com.oracle.xmlns.adf.svc.types.Conjunction;
 import com.oracle.xmlns.adf.svc.types.FindControl;
 import com.oracle.xmlns.adf.svc.types.FindCriteria;
-import com.oracle.xmlns.adf.svc.types.ViewCriteria;
-import com.oracle.xmlns.adf.svc.types.ViewCriteriaItem;
-import com.oracle.xmlns.adf.svc.types.ViewCriteriaRow;
 import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.Resource;
 import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.applicationmodule.ResourceService;
 import com.oracle.xmlns.apps.cdm.foundation.resources.resourceservicev2.applicationmodule.ResourceService_Service;
 
 import util.CommonUtil;
-
-import org.apache.log4j.Logger;
 import vo.ResourcesVO;
 import weblogic.wsee.jws.jaxws.owsm.SecurityPoliciesFeature;
 
@@ -84,7 +80,77 @@ public class ResourcesManagement {
 		
 		logger.info("End ResourcesManagement initialize");
 	}
-	
+	public List<ResourcesVO> getResourceProfileId() throws Exception 
+	{
+		logger.info("Start SalesCloud GetResourceProfileId");
+		
+		List<Map<String, Object>> filterList = null;
+		List<Resource> resourceList = null;
+		
+		String items[] = {
+								"ResourceProfileId"
+						 };
+		String itemAttribute[] = { };
+		String itemValue[] = { };
+		String operator[] = { };
+		
+		boolean upperCaseCompare[] = { true };
+		
+		/* Find Page Size  */
+		int pageNum = 1;		// Start Size
+		int pageSize = 500;		// Fatch Size
+		int resultSize = 0;		// Find List Size
+		
+		Conjunction conjunction =  Conjunction.AND;
+		
+		/* Filter Set */
+		filterList = commonUtil.addFilterList(itemAttribute, itemValue, upperCaseCompare, operator);
+		
+		List<ResourcesVO> tgtList = new ArrayList<ResourcesVO>();
+		List<Long> checkList      = new ArrayList<Long>();
+		
+		ResourcesVO rvo = null;
+
+		do 
+		{
+			FindCriteria findCriteria = null;
+			FindControl  findControl  = new FindControl();
+			
+			findCriteria = commonUtil.getCriteria(filterList, conjunction, items, pageNum, pageSize);
+			resourceList = resourceService.findResource(findCriteria, findControl).getValue();
+			resultSize = resourceList.size();
+			
+			for (int i = 0; i < resourceList.size(); i++)
+			{
+				Resource resource = (Resource)(resourceList).get(i);
+				
+				if(!checkList.contains(resource.getResourceProfileId()))
+				{
+					rvo = new ResourcesVO();
+					
+					checkList.add(resource.getResourceProfileId());
+					
+					String resourceProfileId = resource.getResourceProfileId().toString();
+					
+					logger.debug("#["+i+"]");
+					logger.debug("Resource ResourceProfileId   : " + resourceProfileId);
+					
+					rvo.setResourceProfileId(resourceProfileId);
+					
+					tgtList.add(rvo);
+				}
+				else {
+					logger.info("ResourceProfileId : " + resource.getResourceProfileId());
+				}
+			}
+		} 
+		while(resultSize == pageSize);
+		
+		
+		logger.info("End SalesCloud GetResourceProfileId");
+		
+		return tgtList;
+	}	
 	// 리소스 조회
 	public List<ResourcesVO> getAllResource() throws Exception 
 	{
@@ -100,6 +166,9 @@ public class ResourcesManagement {
 		String itemAttribute[] = { "LastUpdateDate" };
 		String itemValue[] = { betweenDt };
 		String operator[] = { "BETWEEN" };
+//		String itemAttribute[] = {  };
+//		String itemValue[] = {  };
+//		String operator[] = {  };
 		
 		boolean upperCaseCompare[] = { true };
 		
@@ -187,7 +256,7 @@ public class ResourcesManagement {
 					tgtList.add(rvo);
 				}
 				else {
-					logger.info("ResourceProfileId : " + resource.getResourceProfileId());
+					logger.debug("ResourceProfileId : " + resource.getResourceProfileId());
 				}
 			}
 		} 
@@ -199,6 +268,60 @@ public class ResourcesManagement {
 		return tgtList;
 	}	
 	
+	/**
+	 * 삭제건 확인을 위한 delYn update
+	 * */
+	public int updateResourceDelYN(List<ResourcesVO> resourcesIdList) throws Exception 
+	{
+		logger.info("Strat InterFace SC_Resource delFalg Update");
+		int insert_result  = 0;
+		int update_result   = 0;
+		int sc_update_result   = 0;
+		int delete_result      = 0;
+		int splitSize          = 1000;	// partition 나누기
+		
+		update_result = session.update("interface.updateResourceDelY");
+		if(update_result > 0){
+			session.commit();
+		}
+		
+		Map<String, Object> batchMap = new HashMap<String, Object>();
+		List<List<ResourcesVO>> subList = new ArrayList<List<ResourcesVO>>();		// list를 나누기 위한 temp
+		
+		
+		delete_result = session.delete("interface.deleteResourcesDelChkTemp");
+		if(delete_result != 0) {
+			session.commit();
+		}
+		
+		if(resourcesIdList.size() > splitSize) {
+			subList = Lists.partition(resourcesIdList, splitSize);
+			
+			for(int i=0; i<subList.size(); i++) {
+				batchMap.put("list", subList.get(i));
+				insert_result = session.update("interface.insertResourcesDelChkTemp", batchMap);		// addbatch
+			}
+		}
+		else {
+			batchMap.put("list", resourcesIdList);
+			insert_result = session.update("interface.insertResourcesDelChkTemp", batchMap);
+		}
+		
+		if(insert_result != 0) {
+			sc_update_result = session.update("interface.updateResourcesDelN");
+
+			if(sc_update_result != 0) {
+				session.commit();
+			}
+		}
+		else {
+			logger.info("Resources Data is Nothing");
+		}
+
+		logger.info("End InterFace SC_Resource delFalg Update");
+		return sc_update_result;
+	}
+	
 	//리소스 my-sql DB 저장
 	public int insertResource(List<ResourcesVO> resourcesList) throws Exception 
 	{
@@ -209,7 +332,7 @@ public class ResourcesManagement {
 		int tmp_insert_result  = 0;
 		int sc_insert_result   = 0;
 		int delete_result      = 0;
-		int splitSize          = 150;	// partition 나누기
+		int splitSize          = 100;	// partition 나누기
 		
 		delete_result = session.delete("interface.deleteResourcesTemp");
 		if(delete_result != 0) {
@@ -243,38 +366,6 @@ public class ResourcesManagement {
 
 		return sc_insert_result;
 	}
-	
-	public FindCriteria getCriteria(String itemAttribute, String itemValue, String[] items) throws Exception
-	{
-		FindCriteria findCriteria = new FindCriteria();
-		findCriteria.setFetchStart(0);
-		findCriteria.setFetchSize(-1);
-
-		if (itemValue != null && itemValue != "") 
-		{
-			ViewCriteria filter = new ViewCriteria();
-			ViewCriteriaRow group1 = new ViewCriteriaRow();
-			ViewCriteriaItem item1 = new ViewCriteriaItem();
-
-			item1.setUpperCaseCompare(true);
-			item1.setAttribute(itemAttribute);
-			item1.setOperator("=");
-			item1.getValue().add(itemValue);
-
-			group1.getItem().add(item1);
-			group1.setConjunction(Conjunction.AND);
-
-			filter.getGroup().add(group1);
-			findCriteria.setFilter(filter);
-		}
-
-		for (int i = 0; i < items.length; i++) {
-			findCriteria.getFindAttribute().add(items[i]);
-		}
-
-		return findCriteria;
-	}
-	   
 	
 }
 
