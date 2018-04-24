@@ -80,9 +80,9 @@ public class DliveMain {
 	    	restUrl = sp.getProperty("RestURL");
 	    	
 	    	/* default Date */
-	    	String fromDt  = common.getDateCalc(null,0,-3,0);    // 3개월 전
-            String paramDt = common.getDateCalc(null,0,0,-1);	// 어제 날짜 
-            String todayDt = common.getDateCalc(null,0,0,0);		// 오늘 날짜
+	    	String fromDt;    // 3개월 전
+            String paramDt;	// 어제 날짜 
+            String todayDt;		// 오늘 날짜
 	    	
 	    	/* batchJobId & Log Set */
 	    	batchJobId = mssession.selectOne("interface.getBatchJobId");
@@ -98,19 +98,25 @@ public class DliveMain {
     		}
     		
     		map.put("batchJobId", batchJobId);
-    		map.put("fromDt", fromDt);
-            map.put("paramDt", paramDt);
-            map.put("todayDt", todayDt);
+    		
     		
     		switch(type) 
     		{
     		case "1":
+    			fromDt  = common.getDateCalc(null,0,-3,0);    // 3개월 전
+                paramDt = common.getDateCalc(null,0,0,-1);	// 어제 날짜 
+                todayDt = common.getDateCalc(null,0,0,0);		// 오늘 날짜
+                
+                map.put("fromDt", fromDt);
+                map.put("paramDt", paramDt);
+                map.put("todayDt", todayDt);
+                
     			sel_batch_job(map, workJobArg, logVo);
     			break;
     		case "2":
     			if(!"".equals(args[2])) {
-        			paramDtArg1 = args[2];
-        			logVo.setParamDt(common.getDateCalc(paramDtArg1,0,0,0));
+        			paramDtArg1 = common.getDateCalc(args[2],0,0,0);
+        			logVo.setParamDt(paramDtArg1);
         			map.put("paramDt", paramDtArg1);
         		}
     			
@@ -497,10 +503,11 @@ public class DliveMain {
 		opptyList     = (List<OpportunityVO>) resultMap.get("opptyList");
 		opptyLeadlist = (List<OpptyLeadVO>) resultMap.get("opptyLeadList");
 		logger.info("opptyList.size() : " + opptyList.size());
+		logger.info("opptyList.size() : " + opptyLeadlist.size());
 		if(opptyList.size() > 0 ) {
 			result = opportunity.insertOpportunity(opptyList);
 			
-			if(result != 0) {
+			if(result > 0 && opptyLeadlist.size() > 0) {
 				opportunity.insertOpportunityLead(opptyLeadlist);
 			}
 		}

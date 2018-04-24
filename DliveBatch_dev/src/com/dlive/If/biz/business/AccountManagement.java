@@ -94,7 +94,7 @@ public class AccountManagement {
 						  };
 		
 		String itemAttribute[] = {
-						"LastUpdateDate"
+						"CreationDate"
 					 };
 		
 		String itemValue[] = {

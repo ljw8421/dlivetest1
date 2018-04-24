@@ -71,6 +71,7 @@ public class OpportunityManagement {
 	{
 		logger.info("Start SalesCloud GetOptyId_rest");
 		CloseableHttpClient httpClient = HttpClients.createDefault();
+		logger.info(fromDt);
         
 		CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
 		credentialsProvider.setCredentials(AuthScope.ANY, 
@@ -88,8 +89,8 @@ public class OpportunityManagement {
 		OpportunityVO ovo;
 		
 		do{
-				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D"+fromDt+"%20and%20%3C"+todayDt+""
-						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
+				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=CreationDate%3E%3D"+fromDt+"%20and%20%3C"+todayDt+""
+						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=400&offset="+offset;
 				
 				HttpGet httpget = new HttpGet(resultUrl);               
  
@@ -180,7 +181,7 @@ public class OpportunityManagement {
 		
 		do{
 				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D"+paramDt+"%20and%20%3C"+todayDt+""
-						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
+						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=400&offset="+offset;
 //				String resultUrl = ""+url+"/crmRestApi/resources/11.13.17.11/opportunities?q=LastUpdateDate%3E%3D"+fromDt+"%20and%20%3C"+todayDt+""
 //						+"&fields="+fields+"&onlyData=true&orderBy=OptyId:asc&limit=100&offset="+offset;
 				
@@ -190,7 +191,7 @@ public class OpportunityManagement {
 				HttpGet httpget = new HttpGet(resultUrl);               
  
 				CloseableHttpResponse res = httpClient.execute(httpget);
-				logger.info("Get Opportunities StatusLine:" + res.getStatusLine());
+				logger.debug("Get Opportunities StatusLine:" + res.getStatusLine());
 				int resultCd = res.getStatusLine().getStatusCode();
 				if (resultCd == 200){
                        String json_string = EntityUtils.toString(res.getEntity(),"UTF-8");

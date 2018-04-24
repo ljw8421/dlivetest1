@@ -92,7 +92,7 @@ public class LeadManagement {
 						 };
 
 		String itemAttribute[] = {
-				"LastUpdateDate"
+				"CreationDate"
 			 };
 
 		String itemValue[] = {

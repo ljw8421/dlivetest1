@@ -963,6 +963,7 @@
 		(
 			  OPTYID                       
 			, OPTYLEADID
+			, LEADID
 			, BATCHJOBID
 		)
 		VALUES
@@ -970,6 +971,7 @@
 			(
 				  #{opportunityLead.optyId}
 				, #{opportunityLead.optyLeadId}
+				, #{opportunityLead.leadId}
 				, #{opportunityLead.batchJobId}
 			)
 		</foreach>
@@ -979,10 +981,11 @@
 	<update id="insertOpportunityLead" parameterType="java.util.Map">
 		MERGE INTO SC_OPPORTUNITYLEAD A
 		USING TMP_OPPORTUNITYLEAD B
-		ON (A.OPTYID = B.OPTYID AND A.OPTYLEADID = B.OPTYLEADID)
+		ON (A.OPTYLEADID = B.OPTYLEADID)
 		WHEN MATCHED THEN
 			UPDATE SET
-				  A.OPTYLEADID              = B.OPTYLEADID                  
+				  A.OPTYID                  = B.OPTYID  
+				, A.LEADID                  = B.LEADID                
 				, A.WORKDATE            	= GETDATE()
 				, A.TRNSYN            		= 'N'
 				, A.BATCHJOBID              = B.BATCHJOBID
@@ -990,7 +993,8 @@
 			INSERT
 			(
 				  OPTYID                       
-				, OPTYLEADID                   
+				, OPTYLEADID
+				, LEADID                   
 				, WORKDATE
 				, TRNSYN
 				, BATCHJOBID
@@ -998,7 +1002,8 @@
 			VALUES
 			(
 				  B.OPTYID                       
-				, B.OPTYLEADID                   
+				, B.OPTYLEADID
+				, B.LEADID                   
 				, GETDATE()
 				, 'N'  
 				, B.BATCHJOBID         
@@ -1631,8 +1636,6 @@
 				, 'N'
 		);
 	</update>
-	
-	
 	
 	<!-- stg swap imp table -->
 	<!-- 18.03.22 재욱 -->

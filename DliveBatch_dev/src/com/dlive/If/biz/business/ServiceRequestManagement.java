@@ -93,7 +93,7 @@ public class ServiceRequestManagement {
 								  "SrId"
 						 };
 		// key : ID
-		String itemAttribute[] = { "LastUpdateDate" };
+		String itemAttribute[] = { "CreationDate" };
 		String itemValue[] = { betweenMt };
 		String operator[] = { "BETWEEN" };
 		

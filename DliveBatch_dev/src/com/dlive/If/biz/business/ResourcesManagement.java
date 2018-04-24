@@ -94,7 +94,7 @@ public class ResourcesManagement {
 		String itemValue[] = { };
 		String operator[] = { };
 		
-		boolean upperCaseCompare[] = { true };
+		boolean upperCaseCompare[] = { };
 		
 		/* Find Page Size  */
 		int pageNum = 1;		// Start Size
